@@ -432,6 +432,12 @@
             margin-top: 0.25rem;
         }
 
+        .app-item-date {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 0.2rem;
+        }
+
         .badge {
             display: inline-block;
             padding: 0.15rem 0.5rem;
@@ -1322,6 +1328,34 @@
         }
     }
 
+    function formatDate(isoString) {
+        if (!isoString || isoString.startsWith('2000-01-01')) return '';
+        const d = new Date(isoString);
+        if (isNaN(d)) return '';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}.${mm}.${yyyy}`;
+    }
+
+    function timeAgo(isoString) {
+        if (!isoString || isoString.startsWith('2000-01-01')) return '';
+        const d = new Date(isoString);
+        if (isNaN(d)) return '';
+        const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
+        if (seconds < 60) return 'gerade eben';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `vor ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `vor ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
+        const days = Math.floor(hours / 24);
+        if (days < 30) return `vor ${days} ${days === 1 ? 'Tag' : 'Tagen'}`;
+        const months = Math.floor(days / 30);
+        if (months < 12) return `vor ${months} ${months === 1 ? 'Monat' : 'Monaten'}`;
+        const years = Math.floor(months / 12);
+        return `vor ${years} ${years === 1 ? 'Jahr' : 'Jahren'}`;
+    }
+
     function createAppItemHTML(file) {
         const url = pagesUrl(file.name);
         const desc = descriptions[file.name];
@@ -1350,6 +1384,7 @@
                         <a href="${url}" target="_blank">${esc(file.name)}</a>
                     </div>
                     ${descHtml}
+                    ${formatDate(file._date) ? `<div class="app-item-date">${formatDate(file._date)} · ${timeAgo(file._date)}</div>` : ''}
                 </div>
                 <div class="app-item-actions">
                     <select class="kategorie-dropdown" onchange="assignCategory('${esc(file.name)}', this.value)" title="Kategorie zuweisen">${katOpts}</select>
