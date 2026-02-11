@@ -487,5 +487,11 @@
     "stufe": "8–10",
     "beschreibung": "Trainer zur Berechnung der Herstellkosten des Umsatzes",
     "kategorie": "BWR"
+  },
+  "insolvenzverfahren.html": {
+    "fach": "BWR",
+    "stufe": "9–10",
+    "beschreibung": "Schritte des Insolvenzverfahrens in richtige Reihenfolge bringen",
+    "kategorie": "BWR"
   }
 }
