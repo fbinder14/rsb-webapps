@@ -643,7 +643,7 @@
             if (!resp.ok) throw new Error(`API-Fehler: ${resp.status}`);
 
             const files = await resp.json();
-            const htmlFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.html')) : [];
+            const htmlFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.html') || f.name.endsWith('.htm')) : [];
 
             if (htmlFiles.length === 0) {
                 listEl.innerHTML = '<div class="app-list-empty">Noch keine Apps deployt.</div>';
