@@ -28,13 +28,13 @@
         }
 
         header {
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: #fff;
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
         }
 
         header h1 {
@@ -306,51 +306,6 @@
             border-radius: 8px;
         }
 
-        /* QR Code Section */
-        .qr-section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            display: none;
-            text-align: center;
-        }
-
-        .qr-section.active { display: block; }
-
-        .qr-section h2 {
-            margin-bottom: 1rem;
-            color: #1a1a2e;
-            font-size: 1.2rem;
-        }
-
-        #qrcode {
-            display: inline-block;
-            padding: 1rem;
-            background: #fff;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .qr-url {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .qr-url input {
-            padding: 0.5rem 0.8rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            width: 400px;
-            max-width: 100%;
-            text-align: center;
-        }
-
         /* App List */
         .app-list-section {
             background: #fff;
@@ -476,19 +431,63 @@
             border-radius: 6px;
         }
 
-        .app-item-qr {
+        /* QR Modal */
+        .qr-modal-overlay {
             display: none;
-            padding: 1rem;
-            text-align: center;
-            border: 1px solid #e5e7eb;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            margin-top: -0.5rem;
-            margin-bottom: 0.5rem;
-            background: #fafafa;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
         }
 
-        .app-item-qr.active { display: block; }
+        .qr-modal-overlay.active {
+            display: flex;
+        }
+
+        .qr-modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            text-align: center;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .qr-modal h3 {
+            margin-bottom: 1rem;
+            color: #1e293b;
+            font-size: 1.1rem;
+            word-break: break-all;
+        }
+
+        .qr-modal-code {
+            display: inline-block;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .qr-modal-url {
+            font-size: 0.85rem;
+            color: #4a6cf7;
+            word-break: break-all;
+            margin-bottom: 1rem;
+        }
+
+        .qr-modal-url a {
+            color: #4a6cf7;
+            text-decoration: none;
+        }
+
+        .qr-modal-url a:hover { text-decoration: underline; }
+
+        .qr-modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
 
         /* Status messages */
         .status {
@@ -616,6 +615,19 @@
     </div>
 </div>
 
+<!-- QR Modal -->
+<div class="qr-modal-overlay" id="qrModal" onclick="closeQRModal(event)">
+    <div class="qr-modal" onclick="event.stopPropagation()">
+        <h3 id="qrModalTitle"></h3>
+        <div class="qr-modal-code" id="qrModalCode"></div>
+        <div class="qr-modal-url" id="qrModalUrl"></div>
+        <div class="qr-modal-actions">
+            <button class="btn btn-primary btn-sm" onclick="copyModalUrl()">URL kopieren</button>
+            <button class="btn btn-secondary btn-sm" onclick="closeQRModal()">Schlie&szlig;en</button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
 
     <!-- Setup Banner -->
@@ -668,16 +680,6 @@
         <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
     </div>
 
-    <!-- QR Code -->
-    <div class="qr-section" id="qrSection">
-        <h2>QR-Code</h2>
-        <div id="qrcode"></div>
-        <div class="qr-url">
-            <input type="text" id="qrUrl" readonly>
-            <button class="btn btn-primary btn-sm" onclick="copyUrl()">Kopieren</button>
-        </div>
-    </div>
-
     <!-- App List -->
     <div class="app-list-section">
         <div class="app-list-header">
@@ -688,6 +690,13 @@
             <input type="text" id="filterSearch" placeholder="Suchen..." oninput="filterApps()">
             <select id="filterFach" onchange="filterApps()">
                 <option value="">Alle F&auml;cher</option>
+            </select>
+            <select id="sortOrder" onchange="filterApps()">
+                <option value="newest">Neueste zuerst</option>
+                <option value="oldest">&Auml;lteste zuerst</option>
+                <option value="name-az">Name A–Z</option>
+                <option value="name-za">Name Z–A</option>
+                <option value="fach">Nach Fach</option>
             </select>
         </div>
         <div id="appList">
@@ -861,9 +870,39 @@
             if (!resp.ok) throw new Error(`API-Fehler: ${resp.status}`);
 
             const files = await resp.json();
-            allAppFiles = Array.isArray(files)
+            const htmlFiles = Array.isArray(files)
                 ? files.filter(f => f.name.endsWith('.html') || f.name.endsWith('.htm'))
                 : [];
+
+            // Fetch last commit date for sorting by newest
+            const cfg2 = getConfig();
+            try {
+                const commitsResp = await fetch(
+                    `https://api.github.com/repos/${cfg2.username}/${cfg2.repo}/commits?path=apps&per_page=100`,
+                    { headers: apiHeaders() }
+                );
+                if (commitsResp.ok) {
+                    const commits = await commitsResp.json();
+                    // Build map: filename -> latest commit date
+                    const dateMap = {};
+                    for (const commit of commits) {
+                        const date = commit.commit.committer.date;
+                        const msg = commit.commit.message;
+                        // Try to extract filename from commit message
+                        for (const f of htmlFiles) {
+                            if (msg.includes(f.name) && !dateMap[f.name]) {
+                                dateMap[f.name] = date;
+                            }
+                        }
+                    }
+                    htmlFiles.forEach(f => { f._date = dateMap[f.name] || '2000-01-01'; });
+                }
+            } catch (e) {
+                // Fallback: no date info
+                htmlFiles.forEach((f, i) => { f._date = '2000-01-01'; });
+            }
+
+            allAppFiles = htmlFiles;
 
             buildFachFilter();
             renderApps();
@@ -913,6 +952,22 @@
             return true;
         });
 
+        // Sort
+        const sortOrder = document.getElementById('sortOrder').value;
+        filtered.sort((a, b) => {
+            switch (sortOrder) {
+                case 'newest': return (b._date || '').localeCompare(a._date || '');
+                case 'oldest': return (a._date || '').localeCompare(b._date || '');
+                case 'name-az': return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+                case 'name-za': return b.name.toLowerCase().localeCompare(a.name.toLowerCase());
+                case 'fach':
+                    const fa = (descriptions[a.name]?.fach || 'ZZZ').toLowerCase();
+                    const fb = (descriptions[b.name]?.fach || 'ZZZ').toLowerCase();
+                    return fa.localeCompare(fb) || a.name.localeCompare(b.name);
+                default: return 0;
+            }
+        });
+
         document.getElementById('appCount').textContent = `(${filtered.length} von ${allAppFiles.length})`;
 
         if (filtered.length === 0) {
@@ -945,12 +1000,11 @@
                         ${descHtml}
                     </div>
                     <div class="app-item-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="toggleQR('${itemId}', '${url}')">QR</button>
+                        <button class="btn btn-secondary btn-sm" onclick="openQRModal('${esc(file.name)}', '${url}')">QR</button>
                         <button class="btn btn-primary btn-sm" onclick="editApp('${esc(file.name)}')">Bearbeiten</button>
                         <button class="btn btn-danger btn-sm" onclick="confirmDelete('${esc(file.name)}', '${file.sha}')">L\u00f6schen</button>
                     </div>
                 </div>
-                <div class="app-item-qr" id="${itemId}"></div>
             `;
             listEl.appendChild(itemDiv);
         });
@@ -962,26 +1016,37 @@
         return d.innerHTML;
     }
 
-    // ----- Toggle QR in App List -----
-    function toggleQR(elementId, url) {
-        const el = document.getElementById(elementId);
-        if (el.classList.contains('active')) {
-            el.classList.remove('active');
-            el.innerHTML = '';
-            return;
-        }
-        el.classList.add('active');
-        el.innerHTML = '';
-        const qrDiv = document.createElement('div');
-        qrDiv.style.display = 'inline-block';
-        el.appendChild(qrDiv);
-        new QRCode(qrDiv, { text: url, width: 160, height: 160 });
-        const link = document.createElement('div');
-        link.style.marginTop = '0.5rem';
-        link.style.fontSize = '0.85rem';
-        link.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
-        el.appendChild(link);
+    // ----- QR Modal -----
+    let currentModalUrl = '';
+
+    function openQRModal(filename, url) {
+        currentModalUrl = url;
+        document.getElementById('qrModalTitle').textContent = filename;
+        const codeDiv = document.getElementById('qrModalCode');
+        codeDiv.innerHTML = '';
+        new QRCode(codeDiv, { text: url, width: 200, height: 200 });
+        document.getElementById('qrModalUrl').innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+        document.getElementById('qrModal').classList.add('active');
     }
+
+    function closeQRModal(event) {
+        if (event && event.target !== document.getElementById('qrModal')) return;
+        document.getElementById('qrModal').classList.remove('active');
+    }
+
+    function copyModalUrl() {
+        navigator.clipboard.writeText(currentModalUrl).then(() => {
+            showStatus('URL kopiert!', 'success');
+        });
+    }
+
+    // ESC key handler
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.getElementById('qrModal').classList.remove('active');
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+    });
 
     // ----- Deploy -----
     async function deploy() {
@@ -1226,25 +1291,12 @@ ${content.substring(0, 6000)}`
         }
     }
 
-    // ----- QR Code -----
+    // ----- QR Code (after deploy) -----
     function generateQR(url) {
-        const section = document.getElementById('qrSection');
-        const qrDiv = document.getElementById('qrcode');
-        const urlInput = document.getElementById('qrUrl');
-
-        section.classList.add('active');
-        qrDiv.innerHTML = '';
-        new QRCode(qrDiv, { text: url, width: 200, height: 200 });
-        urlInput.value = url;
-
-        section.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function copyUrl() {
-        const input = document.getElementById('qrUrl');
-        navigator.clipboard.writeText(input.value).then(() => {
-            showStatus('URL kopiert!', 'success');
-        });
+        // Extract filename from URL
+        const parts = url.split('/');
+        const filename = parts[parts.length - 1];
+        openQRModal(filename, url);
     }
 
     // ----- Preview -----
