@@ -2,27 +2,32 @@
   "05_Tresorschloss_SnowPro.html": {
     "fach": "Mathematik",
     "stufe": "5–7",
-    "beschreibung": "Interaktives Zahlenschloss-Spiel mit Schneefall-Animation"
+    "beschreibung": "Interaktives Zahlenschloss-Spiel mit Schneefall-Animation",
+    "kategorie": "Mathematik"
   },
   "abfrage.htm": {
     "fach": "Fächerübergreifend",
     "stufe": "5–10",
-    "beschreibung": "Zufällige Schülerabfrage per Roulette-Prinzip"
+    "beschreibung": "Zufällige Schülerabfrage per Roulette-Prinzip",
+    "kategorie": "Sonstiges"
   },
   "afa-tabelle.htm": {
     "fach": "BWR",
     "stufe": "9–10",
-    "beschreibung": "Interaktive AfA-Tabelle für Anlagevermögen (BMF)"
+    "beschreibung": "Interaktive AfA-Tabelle für Anlagevermögen (BMF)",
+    "kategorie": "BWR"
   },
   "afa-zeitanteilig.htm": {
     "fach": "BWR",
     "stufe": "9",
-    "beschreibung": "Lern-App zur zeitanteiligen Abschreibung"
+    "beschreibung": "Lern-App zur zeitanteiligen Abschreibung",
+    "kategorie": "BWR"
   },
   "afakreislauf.htm": {
     "fach": "BWR",
     "stufe": "9–10",
-    "beschreibung": "Umfassender Finanz-Check rund um Abschreibungen"
+    "beschreibung": "Umfassender Finanz-Check rund um Abschreibungen",
+    "kategorie": "BWR"
   },
   "almenrunde.htm": {
     "fach": "Geographie/Sport",
@@ -32,27 +37,32 @@
   "Anforderungsprofile.htm": {
     "fach": "WR",
     "stufe": "8–9",
-    "beschreibung": "Berufsfelder und ihre Anforderungsprofile erkunden"
+    "beschreibung": "Berufsfelder und ihre Anforderungsprofile erkunden",
+    "kategorie": "Wirtschaft & Recht"
   },
   "bab.htm": {
     "fach": "BWR",
     "stufe": "9–10",
-    "beschreibung": "Trainer zum Erstellen eines Betriebsabrechnungsbogens"
+    "beschreibung": "Trainer zum Erstellen eines Betriebsabrechnungsbogens",
+    "kategorie": "BWR"
   },
   "bankinfo.htm": {
     "fach": "WR",
     "stufe": "9",
-    "beschreibung": "Übersicht verschiedener Anlageprodukte einer Bank"
+    "beschreibung": "Übersicht verschiedener Anlageprodukte einer Bank",
+    "kategorie": "Wirtschaft & Recht"
   },
   "banking.htm": {
     "fach": "WR",
     "stufe": "7–8",
-    "beschreibung": "Spielerische Einführung in Bankgeschäfte (KinderSparbank)"
+    "beschreibung": "Spielerische Einführung in Bankgeschäfte (KinderSparbank)",
+    "kategorie": "Wirtschaft & Recht"
   },
   "belegmemory.htm": {
     "fach": "BWR",
     "stufe": "7",
-    "beschreibung": "Memory-Spiel zum Zuordnen von Belegen und Buchungssätzen"
+    "beschreibung": "Memory-Spiel zum Zuordnen von Belegen und Buchungssätzen",
+    "kategorie": "BWR"
   },
   "berlin.htm": {
     "fach": "Klassenfahrt",
@@ -67,12 +77,14 @@
   "Bilanzzusammenfassung.htm": {
     "fach": "BWR",
     "stufe": "9–10",
-    "beschreibung": "Quiz zu Bilanz und KBKV für zwei Spieler"
+    "beschreibung": "Quiz zu Bilanz und KBKV für zwei Spieler",
+    "kategorie": "BWR"
   },
   "countdown.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Countdown-Timer für den Unterricht"
+    "beschreibung": "Countdown-Timer für den Unterricht",
+    "kategorie": "Tools"
   },
   "decipher.htm": {
     "fach": "Deutsch/Informatik",
@@ -82,32 +94,38 @@
   "delikt.htm": {
     "fach": "WR",
     "stufe": "9",
-    "beschreibung": "Interaktive Lernapp zur Deliktfähigkeit nach BGB"
+    "beschreibung": "Interaktive Lernapp zur Deliktfähigkeit nach BGB",
+    "kategorie": "Wirtschaft & Recht"
   },
   "delikt.html": {
     "fach": "WR",
     "stufe": "9",
-    "beschreibung": "Lernapp zur Deliktfähigkeit (alternative Version)"
+    "beschreibung": "Lernapp zur Deliktfähigkeit (alternative Version)",
+    "kategorie": "Wirtschaft & Recht"
   },
   "dezimalbruch.htm": {
     "fach": "Mathematik",
     "stufe": "5–6",
-    "beschreibung": "Quiz zu Brüchen und Dezimalzahlen"
+    "beschreibung": "Quiz zu Brüchen und Dezimalzahlen",
+    "kategorie": "Mathematik"
   },
   "diagrammarten.htm": {
     "fach": "Fächerübergreifend",
     "stufe": "7–9",
-    "beschreibung": "Einsatzgebiete verschiedener Diagrammarten zuordnen"
+    "beschreibung": "Einsatzgebiete verschiedener Diagrammarten zuordnen",
+    "kategorie": "Sonstiges"
   },
   "dictionary.htm": {
     "fach": "Englisch",
     "stufe": "5–10",
-    "beschreibung": "ESL-Wörterbuch zum Nachschlagen"
+    "beschreibung": "ESL-Wörterbuch zum Nachschlagen",
+    "kategorie": "Englisch"
   },
   "division.htm": {
     "fach": "Mathematik",
     "stufe": "5–6",
-    "beschreibung": "Trainer für schriftliche Division mit Dezimalbrüchen"
+    "beschreibung": "Trainer für schriftliche Division mit Dezimalbrüchen",
+    "kategorie": "Mathematik"
   },
   "effektiv.htm": {
     "fach": "BWR/WR",
@@ -122,22 +140,26 @@
   "einmaleins.htm": {
     "fach": "Mathematik",
     "stufe": "3–5",
-    "beschreibung": "Übungsapp zum Einmaleins"
+    "beschreibung": "Übungsapp zum Einmaleins",
+    "kategorie": "Mathematik"
   },
   "fractions.htm": {
     "fach": "Mathematik",
     "stufe": "6",
-    "beschreibung": "Trainer zum Kürzen und Erweitern von Brüchen"
+    "beschreibung": "Trainer zum Kürzen und Erweitern von Brüchen",
+    "kategorie": "Mathematik"
   },
   "french.htm": {
     "fach": "Französisch",
     "stufe": "7–8",
-    "beschreibung": "Vokabeltrainer Französisch"
+    "beschreibung": "Vokabeltrainer Französisch",
+    "kategorie": "Französisch"
   },
   "gruppen.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Zufällige Gruppenbildung mit Countdown"
+    "beschreibung": "Zufällige Gruppenbildung mit Countdown",
+    "kategorie": "Tools"
   },
   "immobilienkauf.htm": {
     "fach": "BWR/WR",
@@ -147,27 +169,32 @@
   "infografikanalyse.htm": {
     "fach": "Fächerübergreifend",
     "stufe": "8–10",
-    "beschreibung": "Matching-Übung zum Analysieren von Infografiken"
+    "beschreibung": "Matching-Übung zum Analysieren von Infografiken",
+    "kategorie": "Sonstiges"
   },
   "inventions.htm": {
     "fach": "Englisch",
     "stufe": "9–10",
-    "beschreibung": "Kreatives Schreiben: Zufällige digitale Erfindungen beschreiben"
+    "beschreibung": "Kreatives Schreiben: Zufällige digitale Erfindungen beschreiben",
+    "kategorie": "Englisch"
   },
   "irregular.htm": {
     "fach": "Englisch",
     "stufe": "5–7",
-    "beschreibung": "Übung zu unregelmäßigen Verben im Englischen"
+    "beschreibung": "Übung zu unregelmäßigen Verben im Englischen",
+    "kategorie": "Englisch"
   },
   "joust.html": {
     "fach": "Englisch",
     "stufe": "5–8",
-    "beschreibung": "Vokabel-Abenteuerspiel (Vocabulary Quest)"
+    "beschreibung": "Vokabel-Abenteuerspiel (Vocabulary Quest)",
+    "kategorie": "Englisch"
   },
   "Kalenderwochen.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Übersicht der Kalenderwochen"
+    "beschreibung": "Übersicht der Kalenderwochen",
+    "kategorie": "Tools"
   },
   "kmhtopace.htm": {
     "fach": "Sport/Mathematik",
@@ -182,17 +209,20 @@
   "kooperativ.htm": {
     "fach": "WR",
     "stufe": "9",
-    "beschreibung": "Quiz zu autoritärem vs. kooperativem Führungsstil"
+    "beschreibung": "Quiz zu autoritärem vs. kooperativem Führungsstil",
+    "kategorie": "Wirtschaft & Recht"
   },
   "kostenvergleichsrechnung.htm": {
     "fach": "BWR",
     "stufe": "8–9",
-    "beschreibung": "Kostenarten richtig zuordnen"
+    "beschreibung": "Kostenarten richtig zuordnen",
+    "kategorie": "BWR"
   },
   "latex.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Live LaTeX-Renderer für mathematische Formeln"
+    "beschreibung": "Live LaTeX-Renderer für mathematische Formeln",
+    "kategorie": "Tools"
   },
   "law.htm": {
     "fach": "WR/Sozialkunde",
@@ -202,22 +232,26 @@
   "memory.htm": {
     "fach": "Englisch",
     "stufe": "5–7",
-    "beschreibung": "Vokabel-Memory-Spiel"
+    "beschreibung": "Vokabel-Memory-Spiel",
+    "kategorie": "Englisch"
   },
   "mitbestimmung.htm": {
     "fach": "WR",
     "stufe": "9–10",
-    "beschreibung": "Unterrichts-Dashboard zur Mitbestimmung im Unternehmen"
+    "beschreibung": "Unterrichts-Dashboard zur Mitbestimmung im Unternehmen",
+    "kategorie": "Wirtschaft & Recht"
   },
   "nachbarzahlen.htm": {
     "fach": "Mathematik",
     "stufe": "1–2",
-    "beschreibung": "Nachbarzahlen-Übung für Grundschüler"
+    "beschreibung": "Nachbarzahlen-Übung für Grundschüler",
+    "kategorie": "Mathematik"
   },
   "nudging.htm": {
     "fach": "WR",
     "stufe": "9",
-    "beschreibung": "Lerneinheit zu Nudging und bewusstem Konsumverhalten"
+    "beschreibung": "Lerneinheit zu Nudging und bewusstem Konsumverhalten",
+    "kategorie": "Wirtschaft & Recht"
   },
   "pacetokmh.htm": {
     "fach": "Sport/Mathematik",
@@ -232,52 +266,62 @@
   "pizza.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Pizza-Fortschrittsanzeige für Arbeitsaufträge"
+    "beschreibung": "Pizza-Fortschrittsanzeige für Arbeitsaufträge",
+    "kategorie": "Tools"
   },
   "playground.htm": {
     "fach": "Mathematik",
     "stufe": "6–8",
-    "beschreibung": "Prozentrechnung mit praktischen Beispielen üben"
+    "beschreibung": "Prozentrechnung mit praktischen Beispielen üben",
+    "kategorie": "Mathematik"
   },
   "plz.htm": {
     "fach": "Informatik",
     "stufe": "8–10",
-    "beschreibung": "Postleitzahlen-Validierung mit regulären Ausdrücken"
+    "beschreibung": "Postleitzahlen-Validierung mit regulären Ausdrücken",
+    "kategorie": "Informatik"
   },
   "productreview.htm": {
     "fach": "Englisch",
     "stufe": "8–9",
-    "beschreibung": "Produktbewertung schreiben und Wörter übersetzen"
+    "beschreibung": "Produktbewertung schreiben und Wörter übersetzen",
+    "kategorie": "Englisch"
   },
   "Produktentscheidung.htm": {
     "fach": "WR",
     "stufe": "8",
-    "beschreibung": "Kriterien für Konsumentscheidungen erarbeiten"
+    "beschreibung": "Kriterien für Konsumentscheidungen erarbeiten",
+    "kategorie": "Wirtschaft & Recht"
   },
   "regiocard.htm": {
     "fach": "Geographie",
     "stufe": "5–10",
-    "beschreibung": "Interaktive Karte der Freizeitattraktionen in Tirol"
+    "beschreibung": "Interaktive Karte der Freizeitattraktionen in Tirol",
+    "kategorie": "Geographie"
   },
   "reported.htm": {
     "fach": "Englisch",
     "stufe": "8–9",
-    "beschreibung": "Reported Speech üben anhand einer Schulgeschichte"
+    "beschreibung": "Reported Speech üben anhand einer Schulgeschichte",
+    "kategorie": "Englisch"
   },
   "rutherford.htm": {
     "fach": "Physik",
     "stufe": "9–10",
-    "beschreibung": "Simulation des Rutherford'schen Goldfolienexperiments"
+    "beschreibung": "Simulation des Rutherford'schen Goldfolienexperiments",
+    "kategorie": "Naturwissenschaften"
   },
   "rutherford2.htm": {
     "fach": "Physik",
     "stufe": "9–10",
-    "beschreibung": "Erweiterte Simulation des Goldfolienexperiments"
+    "beschreibung": "Erweiterte Simulation des Goldfolienexperiments",
+    "kategorie": "Naturwissenschaften"
   },
   "sauebung.htm": {
     "fach": "BWR",
     "stufe": "7–9",
-    "beschreibung": "BwR-Quiz zu verschiedenen Themen"
+    "beschreibung": "BwR-Quiz zu verschiedenen Themen",
+    "kategorie": "BWR"
   },
   "schatztruhe.htm": {
     "fach": "Mathematik/Logik",
@@ -287,12 +331,14 @@
   "schuldenvermeiden.htm": {
     "fach": "WR",
     "stufe": "8–9",
-    "beschreibung": "10 Maßnahmen gegen Überschuldung kennenlernen"
+    "beschreibung": "10 Maßnahmen gegen Überschuldung kennenlernen",
+    "kategorie": "Wirtschaft & Recht"
   },
   "schulkalender.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Schulferien-Kalender Bayern"
+    "beschreibung": "Schulferien-Kalender Bayern",
+    "kategorie": "Tools"
   },
   "scrabble.htm": {
     "fach": "Englisch/Deutsch",
@@ -302,97 +348,116 @@
   "skelett.htm": {
     "fach": "Biologie",
     "stufe": "5",
-    "beschreibung": "Interaktives Skelett-Dashboard: Knochen benennen"
+    "beschreibung": "Interaktives Skelett-Dashboard: Knochen benennen",
+    "kategorie": "Naturwissenschaften"
   },
   "skitirol.htm": {
     "fach": "Geographie",
     "stufe": "5–10",
-    "beschreibung": "Snow Card Tirol – Skigebiete auf der Karte"
+    "beschreibung": "Snow Card Tirol – Skigebiete auf der Karte",
+    "kategorie": "Geographie"
   },
   "snowcard_map.html": {
     "fach": "Geographie",
     "stufe": "5–10",
-    "beschreibung": "Snow Card Tirol – Skigebiete-Karte (alt. Version)"
+    "beschreibung": "Snow Card Tirol – Skigebiete-Karte (alt. Version)",
+    "kategorie": "Geographie"
   },
   "sprechanlass.htm": {
     "fach": "Englisch",
     "stufe": "7–8",
-    "beschreibung": "Sprechanlass: A Day in London (Classroom Dashboard)"
+    "beschreibung": "Sprechanlass: A Day in London (Classroom Dashboard)",
+    "kategorie": "Englisch"
   },
   "stundenuhr.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Anzeige der Unterrichtszeiten / Stundenuhr"
+    "beschreibung": "Anzeige der Unterrichtszeiten / Stundenuhr",
+    "kategorie": "Tools"
   },
   "teacherscreen.htm": {
     "fach": "Tool",
     "stufe": "5–10",
-    "beschreibung": "Lehrer-Dashboard Realschule Bobingen"
+    "beschreibung": "Lehrer-Dashboard Realschule Bobingen",
+    "kategorie": "Tools"
   },
   "teilbar.htm": {
     "fach": "Mathematik",
     "stufe": "5–6",
-    "beschreibung": "Teilbarkeitsregeln interaktiv üben"
+    "beschreibung": "Teilbarkeitsregeln interaktiv üben",
+    "kategorie": "Mathematik"
   },
   "tetris.htm": {
     "fach": "Informatik",
     "stufe": "5–9",
-    "beschreibung": "Klassisches Tetris-Spiel"
+    "beschreibung": "Klassisches Tetris-Spiel",
+    "kategorie": "Informatik"
   },
   "tibber.htm": {
     "fach": "WR",
     "stufe": "8–10",
-    "beschreibung": "Aktueller Tibber-Strompreis in Echtzeit"
+    "beschreibung": "Aktueller Tibber-Strompreis in Echtzeit",
+    "kategorie": "Wirtschaft & Recht"
   },
   "times.htm": {
     "fach": "Mathematik",
     "stufe": "3–5",
-    "beschreibung": "Einmaleins-Übungsapp mit Auswertung"
+    "beschreibung": "Einmaleins-Übungsapp mit Auswertung",
+    "kategorie": "Mathematik"
   },
   "verben.htm": {
     "fach": "Französisch",
     "stufe": "7",
-    "beschreibung": "Verben-Trainer Französisch (Klasse 6c)"
+    "beschreibung": "Verben-Trainer Französisch (Klasse 6c)",
+    "kategorie": "Französisch"
   },
   "versicherung.htm": {
     "fach": "BWR",
     "stufe": "9",
-    "beschreibung": "Quiz zum Buchen von Versicherungen"
+    "beschreibung": "Quiz zum Buchen von Versicherungen",
+    "kategorie": "BWR"
   },
   "vocab-shakespeare.htm": {
     "fach": "Englisch",
     "stufe": "10",
-    "beschreibung": "Gapped Text: Shakespeare-Vokabeln im Kontext üben"
+    "beschreibung": "Gapped Text: Shakespeare-Vokabeln im Kontext üben",
+    "kategorie": "Englisch"
   },
   "vocab-youth.htm": {
     "fach": "Englisch",
     "stufe": "8–9",
-    "beschreibung": "Gap-Fill-Übung: Emma's Talent Show"
+    "beschreibung": "Gap-Fill-Übung: Emma's Talent Show",
+    "kategorie": "Englisch"
   },
   "vocabu1t1lady.htm": {
     "fach": "Englisch",
     "stufe": "7–8",
-    "beschreibung": "Lösungsschlüssel (Answer Key) für Vokabelübung"
+    "beschreibung": "Lösungsschlüssel (Answer Key) für Vokabelübung",
+    "kategorie": "Englisch"
   },
   "voegel.htm": {
     "fach": "Biologie",
     "stufe": "5–7",
-    "beschreibung": "Interaktive Tabelle heimischer Vogelarten"
+    "beschreibung": "Interaktive Tabelle heimischer Vogelarten",
+    "kategorie": "Naturwissenschaften"
   },
   "wanderkoordinaten.htm": {
     "fach": "Geographie",
     "stufe": "5–10",
-    "beschreibung": "Startpunkte leichter Wanderungen im Chiemgau (Karte)"
+    "beschreibung": "Startpunkte leichter Wanderungen im Chiemgau (Karte)",
+    "kategorie": "Geographie"
   },
   "wertminderung-quiz.htm": {
     "fach": "BWR",
     "stufe": "9",
-    "beschreibung": "Quiz zu Abschreibungen und HGB"
+    "beschreibung": "Quiz zu Abschreibungen und HGB",
+    "kategorie": "BWR"
   },
   "wertminderung.htm": {
     "fach": "BWR",
     "stufe": "10",
-    "beschreibung": "E-Mail-Szenario: Rückfragen zum Jahresabschluss"
+    "beschreibung": "E-Mail-Szenario: Rückfragen zum Jahresabschluss",
+    "kategorie": "BWR"
   },
   "zahlenausschreiben.htm": {
     "fach": "Mathematik/Deutsch",
@@ -402,21 +467,25 @@
   "zahlung-reihenfolge.htm": {
     "fach": "WR",
     "stufe": "8–9",
-    "beschreibung": "Zahlungs-Prioritäten richtig setzen lernen"
+    "beschreibung": "Zahlungs-Prioritäten richtig setzen lernen",
+    "kategorie": "Wirtschaft & Recht"
   },
   "zeitanteiligeafa.htm": {
     "fach": "BWR",
     "stufe": "9",
-    "beschreibung": "Zeitanteilige Abschreibung berechnen"
+    "beschreibung": "Zeitanteilige Abschreibung berechnen",
+    "kategorie": "BWR"
   },
   "zinstage.htm": {
     "fach": "BWR",
     "stufe": "8",
-    "beschreibung": "Zinstage nach verschiedenen Methoden berechnen"
+    "beschreibung": "Zinstage nach verschiedenen Methoden berechnen",
+    "kategorie": "BWR"
   },
   "hkdu.html": {
     "fach": "BWR",
     "stufe": "8–10",
-    "beschreibung": "Trainer zur Berechnung der Herstellkosten des Umsatzes"
+    "beschreibung": "Trainer zur Berechnung der Herstellkosten des Umsatzes",
+    "kategorie": "BWR"
   }
 }
