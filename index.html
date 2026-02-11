@@ -1444,6 +1444,18 @@
         return `vor ${years} ${years === 1 ? 'Jahr' : 'Jahren'}`;
     }
 
+    function getLernbereichName(lbId) {
+        if (!lbId) return '';
+        for (const fach of Object.values(LEHRPLAN)) {
+            for (const gruppe of fach.gruppen) {
+                for (const lb of gruppe.lernbereiche) {
+                    if (lb.id === lbId) return lb.name;
+                }
+            }
+        }
+        return '';
+    }
+
     function createAppItemHTML(file) {
         const url = pagesUrl(file.name);
         const desc = descriptions[file.name];
@@ -1453,7 +1465,12 @@
             descHtml = '<div class="app-item-desc">';
             if (desc.fach) descHtml += `<span class="badge badge-fach">${esc(desc.fach)}</span>`;
             if (desc.stufe) descHtml += `<span class="badge badge-stufe">Jgst. ${esc(desc.stufe)}</span>`;
-            if (desc.kategorie) descHtml += `<span class="badge badge-kategorie badge-kategorie-editable" onclick="editKategorie('${esc(file.name)}', this)" title="Klicken zum \u00c4ndern">${esc(desc.kategorie)}</span>`;
+            const lbName = getLernbereichName(desc.lernbereich);
+            if (lbName) {
+                descHtml += `<span class="badge badge-kategorie" title="${esc(desc.lernbereich)}">${esc(lbName)}</span>`;
+            } else if (desc.kategorie) {
+                descHtml += `<span class="badge badge-kategorie badge-kategorie-editable" onclick="editKategorie('${esc(file.name)}', this)" title="Klicken zum \u00c4ndern">${esc(desc.kategorie)}</span>`;
+            }
             if (desc.beschreibung) descHtml += ` ${esc(desc.beschreibung)}`;
             descHtml += '</div>';
         }
