@@ -86,11 +86,22 @@
             width: 90%;
             max-width: 500px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal h2 {
             margin-bottom: 1.5rem;
             color: #1a1a2e;
+        }
+
+        .modal h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: #1a1a2e;
+            font-size: 1rem;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
         }
 
         .modal label {
@@ -232,7 +243,43 @@
             display: flex;
             gap: 0.8rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
+
+        /* Description box in editor */
+        .desc-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .desc-box.active { display: block; }
+
+        .desc-box label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.3rem;
+        }
+
+        .desc-box input, .desc-box textarea {
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            margin-bottom: 0.6rem;
+        }
+
+        .desc-box textarea { resize: vertical; height: 50px; }
+
+        .desc-row { display: flex; gap: 0.8rem; }
+        .desc-row > div { flex: 1; }
 
         /* Preview */
         .preview-section {
@@ -312,10 +359,49 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
 
-        .app-list-section h2 {
+        .app-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .app-list-header h2 {
             color: #1a1a2e;
             font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .filter-bar input:focus {
+            outline: none;
+            border-color: #4a6cf7;
+        }
+
+        .filter-bar select {
+            padding: 0.5rem 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fff;
+            cursor: pointer;
         }
 
         .app-list-empty {
@@ -326,7 +412,7 @@
 
         .app-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             padding: 0.8rem 1rem;
             border: 1px solid #e5e7eb;
@@ -336,6 +422,8 @@
         }
 
         .app-item:hover { background: #f9fafb; }
+
+        .app-item-info { flex: 1; min-width: 0; }
 
         .app-item-name {
             font-weight: 600;
@@ -349,10 +437,37 @@
 
         .app-item-name a:hover { text-decoration: underline; }
 
+        .app-item-desc {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.3rem;
+        }
+
+        .badge-fach {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-stufe {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
         .app-item-actions {
             display: flex;
             gap: 0.5rem;
             align-items: center;
+            flex-shrink: 0;
+            margin-left: 0.5rem;
         }
 
         .btn-sm {
@@ -417,6 +532,11 @@
             margin-right: 0.4rem;
         }
 
+        .spinner-dark {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top-color: #4a6cf7;
+        }
+
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Not configured banner */
@@ -434,13 +554,20 @@
             margin-left: 0.5rem;
         }
 
+        .app-count {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: normal;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { padding: 1rem; }
             .CodeMirror { height: 300px; }
             .filename-row { flex-direction: column; }
             .app-item { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
-            .app-item-actions { width: 100%; justify-content: flex-end; }
+            .app-item-actions { width: 100%; justify-content: flex-end; margin-left: 0; }
+            .desc-row { flex-direction: column; gap: 0; }
         }
     </style>
 </head>
@@ -473,6 +600,15 @@
             5. Token kopieren und hier einf&uuml;gen
         </div>
 
+        <h3>KI-Beschreibung (optional)</h3>
+        <label for="inputClaudeKey">Anthropic API Key</label>
+        <input type="password" id="inputClaudeKey" placeholder="sk-ant-...">
+        <div class="help-text">
+            <strong>F&uuml;r automatische App-Beschreibungen:</strong><br>
+            Wenn ein API-Key hinterlegt ist, kann beim Deployen automatisch eine Beschreibung (Fach, Jahrgangsstufe, Kurzbeschreibung) per Claude generiert werden.<br><br>
+            Key erstellen: <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>
+        </div>
+
         <div class="modal-buttons">
             <button class="btn btn-secondary" onclick="closeSettings()">Abbrechen</button>
             <button class="btn btn-primary" onclick="saveSettings()">Speichern</button>
@@ -499,8 +635,26 @@
             <span>.html</span>
         </div>
         <textarea id="editor"></textarea>
+
+        <!-- Description fields -->
+        <div class="desc-box" id="descBox">
+            <div class="desc-row">
+                <div>
+                    <label for="descFach">Fach</label>
+                    <input type="text" id="descFach" placeholder="z.B. BWR, Englisch, Mathematik">
+                </div>
+                <div>
+                    <label for="descStufe">Jahrgangsstufe</label>
+                    <input type="text" id="descStufe" placeholder="z.B. 7, 8–10">
+                </div>
+            </div>
+            <label for="descText">Beschreibung</label>
+            <textarea id="descText" placeholder="Kurze Beschreibung der App..."></textarea>
+        </div>
+
         <div class="editor-buttons">
             <button class="btn btn-secondary" onclick="showPreview()">Vorschau</button>
+            <button class="btn btn-primary" id="aiDescBtn" onclick="generateDescription()">KI-Beschreibung</button>
             <button class="btn btn-success" id="deployBtn" onclick="deploy()">Deploy</button>
             <button class="btn btn-secondary" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Bearbeitung abbrechen</button>
         </div>
@@ -526,9 +680,16 @@
 
     <!-- App List -->
     <div class="app-list-section">
-        <h2>Deployte Apps
-            <button class="btn btn-secondary btn-sm" onclick="loadApps()" style="margin-left:0.5rem;">&#8635; Aktualisieren</button>
-        </h2>
+        <div class="app-list-header">
+            <h2>Deployte Apps <span class="app-count" id="appCount"></span></h2>
+            <button class="btn btn-secondary btn-sm" onclick="loadApps()">&#8635; Aktualisieren</button>
+        </div>
+        <div class="filter-bar">
+            <input type="text" id="filterSearch" placeholder="Suchen..." oninput="filterApps()">
+            <select id="filterFach" onchange="filterApps()">
+                <option value="">Alle F&auml;cher</option>
+            </select>
+        </div>
         <div id="appList">
             <div class="app-list-empty">Lade Apps...</div>
         </div>
@@ -539,8 +700,11 @@
 <script>
     // ----- State -----
     let editor;
-    let editingSha = null; // SHA of the file currently being edited (null = new file)
+    let editingSha = null;
     let editingFilename = null;
+    let descriptions = {};
+    let descriptionsSha = null;
+    let allAppFiles = [];
 
     // ----- Init -----
     document.addEventListener('DOMContentLoaded', () => {
@@ -559,7 +723,7 @@
         if (!getConfig().token) {
             document.getElementById('setupBanner').style.display = 'block';
         } else {
-            loadApps();
+            loadDescriptions().then(() => loadApps());
         }
     });
 
@@ -568,7 +732,8 @@
         return {
             username: localStorage.getItem('rsb_username') || '',
             repo: localStorage.getItem('rsb_repo') || 'rsb-webapps',
-            token: localStorage.getItem('rsb_token') || ''
+            token: localStorage.getItem('rsb_token') || '',
+            claudeKey: localStorage.getItem('rsb_claude_key') || ''
         };
     }
 
@@ -577,6 +742,7 @@
         document.getElementById('inputUsername').value = cfg.username;
         document.getElementById('inputRepo').value = cfg.repo;
         document.getElementById('inputToken').value = cfg.token;
+        document.getElementById('inputClaudeKey').value = cfg.claudeKey;
         document.getElementById('settingsModal').classList.add('active');
     }
 
@@ -588,20 +754,22 @@
         const username = document.getElementById('inputUsername').value.trim();
         const repo = document.getElementById('inputRepo').value.trim();
         const token = document.getElementById('inputToken').value.trim();
+        const claudeKey = document.getElementById('inputClaudeKey').value.trim();
 
         if (!username || !repo || !token) {
-            alert('Bitte alle Felder ausfüllen.');
+            alert('Bitte mindestens GitHub-Username, Repo und PAT ausfüllen.');
             return;
         }
 
         localStorage.setItem('rsb_username', username);
         localStorage.setItem('rsb_repo', repo);
         localStorage.setItem('rsb_token', token);
+        localStorage.setItem('rsb_claude_key', claudeKey);
 
         closeSettings();
         document.getElementById('setupBanner').style.display = 'none';
         showStatus('Einstellungen gespeichert!', 'success');
-        loadApps();
+        loadDescriptions().then(() => loadApps());
     }
 
     // ----- GitHub API -----
@@ -619,9 +787,58 @@
         return `https://api.github.com/repos/${cfg.username}/${cfg.repo}/contents/apps`;
     }
 
+    function repoApiBase() {
+        const cfg = getConfig();
+        return `https://api.github.com/repos/${cfg.username}/${cfg.repo}/contents`;
+    }
+
     function pagesUrl(filename) {
         const cfg = getConfig();
         return `https://${cfg.username}.github.io/${cfg.repo}/apps/${filename}`;
+    }
+
+    // ----- Descriptions -----
+    async function loadDescriptions() {
+        const cfg = getConfig();
+        if (!cfg.token) return;
+
+        try {
+            const resp = await fetch(`${repoApiBase()}/descriptions.json`, { headers: apiHeaders() });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            descriptionsSha = data.sha;
+            descriptions = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))));
+        } catch (e) {
+            // descriptions.json doesn't exist yet, that's fine
+        }
+    }
+
+    async function saveDescriptions() {
+        const cfg = getConfig();
+        if (!cfg.token) return;
+
+        const body = {
+            message: 'Update descriptions.json',
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(descriptions, null, 2))))
+        };
+
+        if (descriptionsSha) {
+            body.sha = descriptionsSha;
+        }
+
+        try {
+            const resp = await fetch(`${repoApiBase()}/descriptions.json`, {
+                method: 'PUT',
+                headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                descriptionsSha = data.content.sha;
+            }
+        } catch (e) {
+            console.error('Fehler beim Speichern der Beschreibungen:', e);
+        }
     }
 
     // ----- Load Apps -----
@@ -637,43 +854,112 @@
 
             if (resp.status === 404) {
                 listEl.innerHTML = '<div class="app-list-empty">Noch keine Apps deployt.</div>';
+                document.getElementById('appCount').textContent = '';
                 return;
             }
 
             if (!resp.ok) throw new Error(`API-Fehler: ${resp.status}`);
 
             const files = await resp.json();
-            const htmlFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.html') || f.name.endsWith('.htm')) : [];
+            allAppFiles = Array.isArray(files)
+                ? files.filter(f => f.name.endsWith('.html') || f.name.endsWith('.htm'))
+                : [];
 
-            if (htmlFiles.length === 0) {
-                listEl.innerHTML = '<div class="app-list-empty">Noch keine Apps deployt.</div>';
-                return;
-            }
-
-            listEl.innerHTML = '';
-            htmlFiles.forEach(file => {
-                const url = pagesUrl(file.name);
-                const itemId = 'qr-' + file.name.replace(/[^a-zA-Z0-9]/g, '-');
-
-                const itemDiv = document.createElement('div');
-                itemDiv.innerHTML = `
-                    <div class="app-item">
-                        <div class="app-item-name">
-                            <a href="${url}" target="_blank">${file.name}</a>
-                        </div>
-                        <div class="app-item-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="toggleQR('${itemId}', '${url}')">QR</button>
-                            <button class="btn btn-primary btn-sm" onclick="editApp('${file.name}')">Bearbeiten</button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete('${file.name}', '${file.sha}')">L&ouml;schen</button>
-                        </div>
-                    </div>
-                    <div class="app-item-qr" id="${itemId}"></div>
-                `;
-                listEl.appendChild(itemDiv);
-            });
+            buildFachFilter();
+            renderApps();
         } catch (err) {
             listEl.innerHTML = `<div class="app-list-empty" style="color:#991b1b;">Fehler: ${err.message}</div>`;
         }
+    }
+
+    function buildFachFilter() {
+        const faecher = new Set();
+        allAppFiles.forEach(f => {
+            const desc = descriptions[f.name];
+            if (desc && desc.fach) faecher.add(desc.fach);
+        });
+
+        const select = document.getElementById('filterFach');
+        const current = select.value;
+        select.innerHTML = '<option value="">Alle Fächer</option>';
+        [...faecher].sort().forEach(fach => {
+            const opt = document.createElement('option');
+            opt.value = fach;
+            opt.textContent = fach;
+            select.appendChild(opt);
+        });
+        select.value = current;
+    }
+
+    function filterApps() {
+        renderApps();
+    }
+
+    function renderApps() {
+        const listEl = document.getElementById('appList');
+        const searchTerm = document.getElementById('filterSearch').value.toLowerCase();
+        const fachFilter = document.getElementById('filterFach').value;
+
+        let filtered = allAppFiles.filter(f => {
+            const desc = descriptions[f.name];
+            const nameMatch = f.name.toLowerCase().includes(searchTerm);
+            const descMatch = desc && (
+                (desc.beschreibung || '').toLowerCase().includes(searchTerm) ||
+                (desc.fach || '').toLowerCase().includes(searchTerm)
+            );
+
+            if (searchTerm && !nameMatch && !descMatch) return false;
+            if (fachFilter && (!desc || desc.fach !== fachFilter)) return false;
+            return true;
+        });
+
+        document.getElementById('appCount').textContent = `(${filtered.length} von ${allAppFiles.length})`;
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = '<div class="app-list-empty">Keine Apps gefunden.</div>';
+            return;
+        }
+
+        listEl.innerHTML = '';
+        filtered.forEach(file => {
+            const url = pagesUrl(file.name);
+            const itemId = 'qr-' + file.name.replace(/[^a-zA-Z0-9]/g, '-');
+            const desc = descriptions[file.name];
+
+            let descHtml = '';
+            if (desc) {
+                descHtml = '<div class="app-item-desc">';
+                if (desc.fach) descHtml += `<span class="badge badge-fach">${esc(desc.fach)}</span>`;
+                if (desc.stufe) descHtml += `<span class="badge badge-stufe">Jgst. ${esc(desc.stufe)}</span>`;
+                if (desc.beschreibung) descHtml += ` ${esc(desc.beschreibung)}`;
+                descHtml += '</div>';
+            }
+
+            const itemDiv = document.createElement('div');
+            itemDiv.innerHTML = `
+                <div class="app-item">
+                    <div class="app-item-info">
+                        <div class="app-item-name">
+                            <a href="${url}" target="_blank">${esc(file.name)}</a>
+                        </div>
+                        ${descHtml}
+                    </div>
+                    <div class="app-item-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="toggleQR('${itemId}', '${url}')">QR</button>
+                        <button class="btn btn-primary btn-sm" onclick="editApp('${esc(file.name)}')">Bearbeiten</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmDelete('${esc(file.name)}', '${file.sha}')">L\u00f6schen</button>
+                    </div>
+                </div>
+                <div class="app-item-qr" id="${itemId}"></div>
+            `;
+            listEl.appendChild(itemDiv);
+        });
+    }
+
+    function esc(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
     }
 
     // ----- Toggle QR in App List -----
@@ -741,7 +1027,6 @@
                 body.sha = editingSha;
                 body.message = `Update ${filename}`;
             } else {
-                // Check if file already exists (when creating new but file exists)
                 try {
                     const checkResp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders() });
                     if (checkResp.ok) {
@@ -749,9 +1034,7 @@
                         body.sha = existing.sha;
                         body.message = `Update ${filename}`;
                     }
-                } catch (e) {
-                    // File doesn't exist, that's fine
-                }
+                } catch (e) {}
             }
 
             const resp = await fetch(`${apiBase()}/${filename}`, {
@@ -763,6 +1046,16 @@
             if (!resp.ok) {
                 const errData = await resp.json();
                 throw new Error(errData.message || `HTTP ${resp.status}`);
+            }
+
+            // Save description if fields are filled
+            const fach = document.getElementById('descFach').value.trim();
+            const stufe = document.getElementById('descStufe').value.trim();
+            const beschreibung = document.getElementById('descText').value.trim();
+
+            if (fach || stufe || beschreibung) {
+                descriptions[filename] = { fach, stufe, beschreibung };
+                await saveDescriptions();
             }
 
             const url = pagesUrl(filename);
@@ -778,9 +1071,77 @@
         }
     }
 
+    // ----- Claude AI Description -----
+    async function generateDescription() {
+        const cfg = getConfig();
+        if (!cfg.claudeKey) {
+            showStatus('Bitte zuerst einen Anthropic API Key in den Einstellungen hinterlegen.', 'error');
+            openSettings();
+            return;
+        }
+
+        const content = editor.getValue();
+        if (!content.trim()) {
+            showStatus('Der Editor ist leer – bitte zuerst Code einfügen.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('aiDescBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner spinner-dark"></span>Generiere...';
+
+        // Show description box
+        document.getElementById('descBox').classList.add('active');
+
+        try {
+            const resp = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': cfg.claudeKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-5-20250929',
+                    max_tokens: 300,
+                    messages: [{
+                        role: 'user',
+                        content: `Analysiere diese HTML-Webapp für Schüler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen drei Feldern:
+- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Französisch", "Deutsch", "Informatik", "Geographie", "Sport", "Fächerübergreifend" oder "Tool")
+- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8–10", "5–6")
+- "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
+
+HTML-Code:
+${content.substring(0, 6000)}`
+                    }]
+                })
+            });
+
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error?.message || `HTTP ${resp.status}`);
+            }
+
+            const data = await resp.json();
+            const text = data.content[0].text.trim();
+            const parsed = JSON.parse(text);
+
+            document.getElementById('descFach').value = parsed.fach || '';
+            document.getElementById('descStufe').value = parsed.stufe || '';
+            document.getElementById('descText').value = parsed.beschreibung || '';
+
+            showStatus('Beschreibung generiert! Bitte prüfen und bei Bedarf anpassen.', 'success');
+        } catch (err) {
+            showStatus(`KI-Beschreibung fehlgeschlagen: ${err.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'KI-Beschreibung';
+        }
+    }
+
     // ----- Edit App -----
     async function editApp(filename) {
-        const cfg = getConfig();
         showStatus('Lade Datei...', 'info');
 
         try {
@@ -791,14 +1152,26 @@
             const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
 
             editor.setValue(content);
-            document.getElementById('filename').value = filename.replace(/\.html$/i, '');
+            document.getElementById('filename').value = filename.replace(/\.html?$/i, '');
             editingSha = data.sha;
             editingFilename = filename;
 
+            // Load existing description if available
+            const desc = descriptions[filename];
+            if (desc) {
+                document.getElementById('descFach').value = desc.fach || '';
+                document.getElementById('descStufe').value = desc.stufe || '';
+                document.getElementById('descText').value = desc.beschreibung || '';
+                document.getElementById('descBox').classList.add('active');
+            } else {
+                document.getElementById('descFach').value = '';
+                document.getElementById('descStufe').value = '';
+                document.getElementById('descText').value = '';
+                document.getElementById('descBox').classList.remove('active');
+            }
+
             document.getElementById('cancelEditBtn').style.display = 'inline-block';
             showStatus(`Bearbeite: ${filename}`, 'info');
-
-            // Scroll to editor
             document.querySelector('.editor-section').scrollIntoView({ behavior: 'smooth' });
         } catch (err) {
             showStatus(`Fehler beim Laden: ${err.message}`, 'error');
@@ -810,6 +1183,10 @@
         editingFilename = null;
         document.getElementById('cancelEditBtn').style.display = 'none';
         document.getElementById('filename').value = '';
+        document.getElementById('descFach').value = '';
+        document.getElementById('descStufe').value = '';
+        document.getElementById('descText').value = '';
+        document.getElementById('descBox').classList.remove('active');
     }
 
     // ----- Delete App -----
@@ -834,6 +1211,12 @@
             if (!resp.ok) {
                 const errData = await resp.json();
                 throw new Error(errData.message || `HTTP ${resp.status}`);
+            }
+
+            // Remove description
+            if (descriptions[filename]) {
+                delete descriptions[filename];
+                await saveDescriptions();
             }
 
             showStatus(`${filename} gelöscht.`, 'success');
