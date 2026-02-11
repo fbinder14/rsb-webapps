@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSB Webapps</title>
+
+    <!-- CodeMirror 5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .settings-btn {
+            background: none;
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Settings Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
+            color: #1a1a2e;
+        }
+
+        .modal label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: #4a6cf7;
+        }
+
+        .modal .help-text {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.82rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .modal .help-text strong {
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: flex-end;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4a6cf7;
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: #3a5ce5; }
+
+        .btn-success {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .btn-success:hover { background: #16a34a; }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .btn-danger:hover { background: #dc2626; }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .btn-secondary:hover { background: #d1d5db; }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Editor Section */
+        .editor-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .editor-section h2 {
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+            font-size: 1.2rem;
+        }
+
+        .filename-row {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filename-row input {
+            flex: 1;
+            padding: 0.6rem 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .filename-row input:focus {
+            outline: none;
+            border-color: #4a6cf7;
+        }
+
+        .filename-row span {
+            color: #888;
+            font-weight: 600;
+        }
+
+        .CodeMirror {
+            height: 400px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .editor-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        /* Preview */
+        .preview-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .preview-section.active { display: block; }
+
+        .preview-section h2 {
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+            font-size: 1.2rem;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        /* QR Code Section */
+        .qr-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            display: none;
+            text-align: center;
+        }
+
+        .qr-section.active { display: block; }
+
+        .qr-section h2 {
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+            font-size: 1.2rem;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .qr-url {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .qr-url input {
+            padding: 0.5rem 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 400px;
+            max-width: 100%;
+            text-align: center;
+        }
+
+        /* App List */
+        .app-list-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .app-list-section h2 {
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+            font-size: 1.2rem;
+        }
+
+        .app-list-empty {
+            text-align: center;
+            color: #999;
+            padding: 2rem;
+        }
+
+        .app-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background 0.15s;
+        }
+
+        .app-item:hover { background: #f9fafb; }
+
+        .app-item-name {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .app-item-name a {
+            color: #4a6cf7;
+            text-decoration: none;
+        }
+
+        .app-item-name a:hover { text-decoration: underline; }
+
+        .app-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-sm {
+            padding: 0.35rem 0.7rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+
+        .app-item-qr {
+            display: none;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            margin-top: -0.5rem;
+            margin-bottom: 0.5rem;
+            background: #fafafa;
+        }
+
+        .app-item-qr.active { display: block; }
+
+        /* Status messages */
+        .status {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.active { display: block; }
+
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .status.info {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Not configured banner */
+        .setup-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .setup-banner button {
+            margin-left: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .CodeMirror { height: 300px; }
+            .filename-row { flex-direction: column; }
+            .app-item { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+            .app-item-actions { width: 100%; justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>RSB Webapps</h1>
+    <button class="settings-btn" onclick="openSettings()">&#9881; Einstellungen</button>
+</header>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <h2>Einstellungen</h2>
+        <label for="inputUsername">GitHub-Benutzername</label>
+        <input type="text" id="inputUsername" placeholder="z.B. mein-username">
+
+        <label for="inputRepo">Repository-Name</label>
+        <input type="text" id="inputRepo" placeholder="z.B. rsb-webapps" value="rsb-webapps">
+
+        <label for="inputToken">Personal Access Token (PAT)</label>
+        <input type="password" id="inputToken" placeholder="ghp_...">
+
+        <div class="help-text">
+            <strong>So erstellst du einen Fine-grained PAT:</strong><br>
+            1. GitHub &rarr; Settings &rarr; Developer Settings &rarr; Fine-grained tokens<br>
+            2. &laquo;Generate new token&raquo; klicken<br>
+            3. Repository access: &laquo;Only select repositories&raquo; &rarr; dein Repo ausw&auml;hlen<br>
+            4. Permissions: &laquo;Contents&raquo; &rarr; Read and Write<br>
+            5. Token kopieren und hier einf&uuml;gen
+        </div>
+
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="closeSettings()">Abbrechen</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Speichern</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Setup Banner -->
+    <div class="setup-banner" id="setupBanner" style="display:none;">
+        Bitte zuerst die GitHub-Einstellungen konfigurieren.
+        <button class="btn btn-primary btn-sm" onclick="openSettings()">Jetzt einrichten</button>
+    </div>
+
+    <!-- Status Message -->
+    <div class="status" id="statusMsg"></div>
+
+    <!-- Editor -->
+    <div class="editor-section">
+        <h2>Editor</h2>
+        <div class="filename-row">
+            <input type="text" id="filename" placeholder="dateiname (ohne .html)">
+            <span>.html</span>
+        </div>
+        <textarea id="editor"></textarea>
+        <div class="editor-buttons">
+            <button class="btn btn-secondary" onclick="showPreview()">Vorschau</button>
+            <button class="btn btn-success" id="deployBtn" onclick="deploy()">Deploy</button>
+            <button class="btn btn-secondary" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Bearbeitung abbrechen</button>
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="preview-section" id="previewSection">
+        <h2>Vorschau
+            <button class="btn btn-secondary btn-sm" onclick="closePreview()" style="margin-left:0.5rem;">Schlie&szlig;en</button>
+        </h2>
+        <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr-section" id="qrSection">
+        <h2>QR-Code</h2>
+        <div id="qrcode"></div>
+        <div class="qr-url">
+            <input type="text" id="qrUrl" readonly>
+            <button class="btn btn-primary btn-sm" onclick="copyUrl()">Kopieren</button>
+        </div>
+    </div>
+
+    <!-- App List -->
+    <div class="app-list-section">
+        <h2>Deployte Apps
+            <button class="btn btn-secondary btn-sm" onclick="loadApps()" style="margin-left:0.5rem;">&#8635; Aktualisieren</button>
+        </h2>
+        <div id="appList">
+            <div class="app-list-empty">Lade Apps...</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ----- State -----
+    let editor;
+    let editingSha = null; // SHA of the file currently being edited (null = new file)
+    let editingFilename = null;
+
+    // ----- Init -----
+    document.addEventListener('DOMContentLoaded', () => {
+        editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+            mode: 'htmlmixed',
+            theme: 'dracula',
+            lineNumbers: true,
+            lineWrapping: true,
+            tabSize: 2,
+            indentWithTabs: false,
+            autoCloseBrackets: true
+        });
+
+        editor.setValue('<!DOCTYPE html>\n<html lang="de">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Meine App</title>\n  <style>\n    body { font-family: sans-serif; padding: 2rem; }\n  </style>\n</head>\n<body>\n  <h1>Hallo Welt!</h1>\n\n  <script>\n    // Dein JavaScript hier\n  <\/script>\n</body>\n</html>');
+
+        if (!getConfig().token) {
+            document.getElementById('setupBanner').style.display = 'block';
+        } else {
+            loadApps();
+        }
+    });
+
+    // ----- Settings -----
+    function getConfig() {
+        return {
+            username: localStorage.getItem('rsb_username') || '',
+            repo: localStorage.getItem('rsb_repo') || 'rsb-webapps',
+            token: localStorage.getItem('rsb_token') || ''
+        };
+    }
+
+    function openSettings() {
+        const cfg = getConfig();
+        document.getElementById('inputUsername').value = cfg.username;
+        document.getElementById('inputRepo').value = cfg.repo;
+        document.getElementById('inputToken').value = cfg.token;
+        document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    function saveSettings() {
+        const username = document.getElementById('inputUsername').value.trim();
+        const repo = document.getElementById('inputRepo').value.trim();
+        const token = document.getElementById('inputToken').value.trim();
+
+        if (!username || !repo || !token) {
+            alert('Bitte alle Felder ausfüllen.');
+            return;
+        }
+
+        localStorage.setItem('rsb_username', username);
+        localStorage.setItem('rsb_repo', repo);
+        localStorage.setItem('rsb_token', token);
+
+        closeSettings();
+        document.getElementById('setupBanner').style.display = 'none';
+        showStatus('Einstellungen gespeichert!', 'success');
+        loadApps();
+    }
+
+    // ----- GitHub API -----
+    function apiHeaders() {
+        const cfg = getConfig();
+        return {
+            'Authorization': `Bearer ${cfg.token}`,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        };
+    }
+
+    function apiBase() {
+        const cfg = getConfig();
+        return `https://api.github.com/repos/${cfg.username}/${cfg.repo}/contents/apps`;
+    }
+
+    function pagesUrl(filename) {
+        const cfg = getConfig();
+        return `https://${cfg.username}.github.io/${cfg.repo}/apps/${filename}`;
+    }
+
+    // ----- Load Apps -----
+    async function loadApps() {
+        const cfg = getConfig();
+        if (!cfg.token) return;
+
+        const listEl = document.getElementById('appList');
+        listEl.innerHTML = '<div class="app-list-empty">Lade Apps...</div>';
+
+        try {
+            const resp = await fetch(apiBase(), { headers: apiHeaders() });
+
+            if (resp.status === 404) {
+                listEl.innerHTML = '<div class="app-list-empty">Noch keine Apps deployt.</div>';
+                return;
+            }
+
+            if (!resp.ok) throw new Error(`API-Fehler: ${resp.status}`);
+
+            const files = await resp.json();
+            const htmlFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.html')) : [];
+
+            if (htmlFiles.length === 0) {
+                listEl.innerHTML = '<div class="app-list-empty">Noch keine Apps deployt.</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            htmlFiles.forEach(file => {
+                const url = pagesUrl(file.name);
+                const itemId = 'qr-' + file.name.replace(/[^a-zA-Z0-9]/g, '-');
+
+                const itemDiv = document.createElement('div');
+                itemDiv.innerHTML = `
+                    <div class="app-item">
+                        <div class="app-item-name">
+                            <a href="${url}" target="_blank">${file.name}</a>
+                        </div>
+                        <div class="app-item-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleQR('${itemId}', '${url}')">QR</button>
+                            <button class="btn btn-primary btn-sm" onclick="editApp('${file.name}')">Bearbeiten</button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete('${file.name}', '${file.sha}')">L&ouml;schen</button>
+                        </div>
+                    </div>
+                    <div class="app-item-qr" id="${itemId}"></div>
+                `;
+                listEl.appendChild(itemDiv);
+            });
+        } catch (err) {
+            listEl.innerHTML = `<div class="app-list-empty" style="color:#991b1b;">Fehler: ${err.message}</div>`;
+        }
+    }
+
+    // ----- Toggle QR in App List -----
+    function toggleQR(elementId, url) {
+        const el = document.getElementById(elementId);
+        if (el.classList.contains('active')) {
+            el.classList.remove('active');
+            el.innerHTML = '';
+            return;
+        }
+        el.classList.add('active');
+        el.innerHTML = '';
+        const qrDiv = document.createElement('div');
+        qrDiv.style.display = 'inline-block';
+        el.appendChild(qrDiv);
+        new QRCode(qrDiv, { text: url, width: 160, height: 160 });
+        const link = document.createElement('div');
+        link.style.marginTop = '0.5rem';
+        link.style.fontSize = '0.85rem';
+        link.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+        el.appendChild(link);
+    }
+
+    // ----- Deploy -----
+    async function deploy() {
+        const cfg = getConfig();
+        if (!cfg.token) {
+            openSettings();
+            return;
+        }
+
+        let filename = document.getElementById('filename').value.trim();
+        if (!filename) {
+            showStatus('Bitte einen Dateinamen eingeben.', 'error');
+            return;
+        }
+
+        // Sanitize filename
+        filename = filename.replace(/\.html$/i, '');
+        filename = filename.replace(/[^a-zA-Z0-9_\-]/g, '-').toLowerCase();
+        if (!filename) {
+            showStatus('Ungültiger Dateiname.', 'error');
+            return;
+        }
+        filename += '.html';
+
+        const content = editor.getValue();
+        if (!content.trim()) {
+            showStatus('Der Editor ist leer.', 'error');
+            return;
+        }
+
+        const deployBtn = document.getElementById('deployBtn');
+        deployBtn.disabled = true;
+        deployBtn.innerHTML = '<span class="spinner"></span>Deploying...';
+
+        try {
+            const body = {
+                message: `Deploy ${filename}`,
+                content: btoa(unescape(encodeURIComponent(content)))
+            };
+
+            // If editing an existing file, include the SHA
+            if (editingSha && editingFilename === filename) {
+                body.sha = editingSha;
+                body.message = `Update ${filename}`;
+            } else {
+                // Check if file already exists (when creating new but file exists)
+                try {
+                    const checkResp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders() });
+                    if (checkResp.ok) {
+                        const existing = await checkResp.json();
+                        body.sha = existing.sha;
+                        body.message = `Update ${filename}`;
+                    }
+                } catch (e) {
+                    // File doesn't exist, that's fine
+                }
+            }
+
+            const resp = await fetch(`${apiBase()}/${filename}`, {
+                method: 'PUT',
+                headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!resp.ok) {
+                const errData = await resp.json();
+                throw new Error(errData.message || `HTTP ${resp.status}`);
+            }
+
+            const url = pagesUrl(filename);
+            showStatus(`Erfolgreich deployt: ${filename}`, 'success');
+            generateQR(url);
+            cancelEdit();
+            loadApps();
+        } catch (err) {
+            showStatus(`Deploy fehlgeschlagen: ${err.message}`, 'error');
+        } finally {
+            deployBtn.disabled = false;
+            deployBtn.textContent = 'Deploy';
+        }
+    }
+
+    // ----- Edit App -----
+    async function editApp(filename) {
+        const cfg = getConfig();
+        showStatus('Lade Datei...', 'info');
+
+        try {
+            const resp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders() });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+            const data = await resp.json();
+            const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+
+            editor.setValue(content);
+            document.getElementById('filename').value = filename.replace(/\.html$/i, '');
+            editingSha = data.sha;
+            editingFilename = filename;
+
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            showStatus(`Bearbeite: ${filename}`, 'info');
+
+            // Scroll to editor
+            document.querySelector('.editor-section').scrollIntoView({ behavior: 'smooth' });
+        } catch (err) {
+            showStatus(`Fehler beim Laden: ${err.message}`, 'error');
+        }
+    }
+
+    function cancelEdit() {
+        editingSha = null;
+        editingFilename = null;
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        document.getElementById('filename').value = '';
+    }
+
+    // ----- Delete App -----
+    async function confirmDelete(filename, sha) {
+        if (!confirm(`"${filename}" wirklich löschen?`)) return;
+        await deleteApp(filename, sha);
+    }
+
+    async function deleteApp(filename, sha) {
+        try {
+            showStatus(`Lösche ${filename}...`, 'info');
+
+            const resp = await fetch(`${apiBase()}/${filename}`, {
+                method: 'DELETE',
+                headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `Delete ${filename}`,
+                    sha: sha
+                })
+            });
+
+            if (!resp.ok) {
+                const errData = await resp.json();
+                throw new Error(errData.message || `HTTP ${resp.status}`);
+            }
+
+            showStatus(`${filename} gelöscht.`, 'success');
+            loadApps();
+        } catch (err) {
+            showStatus(`Fehler beim Löschen: ${err.message}`, 'error');
+        }
+    }
+
+    // ----- QR Code -----
+    function generateQR(url) {
+        const section = document.getElementById('qrSection');
+        const qrDiv = document.getElementById('qrcode');
+        const urlInput = document.getElementById('qrUrl');
+
+        section.classList.add('active');
+        qrDiv.innerHTML = '';
+        new QRCode(qrDiv, { text: url, width: 200, height: 200 });
+        urlInput.value = url;
+
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyUrl() {
+        const input = document.getElementById('qrUrl');
+        navigator.clipboard.writeText(input.value).then(() => {
+            showStatus('URL kopiert!', 'success');
+        });
+    }
+
+    // ----- Preview -----
+    function showPreview() {
+        const content = editor.getValue();
+        const section = document.getElementById('previewSection');
+        const frame = document.getElementById('previewFrame');
+
+        section.classList.add('active');
+        frame.srcdoc = content;
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closePreview() {
+        const section = document.getElementById('previewSection');
+        section.classList.remove('active');
+        document.getElementById('previewFrame').srcdoc = '';
+    }
+
+    // ----- Status -----
+    function showStatus(message, type) {
+        const el = document.getElementById('statusMsg');
+        el.textContent = message;
+        el.className = `status active ${type}`;
+
+        if (type === 'success') {
+            setTimeout(() => { el.classList.remove('active'); }, 4000);
+        }
+    }
+</script>
+
+</body>
+</html>
