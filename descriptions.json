@@ -413,5 +413,10 @@
     "fach": "BWR",
     "stufe": "8",
     "beschreibung": "Zinstage nach verschiedenen Methoden berechnen"
+  },
+  "hkdu.html": {
+    "fach": "BWR",
+    "stufe": "8–10",
+    "beschreibung": "Trainer zur Berechnung der Herstellkosten des Umsatzes"
   }
 }
