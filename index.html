@@ -756,6 +756,17 @@
             font-weight: normal;
         }
 
+        /* Lehrplan View */
+        .lehrplan-level-1 { margin-left: 0; }
+        .lehrplan-level-2 { margin-left: 1.2rem; }
+        .lehrplan-level-3 { margin-left: 2.4rem; }
+        .lehrplan-stichworte {
+            font-size: 0.75rem;
+            color: #aaa;
+            font-style: italic;
+            margin-left: 0.5rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { padding: 1rem; }
@@ -895,6 +906,12 @@
                     </select>
                 </div>
             </div>
+            <div>
+                <label for="descLernbereich">Lernbereich</label>
+                <select id="descLernbereich">
+                    <option value="">&mdash; Kein Lernbereich &mdash;</option>
+                </select>
+            </div>
             <label for="descText">Beschreibung</label>
             <textarea id="descText" placeholder="Kurze Beschreibung der App..."></textarea>
         </div>
@@ -923,6 +940,7 @@
                 <div class="view-toggle">
                     <button id="viewListBtn" class="active" onclick="setView('list')">Liste</button>
                     <button id="viewFolderBtn" onclick="setView('folder')">Ordner</button>
+                    <button id="viewLehrplanBtn" onclick="setView('lehrplan')">Lehrplan</button>
                 </div>
                 <button class="btn btn-secondary btn-sm" onclick="loadApps()">&#8635; Aktualisieren</button>
             </div>
@@ -997,6 +1015,108 @@
         'Fächerübergreifend': 'Sonstiges'
     };
 
+    const LEHRPLAN = {
+      'BwR': {
+        label: 'Betriebswirtschaftslehre / Rechnungswesen',
+        icon: '\u{1F4CA}',
+        gruppen: [
+          {
+            id: 'BwR7-IIIa', label: '7. Jahrgangsstufe (WPF IIIa)',
+            lernbereiche: [
+              { id: 'BwR7-IIIa-1', name: 'Wirtschaftliches Handeln im privaten Haushalt', stichworte: 'Familienhaushalt, Einnahmen/Ausgaben, Zahlungsverkehr, Prozentrechnung' },
+              { id: 'BwR7-IIIa-2', name: 'Wirtschaftliches Handeln im Unternehmen', stichworte: 'Unternehmensziele, Standortfaktoren, Rechtsformen, Produktionsfaktoren' },
+              { id: 'BwR7-IIIa-3', name: 'Einf\u00fchrung in die Gesch\u00e4ftsbuchf\u00fchrung', stichworte: 'Inventur, Bilanz, Bestandskonten, Buchungssatz, Umsatzsteuer' },
+              { id: 'BwR7-IIIa-4', name: 'Buchhalterische Erfassung des Produktionsprozesses', stichworte: 'Werkstoffarten, Angebotsvergleich, Erfolgskonten, Beschaffung, Absatz' }
+            ]
+          },
+          {
+            id: 'BwR7-II', label: '7. Jahrgangsstufe (WPF II)',
+            lernbereiche: [
+              { id: 'BwR7-II-1', name: 'Wirtschaftliches Handeln im privaten Haushalt', stichworte: 'Familienhaushalt, Einnahmen/Ausgaben, Zahlungsverkehr, Infografiken, Prozentrechnung' },
+              { id: 'BwR7-II-2', name: 'Wirtschaftliches Handeln im Unternehmen', stichworte: 'Unternehmensziele, Gesch\u00e4ftsidee, Businessplan, Standortfaktoren, Rechtsformen' },
+              { id: 'BwR7-II-3', name: 'Einf\u00fchrung in die Gesch\u00e4ftsbuchf\u00fchrung', stichworte: 'Inventur, Bilanz, Bestandskonten, Buchungssatz, Umsatzsteuer' },
+              { id: 'BwR7-II-4', name: 'Buchhalterische Erfassung des Produktionsprozesses', stichworte: 'Werkstoffarten, Angebotsvergleich, Erfolgskonten, Beschaffung, Absatz' },
+              { id: 'BwR7-II-5', name: 'Strukturierung der Gesch\u00e4ftsbuchf\u00fchrung', stichworte: 'Er\u00f6ffnung, laufende Buchungen, GUV, SBK, Eigenkapital, Inventurdifferenzen' }
+            ]
+          },
+          {
+            id: 'BwR8-IIIa', label: '8. Jahrgangsstufe (WPF IIIa)',
+            lernbereiche: [
+              { id: 'BwR8-IIIa-1', name: 'Strukturierung der Gesch\u00e4ftsbuchf\u00fchrung', stichworte: 'Kontenplan, Er\u00f6ffnungsbilanz, Gesch\u00e4ftsgang, GUV, SBK' },
+              { id: 'BwR8-IIIa-2', name: 'Beschaffung und Absatz', stichworte: 'Einkaufskalkulation, Verkaufskalkulation, Skonto, Bezugskosten, R\u00fccksendungen, Preispolitik' },
+              { id: 'BwR8-IIIa-3', name: 'Anlagen und Finanzierung', stichworte: 'Anschaffungskosten, lineare Abschreibung, Bankkredit, Zinsrechnung, effektiver Zinssatz' },
+              { id: 'BwR8-IIIa-4', name: 'Personalbereich und Unternehmereinkommen', stichworte: 'Entgeltabrechnung, Brutto/Netto, Sozialversicherung, Privatentnahmen' }
+            ]
+          },
+          {
+            id: 'BwR8-II', label: '8. Jahrgangsstufe (WPF II)',
+            lernbereiche: [
+              { id: 'BwR8-II-1', name: 'Vertiefte Strukturierung der Gesch\u00e4ftsbuchf\u00fchrung', stichworte: 'Kontenplan, Er\u00f6ffnungsbilanz, beleggest\u00fctzter Gesch\u00e4ftsgang, Jahresabschluss' },
+              { id: 'BwR8-II-2', name: 'Beschaffung und Einsatz von Werkstoffen', stichworte: 'Beschaffungsplanung, Einkaufskalkulation, Bezugskosten, R\u00fccksendungen, Bestandsver\u00e4nderungen' },
+              { id: 'BwR8-II-3', name: 'Aspekte des Marketings', stichworte: 'Marketingziele, Produktpolitik, Preispolitik, Kommunikationspolitik, Vertriebspolitik' },
+              { id: 'BwR8-II-4', name: 'Verkauf von Fertigerzeugnissen', stichworte: 'Verkaufskalkulation, Differenzkalkulation, Ausgangsrechnungen, R\u00fccksendungen' },
+              { id: 'BwR8-II-5', name: 'Personalbereich', stichworte: 'Personalbeschaffung, Arbeitsformen, Entgeltabrechnung, Brutto/Netto, Sozialversicherung' },
+              { id: 'BwR8-II-6', name: 'Unternehmen und Staat', stichworte: 'Steuerarten, Gewerbesteuer, Umsatzsteuer, Geb\u00fchren, Wettbewerbsrecht' }
+            ]
+          },
+          {
+            id: 'BwR9-II', label: '9. Jahrgangsstufe (WPF II)',
+            lernbereiche: [
+              { id: 'BwR9-II-1', name: 'Unternehmensf\u00fchrung und Einkommen des Unternehmers', stichworte: 'F\u00fchrungsstile, Organisationsstruktur, Unternehmerlohn, Privatentnahmen, Eigenkapitalver\u00e4nderung' },
+              { id: 'BwR9-II-2', name: 'Anlagenbereich', stichworte: 'Abschreibung, AfA, Investitionsrechnung, Anschaffungskosten, GWG, Reparaturen, Versicherungen' },
+              { id: 'BwR9-II-3', name: 'M\u00f6glichkeiten der Finanzierung', stichworte: 'Eigenfinanzierung, Fremdfinanzierung, Bankkredit, Disagio, Darlehensarten, effektiver Zinssatz, Leasing, Factoring' },
+              { id: 'BwR9-II-4', name: 'Kapitalanlage', stichworte: 'Geldanlageformen, magisches Dreieck, B\u00f6rse, Aktienindizes, Wertpapiere, Dividende' },
+              { id: 'BwR9-II-5', name: 'Ausfall und Bewertung von Forderungen', stichworte: 'Insolvenz, Mahnverfahren, Forderungsausfall, Einzelwertberichtigung, Pauschalwertberichtigung' }
+            ]
+          },
+          {
+            id: 'BwR10-II', label: '10. Jahrgangsstufe (WPF II)',
+            lernbereiche: [
+              { id: 'BwR10-II-1', name: 'Periodenrichtige Erfolgsermittlung und R\u00fcckstellungen', stichworte: 'Abgrenzung, ARA, PRA, R\u00fcckstellungen, Aufl\u00f6sung' },
+              { id: 'BwR10-II-2', name: 'Unternehmensabschluss und Auswertung', stichworte: 'Bilanz, GUV, Kennzahlen, Barliquidit\u00e4t, Eigenkapitalrentabilit\u00e4t, Anlagendeckung' },
+              { id: 'BwR10-II-3', name: 'Vollkostenrechnung', stichworte: 'BAB, Kostenarten, Kostenstellen, Kostentr\u00e4ger, Zuschlagskalkulation, Gemeinkosten' },
+              { id: 'BwR10-II-4', name: 'Teilkostenrechnung', stichworte: 'Variable/fixe Kosten, Deckungsbeitrag, Break-even, Programmplanung, Make-or-buy, Preisuntergrenze' }
+            ]
+          }
+        ]
+      },
+      'WR': {
+        label: 'Wirtschaft und Recht',
+        icon: '\u{2696}\u{FE0F}',
+        gruppen: [
+          {
+            id: 'WR8-II', label: '8. Jahrgangsstufe (WPF II)',
+            lernbereiche: [
+              { id: 'WR8-II-1', name: 'Grundz\u00fcge des Wirtschaftens auf dem G\u00fctermarkt', stichworte: '\u00d6konomisches Prinzip, Angebot/Nachfrage, Gleichgewichtspreis, Wirtschaftskreislauf, Marktformen' },
+              { id: 'WR8-II-2', name: 'Verbraucherschutz und verantwortungsbewusstes Verbraucherverhalten', stichworte: 'Nachhaltigkeit, Verbraucherberatung, Marketingstrategien, E-Commerce, Social Media' },
+              { id: 'WR8-II-3', name: 'Der Jugendliche in unserer Rechtsordnung', stichworte: 'Rechtsordnung, Rechtsquellen, Gesch\u00e4ftsf\u00e4higkeit, Deliktf\u00e4higkeit, Jugendschutz' },
+              { id: 'WR8-II-4', name: 'Privatrechtliche Regelungen', stichworte: 'Eigentum, Besitz, Kaufvertrag, Pflichtverletzungen, Vertr\u00e4ge des Alltags, Zivilprozess' },
+              { id: 'WR8-II-5', name: 'Berufliche Orientierung', stichworte: 'Arbeitsmarkt, Arbeitslosigkeit, Bundesagentur f\u00fcr Arbeit, Berufswahl, Aus- und Weiterbildung' }
+            ]
+          },
+          {
+            id: 'WR9-I/III', label: '9. Jahrgangsstufe (WPF I/III)',
+            lernbereiche: [
+              { id: 'WR9-I/III-1', name: 'Berufliche Orientierung', stichworte: 'Arbeitsmarkt, Arbeitslosigkeit, Berufswahl, Bewerbung, Berufsausbildungsvertrag, Jugendarbeitsschutz' },
+              { id: 'WR9-I/III-2', name: 'Wirtschaftliches Handeln in der Sozialen Marktwirtschaft', stichworte: '\u00d6konomisches Prinzip, Angebot/Nachfrage, Gleichgewichtspreis, Wirtschaftskreislauf, Sozialversicherung' },
+              { id: 'WR9-I/III-3', name: 'Verbraucherschutz und verantwortungsbewusstes Verbraucherverhalten', stichworte: 'Nachhaltigkeit, Geldanlage, Zahlungsverkehr, E-Commerce, Social Media, \u00dcberschuldung' },
+              { id: 'WR9-I/III-4', name: 'Grundz\u00fcge des Rechts', stichworte: 'Rechtsordnung, Gesch\u00e4ftsf\u00e4higkeit, Kaufvertrag, Eigentum, Strafrecht, Jugendstrafrecht' }
+            ]
+          },
+          {
+            id: 'WR9-II', label: '9. Jahrgangsstufe (WPF II)',
+            lernbereiche: [
+              { id: 'WR9-II-1', name: 'Ausbildung und Beruf', stichworte: 'Berufswahl, Bewerbung, Berufsausbildungsvertrag, Arbeitsschutz, K\u00fcndigung, Mitbestimmung, Tarifvertrag' },
+              { id: 'WR9-II-2', name: 'Geld- und Kapitalmarkt', stichworte: 'Bankensystem, Geldanlage, B\u00f6rse, Aktienindizes, \u00dcberschuldung, Altersvorsorge' },
+              { id: 'WR9-II-3', name: 'Soziale Marktwirtschaft', stichworte: 'Wirtschaftsordnungen, Sozialversicherung, Solidarprinzip, Wettbewerb' },
+              { id: 'WR9-II-4', name: 'Partnerschaft und Erbfall', stichworte: 'Eherecht, Familienrecht, Erbrecht, Testament' },
+              { id: 'WR9-II-5', name: 'Strafrecht', stichworte: 'Strafbarkeit, Strafverfahren, Jugendstrafrecht, Ordnungswidrigkeit, Haftpflicht' }
+            ]
+          }
+        ]
+      }
+    };
+
     // ----- State -----
     let editor;
     let editingSha = null;
@@ -1006,6 +1126,7 @@
     let allAppFiles = [];
     let currentView = 'list';
     let openCategories = new Set();
+    let openLehrplanNodes = new Set();
     let deploySuccessUrl = '';
 
     // ----- Init -----
@@ -1321,7 +1442,9 @@
             return;
         }
 
-        if (currentView === 'folder') {
+        if (currentView === 'lehrplan') {
+            renderLehrplanView();
+        } else if (currentView === 'folder') {
             renderFolderView(filtered);
         } else {
             renderListView(filtered);
@@ -1444,10 +1567,173 @@
         });
     }
 
+    function renderLehrplanView() {
+        const listEl = document.getElementById('appList');
+        const searchTerm = document.getElementById('filterSearch').value.toLowerCase();
+        listEl.innerHTML = '';
+
+        // Build a lookup: lernbereich-id -> [files]
+        const lbMap = {};
+        const unassigned = [];
+        allAppFiles.forEach(file => {
+            const desc = descriptions[file.name];
+            if (!desc) return;
+            const fach = (desc.fach || '').toUpperCase();
+            const isBwrWr = fach.includes('BWR') || fach.includes('WR');
+            if (!isBwrWr) return;
+
+            // Apply search filter
+            if (searchTerm) {
+                const nameMatch = file.name.toLowerCase().includes(searchTerm);
+                const descMatch = (desc.beschreibung || '').toLowerCase().includes(searchTerm) ||
+                    (desc.fach || '').toLowerCase().includes(searchTerm);
+                if (!nameMatch && !descMatch) return;
+            }
+
+            if (desc.lernbereich) {
+                if (!lbMap[desc.lernbereich]) lbMap[desc.lernbereich] = [];
+                lbMap[desc.lernbereich].push(file);
+            } else {
+                unassigned.push(file);
+            }
+        });
+
+        let totalShown = 0;
+
+        for (const [fachKey, fachData] of Object.entries(LEHRPLAN)) {
+            const fachId = `lp-${fachKey}`;
+            const isFachOpen = openLehrplanNodes.has(fachId);
+
+            // Count apps in this Fach
+            let fachAppCount = 0;
+            fachData.gruppen.forEach(g => {
+                g.lernbereiche.forEach(lb => {
+                    fachAppCount += (lbMap[lb.id] || []).length;
+                });
+            });
+
+            if (searchTerm && fachAppCount === 0) continue;
+            totalShown += fachAppCount;
+
+            const fachDiv = document.createElement('div');
+            fachDiv.className = 'folder-section lehrplan-level-1';
+            let fachInner = `
+                <div class="folder-header" onclick="toggleLehrplanNode('${fachId}')">
+                    <span class="folder-arrow">${isFachOpen ? '\u25BC' : '\u25B6'}</span>
+                    <span class="folder-icon">${fachData.icon}</span>
+                    <span class="folder-name">${esc(fachData.label)}</span>
+                    <span class="folder-count">(${fachAppCount})</span>
+                </div>
+            `;
+
+            if (isFachOpen) {
+                fachInner += '<div class="folder-content">';
+                for (const gruppe of fachData.gruppen) {
+                    const gruppeId = `lp-${gruppe.id}`;
+                    const isGruppeOpen = openLehrplanNodes.has(gruppeId);
+
+                    // Count apps in this Gruppe
+                    let gruppeAppCount = 0;
+                    gruppe.lernbereiche.forEach(lb => {
+                        gruppeAppCount += (lbMap[lb.id] || []).length;
+                    });
+
+                    if (searchTerm && gruppeAppCount === 0) continue;
+
+                    const gruppeDiv = `
+                        <div class="folder-section lehrplan-level-2">
+                            <div class="folder-header" onclick="toggleLehrplanNode('${gruppeId}')">
+                                <span class="folder-arrow">${isGruppeOpen ? '\u25BC' : '\u25B6'}</span>
+                                <span class="folder-icon">\u{1F4D6}</span>
+                                <span class="folder-name">${esc(gruppe.label)}</span>
+                                <span class="folder-count">(${gruppeAppCount})</span>
+                            </div>
+                            ${isGruppeOpen ? '<div class="folder-content">' + gruppe.lernbereiche.map((lb, idx) => {
+                                const lbId = `lp-${lb.id}`;
+                                const isLbOpen = openLehrplanNodes.has(lbId);
+                                const apps = lbMap[lb.id] || [];
+
+                                if (searchTerm && apps.length === 0) return '';
+
+                                return `
+                                    <div class="folder-section lehrplan-level-3">
+                                        <div class="folder-header" onclick="toggleLehrplanNode('${lbId}')">
+                                            <span class="folder-arrow">${isLbOpen ? '\u25BC' : '\u25B6'}</span>
+                                            <span class="folder-icon">\u{1F4CB}</span>
+                                            <span class="folder-name">LB ${idx + 1}: ${esc(lb.name)}</span>
+                                            <span class="folder-count">(${apps.length})</span>
+                                            <span class="lehrplan-stichworte" title="${esc(lb.stichworte)}">${esc(lb.stichworte)}</span>
+                                        </div>
+                                        ${isLbOpen ? '<div class="folder-content">' + (apps.length > 0 ? apps.map(f => createAppItemHTML(f)).join('') : '<div class="app-list-empty">Keine Apps zugeordnet.</div>') + '</div>' : ''}
+                                    </div>
+                                `;
+                            }).join('') + '</div>' : ''}
+                        </div>
+                    `;
+                    fachInner += gruppeDiv;
+                }
+                fachInner += '</div>';
+            }
+
+            fachDiv.innerHTML = fachInner;
+            listEl.appendChild(fachDiv);
+        }
+
+        // Show unassigned BWR/WR apps
+        if (unassigned.length > 0) {
+            const unId = 'lp-unassigned';
+            const isUnOpen = openLehrplanNodes.has(unId);
+            const unDiv = document.createElement('div');
+            unDiv.className = 'folder-section lehrplan-level-1';
+            unDiv.innerHTML = `
+                <div class="folder-header" onclick="toggleLehrplanNode('${unId}')">
+                    <span class="folder-arrow">${isUnOpen ? '\u25BC' : '\u25B6'}</span>
+                    <span class="folder-icon">\u{1F4C2}</span>
+                    <span class="folder-name">Nicht zugeordnet</span>
+                    <span class="folder-count">(${unassigned.length})</span>
+                </div>
+                ${isUnOpen ? '<div class="folder-content">' + unassigned.map(f => createAppItemHTML(f)).join('') + '</div>' : ''}
+            `;
+            listEl.appendChild(unDiv);
+            totalShown += unassigned.length;
+        }
+
+        document.getElementById('appCount').textContent = `(${totalShown} von ${allAppFiles.length})`;
+
+        if (totalShown === 0 && !searchTerm) {
+            listEl.innerHTML = '<div class="app-list-empty">Keine BWR/WR-Apps gefunden.</div>';
+        }
+    }
+
+    function toggleLehrplanNode(nodeId) {
+        if (openLehrplanNodes.has(nodeId)) {
+            openLehrplanNodes.delete(nodeId);
+        } else {
+            openLehrplanNodes.add(nodeId);
+        }
+        renderApps();
+    }
+
     function setView(view) {
         currentView = view;
         document.getElementById('viewListBtn').classList.toggle('active', view === 'list');
         document.getElementById('viewFolderBtn').classList.toggle('active', view === 'folder');
+        document.getElementById('viewLehrplanBtn').classList.toggle('active', view === 'lehrplan');
+
+        // In Lehrplan view, hide Fach/Kategorie/Sort filters (search stays visible)
+        const fachFilter = document.getElementById('filterFach');
+        const katFilter = document.getElementById('filterKategorie');
+        const sortFilter = document.getElementById('sortOrder');
+        if (view === 'lehrplan') {
+            fachFilter.style.display = 'none';
+            katFilter.style.display = 'none';
+            sortFilter.style.display = 'none';
+        } else {
+            fachFilter.style.display = '';
+            katFilter.style.display = '';
+            sortFilter.style.display = '';
+        }
+
         renderApps();
     }
 
@@ -1469,6 +1755,41 @@
         buildKategorieFilter();
         renderApps();
     }
+
+    function populateLernbereichSelect(selectedLb) {
+        const select = document.getElementById('descLernbereich');
+        const fach = document.getElementById('descFach').value.trim().toUpperCase();
+        select.innerHTML = '<option value="">\u2014 Kein Lernbereich \u2014</option>';
+
+        // Determine which LEHRPLAN keys match the fach
+        const matchingKeys = [];
+        if (fach.includes('BWR')) matchingKeys.push('BwR');
+        if (fach.includes('WR')) matchingKeys.push('WR');
+
+        matchingKeys.forEach(key => {
+            const fachData = LEHRPLAN[key];
+            if (!fachData) return;
+            fachData.gruppen.forEach(gruppe => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = `${fachData.icon} ${gruppe.label}`;
+                gruppe.lernbereiche.forEach(lb => {
+                    const opt = document.createElement('option');
+                    opt.value = lb.id;
+                    opt.textContent = `${lb.id}: ${lb.name}`;
+                    if (lb.id === selectedLb) opt.selected = true;
+                    optgroup.appendChild(opt);
+                });
+                select.appendChild(optgroup);
+            });
+        });
+    }
+
+    // Update Lernbereich dropdown when Fach changes
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('descFach').addEventListener('input', () => {
+            populateLernbereichSelect(document.getElementById('descLernbereich').value);
+        });
+    });
 
     function esc(str) {
         const d = document.createElement('div');
@@ -1618,12 +1939,14 @@
             const stufe = document.getElementById('descStufe').value.trim();
             const beschreibung = document.getElementById('descText').value.trim();
             const kategorie = document.getElementById('descKategorie').value;
+            const lernbereich = document.getElementById('descLernbereich').value;
 
             if (fach || stufe || beschreibung || kategorie) {
-                descriptions[filename] = {
-                    ...descriptions[filename],
-                    fach, stufe, beschreibung, kategorie
-                };
+                const descData = { ...descriptions[filename], fach, stufe, beschreibung, kategorie };
+                if (lernbereich) {
+                    descData.lernbereich = lernbereich;
+                }
+                descriptions[filename] = descData;
                 await saveDescriptions();
             }
 
@@ -1643,6 +1966,19 @@
             deployBtn.disabled = false;
             deployBtn.textContent = 'Deploy';
         }
+    }
+
+    // ----- Lehrplan Prompt Helper -----
+    function getLehrplanPromptText() {
+        const lines = [];
+        for (const [key, fach] of Object.entries(LEHRPLAN)) {
+            fach.gruppen.forEach(g => {
+                g.lernbereiche.forEach(lb => {
+                    lines.push(`${lb.id}: ${lb.name} (${lb.stichworte})`);
+                });
+            });
+        }
+        return lines.join('\n');
     }
 
     // ----- Auto KI-Beschreibung -----
@@ -1667,11 +2003,15 @@
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
-                            content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen vier Feldern:
+                            content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen f\u00fcnf Feldern:
 - "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Franz\u00f6sisch", "Deutsch", "Informatik", "Geographie", "Sport", "F\u00e4cher\u00fcbergreifend" oder "Tool")
 - "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8\u201310", "5\u20136")
 - "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
 - "kategorie": Eine der folgenden Kategorien: ${KATEGORIEN.join(', ')}
+- "lernbereich": Falls BWR oder WR: der passende Lernbereich-Code aus der Liste unten, sonst ""
+
+Verf\u00fcgbare Lernbereiche:
+${getLehrplanPromptText()}
 
 HTML-Code:
 ${content.substring(0, 6000)}`
@@ -1689,13 +2029,15 @@ ${content.substring(0, 6000)}`
                 // Reload descriptions to avoid race conditions
                 await loadDescriptions();
 
-                descriptions[filename] = {
+                const descData = {
                     ...descriptions[filename],
                     fach: parsed.fach || '',
                     stufe: parsed.stufe || '',
                     beschreibung: parsed.beschreibung || '',
                     kategorie: parsed.kategorie || 'Sonstiges'
                 };
+                if (parsed.lernbereich) descData.lernbereich = parsed.lernbereich;
+                descriptions[filename] = descData;
 
                 await saveDescriptions();
                 buildFachFilter();
@@ -1743,11 +2085,15 @@ ${content.substring(0, 6000)}`
                     max_tokens: 300,
                     messages: [{
                         role: 'user',
-                        content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen vier Feldern:
+                        content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen f\u00fcnf Feldern:
 - "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Franz\u00f6sisch", "Deutsch", "Informatik", "Geographie", "Sport", "F\u00e4cher\u00fcbergreifend" oder "Tool")
 - "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8\u201310", "5\u20136")
 - "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
 - "kategorie": Eine der folgenden Kategorien: ${KATEGORIEN.join(', ')}
+- "lernbereich": Falls BWR oder WR: der passende Lernbereich-Code aus der Liste unten, sonst ""
+
+Verf\u00fcgbare Lernbereiche:
+${getLehrplanPromptText()}
 
 HTML-Code:
 ${content.substring(0, 6000)}`
@@ -1769,6 +2115,7 @@ ${content.substring(0, 6000)}`
             document.getElementById('descStufe').value = parsed.stufe || '';
             document.getElementById('descText').value = parsed.beschreibung || '';
             document.getElementById('descKategorie').value = parsed.kategorie || '';
+            populateLernbereichSelect(parsed.lernbereich || '');
 
             showStatus('Beschreibung generiert! Bitte pr\u00fcfen und bei Bedarf anpassen.', 'success');
         } catch (err) {
@@ -1802,12 +2149,14 @@ ${content.substring(0, 6000)}`
                 document.getElementById('descStufe').value = desc.stufe || '';
                 document.getElementById('descText').value = desc.beschreibung || '';
                 document.getElementById('descKategorie').value = desc.kategorie || '';
+                populateLernbereichSelect(desc.lernbereich || '');
                 document.getElementById('descBox').classList.add('active');
             } else {
                 document.getElementById('descFach').value = '';
                 document.getElementById('descStufe').value = '';
                 document.getElementById('descText').value = '';
                 document.getElementById('descKategorie').value = '';
+                populateLernbereichSelect('');
                 document.getElementById('descBox').classList.remove('active');
             }
 
@@ -1828,6 +2177,7 @@ ${content.substring(0, 6000)}`
         document.getElementById('descStufe').value = '';
         document.getElementById('descText').value = '';
         document.getElementById('descKategorie').value = '';
+        document.getElementById('descLernbereich').innerHTML = '<option value="">\u2014 Kein Lernbereich \u2014</option>';
         document.getElementById('descBox').classList.remove('active');
     }
 

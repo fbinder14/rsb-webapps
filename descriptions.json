@@ -15,19 +15,22 @@
     "fach": "BWR",
     "stufe": "9–10",
     "beschreibung": "Interaktive AfA-Tabelle für Anlagevermögen (BMF)",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "afa-zeitanteilig.htm": {
     "fach": "BWR",
     "stufe": "9",
     "beschreibung": "Lern-App zur zeitanteiligen Abschreibung",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "afakreislauf.htm": {
     "fach": "BWR",
     "stufe": "9–10",
     "beschreibung": "Umfassender Finanz-Check rund um Abschreibungen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "almenrunde.htm": {
     "fach": "Geographie/Sport",
@@ -38,31 +41,36 @@
     "fach": "WR",
     "stufe": "8–9",
     "beschreibung": "Berufsfelder und ihre Anforderungsprofile erkunden",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR8-II-5"
   },
   "bab.htm": {
     "fach": "BWR",
     "stufe": "9–10",
     "beschreibung": "Trainer zum Erstellen eines Betriebsabrechnungsbogens",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-3"
   },
   "bankinfo.htm": {
     "fach": "WR",
     "stufe": "9",
     "beschreibung": "Übersicht verschiedener Anlageprodukte einer Bank",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-II-2"
   },
   "banking.htm": {
     "fach": "WR",
     "stufe": "7–8",
     "beschreibung": "Spielerische Einführung in Bankgeschäfte (KinderSparbank)",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-II-2"
   },
   "belegmemory.htm": {
     "fach": "BWR",
     "stufe": "7",
     "beschreibung": "Memory-Spiel zum Zuordnen von Belegen und Buchungssätzen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR7-II-3"
   },
   "berlin.htm": {
     "fach": "Klassenfahrt",
@@ -78,7 +86,8 @@
     "fach": "BWR",
     "stufe": "9–10",
     "beschreibung": "Quiz zu Bilanz und KBKV für zwei Spieler",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-2"
   },
   "countdown.htm": {
     "fach": "Tool",
@@ -95,13 +104,15 @@
     "fach": "WR",
     "stufe": "9",
     "beschreibung": "Interaktive Lernapp zur Deliktfähigkeit nach BGB",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR8-II-3"
   },
   "delikt.html": {
     "fach": "WR",
     "stufe": "9",
     "beschreibung": "Lernapp zur Deliktfähigkeit (alternative Version)",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR8-II-3"
   },
   "dezimalbruch.htm": {
     "fach": "Mathematik",
@@ -130,12 +141,14 @@
   "effektiv.htm": {
     "fach": "BWR/WR",
     "stufe": "9–10",
-    "beschreibung": "Rechner für den effektiven Zinssatz"
+    "beschreibung": "Rechner für den effektiven Zinssatz",
+    "lernbereich": "BwR9-II-3"
   },
   "effektivzins.htm": {
     "fach": "BWR/WR",
     "stufe": "9–10",
-    "beschreibung": "Effektiver Zinssatz berechnen (alternative Version)"
+    "beschreibung": "Effektiver Zinssatz berechnen (alternative Version)",
+    "lernbereich": "BwR9-II-3"
   },
   "einmaleins.htm": {
     "fach": "Mathematik",
@@ -164,7 +177,8 @@
   "immobilienkauf.htm": {
     "fach": "BWR/WR",
     "stufe": "9–10",
-    "beschreibung": "Nebenkosten beim Grundstückskauf berechnen"
+    "beschreibung": "Nebenkosten beim Grundstückskauf berechnen",
+    "lernbereich": "BwR9-II-2"
   },
   "infografikanalyse.htm": {
     "fach": "Fächerübergreifend",
@@ -204,19 +218,22 @@
   "konto-ueberzogen.htm": {
     "fach": "BWR/WR",
     "stufe": "8–9",
-    "beschreibung": "Online-Banking-Simulation mit überz. Konto"
+    "beschreibung": "Online-Banking-Simulation mit überz. Konto",
+    "lernbereich": "WR9-II-2"
   },
   "kooperativ.htm": {
     "fach": "WR",
     "stufe": "9",
     "beschreibung": "Quiz zu autoritärem vs. kooperativem Führungsstil",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "BwR9-II-1"
   },
   "kostenvergleichsrechnung.htm": {
     "fach": "BWR",
     "stufe": "8–9",
     "beschreibung": "Kostenarten richtig zuordnen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "latex.htm": {
     "fach": "Tool",
@@ -239,7 +256,8 @@
     "fach": "WR",
     "stufe": "9–10",
     "beschreibung": "Unterrichts-Dashboard zur Mitbestimmung im Unternehmen",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-II-1"
   },
   "nachbarzahlen.htm": {
     "fach": "Mathematik",
@@ -251,7 +269,8 @@
     "fach": "WR",
     "stufe": "9",
     "beschreibung": "Lerneinheit zu Nudging und bewusstem Konsumverhalten",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-I/III-3"
   },
   "pacetokmh.htm": {
     "fach": "Sport/Mathematik",
@@ -261,7 +280,8 @@
   "peff.htm": {
     "fach": "BWR/WR",
     "stufe": "9–10",
-    "beschreibung": "Kreditkostenrechner (effektiver Jahreszins)"
+    "beschreibung": "Kreditkostenrechner (effektiver Jahreszins)",
+    "lernbereich": "BwR9-II-3"
   },
   "pizza.htm": {
     "fach": "Tool",
@@ -291,7 +311,8 @@
     "fach": "WR",
     "stufe": "8",
     "beschreibung": "Kriterien für Konsumentscheidungen erarbeiten",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR8-II-2"
   },
   "regiocard.htm": {
     "fach": "Geographie",
@@ -332,7 +353,8 @@
     "fach": "WR",
     "stufe": "8–9",
     "beschreibung": "10 Maßnahmen gegen Überschuldung kennenlernen",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-I/III-3"
   },
   "schulkalender.htm": {
     "fach": "Tool",
@@ -397,7 +419,8 @@
     "fach": "WR",
     "stufe": "8–10",
     "beschreibung": "Aktueller Tibber-Strompreis in Echtzeit",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR8-II-2"
   },
   "times.htm": {
     "fach": "Mathematik",
@@ -415,7 +438,8 @@
     "fach": "BWR",
     "stufe": "9",
     "beschreibung": "Quiz zum Buchen von Versicherungen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "vocab-shakespeare.htm": {
     "fach": "Englisch",
@@ -451,13 +475,15 @@
     "fach": "BWR",
     "stufe": "9",
     "beschreibung": "Quiz zu Abschreibungen und HGB",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "wertminderung.htm": {
     "fach": "BWR",
     "stufe": "10",
     "beschreibung": "E-Mail-Szenario: Rückfragen zum Jahresabschluss",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-2"
   },
   "zahlenausschreiben.htm": {
     "fach": "Mathematik/Deutsch",
@@ -468,30 +494,35 @@
     "fach": "WR",
     "stufe": "8–9",
     "beschreibung": "Zahlungs-Prioritäten richtig setzen lernen",
-    "kategorie": "Wirtschaft & Recht"
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-I/III-3"
   },
   "zeitanteiligeafa.htm": {
     "fach": "BWR",
     "stufe": "9",
     "beschreibung": "Zeitanteilige Abschreibung berechnen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-2"
   },
   "zinstage.htm": {
     "fach": "BWR",
     "stufe": "8",
     "beschreibung": "Zinstage nach verschiedenen Methoden berechnen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR8-IIIa-3"
   },
   "hkdu.html": {
     "fach": "BWR",
     "stufe": "8–10",
     "beschreibung": "Trainer zur Berechnung der Herstellkosten des Umsatzes",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-3"
   },
   "insolvenzverfahren.html": {
     "fach": "BWR",
     "stufe": "9–10",
     "beschreibung": "Schritte des Insolvenzverfahrens in richtige Reihenfolge bringen",
-    "kategorie": "BWR"
+    "kategorie": "BWR",
+    "lernbereich": "BwR9-II-5"
   }
 }
