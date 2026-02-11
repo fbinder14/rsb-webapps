@@ -470,14 +470,13 @@
             margin-left: 0.5rem;
         }
 
-        .kategorie-dropdown {
-            padding: 0.25rem 0.4rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            background: #fff;
+        .badge-kategorie-editable {
             cursor: pointer;
-            max-width: 130px;
+            transition: all 0.15s;
+        }
+        .badge-kategorie-editable:hover {
+            outline: 2px solid #6d28d9;
+            outline-offset: 1px;
         }
 
         .btn-sm {
@@ -939,7 +938,6 @@
             <div class="app-list-controls">
                 <div class="view-toggle">
                     <button id="viewListBtn" class="active" onclick="setView('list')">Liste</button>
-                    <button id="viewFolderBtn" onclick="setView('folder')">Ordner</button>
                     <button id="viewLehrplanBtn" onclick="setView('lehrplan')">Lehrplan</button>
                 </div>
                 <button class="btn btn-secondary btn-sm" onclick="loadApps()">&#8635; Aktualisieren</button>
@@ -950,16 +948,12 @@
             <select id="filterFach" onchange="filterApps()">
                 <option value="">Alle F&auml;cher</option>
             </select>
-            <select id="filterKategorie" onchange="filterApps()">
-                <option value="">Alle Kategorien</option>
-            </select>
             <select id="sortOrder" onchange="filterApps()">
                 <option value="newest">Neueste zuerst</option>
                 <option value="oldest">&Auml;lteste zuerst</option>
                 <option value="name-az">Name A–Z</option>
                 <option value="name-za">Name Z–A</option>
                 <option value="fach">Nach Fach</option>
-                <option value="kategorie">Nach Kategorie</option>
             </select>
         </div>
         <div id="appList">
@@ -1125,7 +1119,6 @@
     let descriptionsSha = null;
     let allAppFiles = [];
     let currentView = 'list';
-    let openCategories = new Set();
     let openLehrplanNodes = new Set();
     let deploySuccessUrl = '';
 
@@ -1339,7 +1332,6 @@
             allAppFiles = htmlFiles;
 
             buildFachFilter();
-            buildKategorieFilter();
             renderApps();
         } catch (err) {
             listEl.innerHTML = `<div class="app-list-empty" style="color:#991b1b;">Fehler: ${err.message}</div>`;
@@ -1365,25 +1357,6 @@
         select.value = current;
     }
 
-    function buildKategorieFilter() {
-        const kats = new Set();
-        allAppFiles.forEach(f => {
-            const desc = descriptions[f.name];
-            if (desc && desc.kategorie) kats.add(desc.kategorie);
-        });
-
-        const select = document.getElementById('filterKategorie');
-        const current = select.value;
-        select.innerHTML = '<option value="">Alle Kategorien</option>';
-        KATEGORIEN.filter(k => kats.has(k)).forEach(k => {
-            const opt = document.createElement('option');
-            opt.value = k;
-            opt.textContent = k;
-            select.appendChild(opt);
-        });
-        select.value = current;
-    }
-
     function filterApps() {
         renderApps();
     }
@@ -1392,7 +1365,6 @@
     function getFilteredApps() {
         const searchTerm = document.getElementById('filterSearch').value.toLowerCase();
         const fachFilter = document.getElementById('filterFach').value;
-        const kategorieFilter = document.getElementById('filterKategorie').value;
 
         let filtered = allAppFiles.filter(f => {
             const desc = descriptions[f.name];
@@ -1405,7 +1377,6 @@
 
             if (searchTerm && !nameMatch && !descMatch) return false;
             if (fachFilter && (!desc || desc.fach !== fachFilter)) return false;
-            if (kategorieFilter && (!desc || desc.kategorie !== kategorieFilter)) return false;
             return true;
         });
 
@@ -1421,10 +1392,6 @@
                     const fa = (descriptions[a.name]?.fach || 'ZZZ').toLowerCase();
                     const fb = (descriptions[b.name]?.fach || 'ZZZ').toLowerCase();
                     return fa.localeCompare(fb) || a.name.localeCompare(b.name);
-                case 'kategorie':
-                    const ka = (descriptions[a.name]?.kategorie || 'ZZZ').toLowerCase();
-                    const kb = (descriptions[b.name]?.kategorie || 'ZZZ').toLowerCase();
-                    return ka.localeCompare(kb) || a.name.localeCompare(b.name);
                 default: return 0;
             }
         });
@@ -1444,8 +1411,6 @@
 
         if (currentView === 'lehrplan') {
             renderLehrplanView();
-        } else if (currentView === 'folder') {
-            renderFolderView(filtered);
         } else {
             renderListView(filtered);
         }
@@ -1488,17 +1453,10 @@
             descHtml = '<div class="app-item-desc">';
             if (desc.fach) descHtml += `<span class="badge badge-fach">${esc(desc.fach)}</span>`;
             if (desc.stufe) descHtml += `<span class="badge badge-stufe">Jgst. ${esc(desc.stufe)}</span>`;
-            if (desc.kategorie) descHtml += `<span class="badge badge-kategorie">${esc(desc.kategorie)}</span>`;
+            if (desc.kategorie) descHtml += `<span class="badge badge-kategorie badge-kategorie-editable" onclick="editKategorie('${esc(file.name)}', this)" title="Klicken zum \u00c4ndern">${esc(desc.kategorie)}</span>`;
             if (desc.beschreibung) descHtml += ` ${esc(desc.beschreibung)}`;
             descHtml += '</div>';
         }
-
-        // Kategorie dropdown
-        let katOpts = '<option value="">\u2014</option>';
-        KATEGORIEN.forEach(k => {
-            const sel = (desc?.kategorie === k) ? ' selected' : '';
-            katOpts += `<option value="${esc(k)}"${sel}>${esc(k)}</option>`;
-        });
 
         return `
             <div class="app-item">
@@ -1510,7 +1468,6 @@
                     ${formatDate(file._date) ? `<div class="app-item-date">${formatDate(file._date)} · ${timeAgo(file._date)}</div>` : ''}
                 </div>
                 <div class="app-item-actions">
-                    <select class="kategorie-dropdown" onchange="assignCategory('${esc(file.name)}', this.value)" title="Kategorie zuweisen">${katOpts}</select>
                     <button class="btn btn-secondary btn-sm" onclick="openQRModal('${esc(file.name)}', '${url}')">QR</button>
                     <button class="btn btn-primary btn-sm" onclick="editApp('${esc(file.name)}')">Bearbeiten</button>
                     <button class="btn btn-danger btn-sm" onclick="confirmDelete('${esc(file.name)}', '${file.sha}')">L\u00f6schen</button>
@@ -1526,44 +1483,6 @@
             const itemDiv = document.createElement('div');
             itemDiv.innerHTML = createAppItemHTML(file);
             listEl.appendChild(itemDiv);
-        });
-    }
-
-    function renderFolderView(filtered) {
-        const listEl = document.getElementById('appList');
-
-        // Group by kategorie
-        const groups = {};
-        filtered.forEach(file => {
-            const desc = descriptions[file.name];
-            const kat = desc?.kategorie || 'Sonstiges';
-            if (!groups[kat]) groups[kat] = [];
-            groups[kat].push(file);
-        });
-
-        // Sort groups by KATEGORIEN order
-        const sortedKats = KATEGORIEN.filter(k => groups[k]);
-
-        listEl.innerHTML = '';
-        sortedKats.forEach(kat => {
-            const apps = groups[kat];
-            const isOpen = openCategories.has(kat);
-            const icon = KATEGORIE_ICONS[kat] || '\u{1F4C1}';
-
-            const folderDiv = document.createElement('div');
-            folderDiv.className = 'folder-section';
-            folderDiv.innerHTML = `
-                <div class="folder-header" onclick="toggleCategory('${esc(kat)}')">
-                    <span class="folder-arrow">${isOpen ? '\u25BC' : '\u25B6'}</span>
-                    <span class="folder-icon">${icon}</span>
-                    <span class="folder-name">${esc(kat)}</span>
-                    <span class="folder-count">(${apps.length})</span>
-                </div>
-                <div class="folder-content" style="${isOpen ? '' : 'display:none;'}">
-                    ${apps.map(f => createAppItemHTML(f)).join('')}
-                </div>
-            `;
-            listEl.appendChild(folderDiv);
         });
     }
 
@@ -1717,43 +1636,46 @@
     function setView(view) {
         currentView = view;
         document.getElementById('viewListBtn').classList.toggle('active', view === 'list');
-        document.getElementById('viewFolderBtn').classList.toggle('active', view === 'folder');
         document.getElementById('viewLehrplanBtn').classList.toggle('active', view === 'lehrplan');
 
-        // In Lehrplan view, hide Fach/Kategorie/Sort filters (search stays visible)
+        // In Lehrplan view, hide Fach/Sort filters (search stays visible)
         const fachFilter = document.getElementById('filterFach');
-        const katFilter = document.getElementById('filterKategorie');
         const sortFilter = document.getElementById('sortOrder');
         if (view === 'lehrplan') {
             fachFilter.style.display = 'none';
-            katFilter.style.display = 'none';
             sortFilter.style.display = 'none';
         } else {
             fachFilter.style.display = '';
-            katFilter.style.display = '';
             sortFilter.style.display = '';
         }
 
         renderApps();
     }
 
-    function toggleCategory(kat) {
-        if (openCategories.has(kat)) {
-            openCategories.delete(kat);
-        } else {
-            openCategories.add(kat);
-        }
-        renderApps();
-    }
+    function editKategorie(filename, badgeEl) {
+        // Replace badge with inline select
+        const current = descriptions[filename]?.kategorie || '';
+        let opts = '<option value="">\u2014</option>';
+        KATEGORIEN.forEach(k => {
+            const sel = (k === current) ? ' selected' : '';
+            opts += `<option value="${esc(k)}"${sel}>${esc(k)}</option>`;
+        });
+        const select = document.createElement('select');
+        select.className = 'badge badge-kategorie';
+        select.style.cssText = 'cursor:pointer; padding:0.1rem 0.3rem; font-size:0.75rem;';
+        select.innerHTML = opts;
+        badgeEl.replaceWith(select);
+        select.focus();
 
-    async function assignCategory(filename, kategorie) {
-        if (!descriptions[filename]) {
-            descriptions[filename] = {};
-        }
-        descriptions[filename].kategorie = kategorie;
-        await saveDescriptions();
-        buildKategorieFilter();
-        renderApps();
+        const save = async () => {
+            const newKat = select.value;
+            if (!descriptions[filename]) descriptions[filename] = {};
+            descriptions[filename].kategorie = newKat;
+            await saveDescriptions();
+            renderApps();
+        };
+        select.addEventListener('change', save);
+        select.addEventListener('blur', save);
     }
 
     function populateLernbereichSelect(selectedLb) {
@@ -2041,7 +1963,6 @@ ${content.substring(0, 6000)}`
 
                 await saveDescriptions();
                 buildFachFilter();
-                buildKategorieFilter();
                 renderApps();
             } catch (e) {
                 console.log('Auto-Beschreibung fehlgeschlagen:', e);
