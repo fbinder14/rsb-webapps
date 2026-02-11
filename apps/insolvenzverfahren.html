@@ -1,0 +1,1055 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Insolvenzverfahren - Schritte zuordnen</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --error: #ef4444;
+            --error-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --bg: #f0f2ff;
+            --card: #ffffff;
+            --text: #1e1b4b;
+            --text-light: #6366f1;
+            --shadow: 0 4px 24px rgba(79, 70, 229, 0.12);
+            --shadow-hover: 0 8px 32px rgba(79, 70, 229, 0.22);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === Animated Background === */
+        .bg-decoration {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-decoration .circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: floatBubble 20s infinite ease-in-out;
+        }
+        .bg-decoration .circle:nth-child(1) {
+            width: 300px; height: 300px;
+            background: var(--primary);
+            top: -80px; left: -60px;
+            animation-delay: 0s;
+        }
+        .bg-decoration .circle:nth-child(2) {
+            width: 200px; height: 200px;
+            background: var(--success);
+            top: 50%; right: -40px;
+            animation-delay: -5s;
+        }
+        .bg-decoration .circle:nth-child(3) {
+            width: 250px; height: 250px;
+            background: var(--warning);
+            bottom: -60px; left: 30%;
+            animation-delay: -10s;
+        }
+        @keyframes floatBubble {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -20px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(15px, 10px) scale(1.02); }
+        }
+
+        /* === Layout === */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        /* === Header === */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            animation: slideDown 0.6s ease-out;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.3;
+        }
+        .header p {
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* === Progress Bar === */
+        .progress-bar-container {
+            background: #e0e7ff;
+            border-radius: 999px;
+            height: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            animation: slideDown 0.6s ease-out 0.1s both;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            animation: slideDown 0.6s ease-out 0.2s both;
+        }
+        .score-badge {
+            background: var(--card);
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .score-badge .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-correct { background: var(--success); }
+        .dot-attempts { background: var(--warning); }
+
+        /* === Instruction === */
+        .instruction {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 14px 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            box-shadow: var(--shadow);
+            animation: slideDown 0.6s ease-out 0.3s both;
+            line-height: 1.4;
+        }
+
+        /* === Drop Zones (Timeline) === */
+        .timeline {
+            position: relative;
+            margin-bottom: 28px;
+            animation: slideDown 0.6s ease-out 0.4s both;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 28px;
+            top: 16px;
+            bottom: 16px;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--primary-light), var(--success));
+            border-radius: 3px;
+            z-index: 0;
+        }
+        .drop-zone {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 6px 0;
+            z-index: 1;
+        }
+        .step-number {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 3px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--primary);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+        .step-number.filled {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+        .step-number.correct {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+            animation: popIn 0.4s ease;
+        }
+        @keyframes popIn {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1.05); }
+        }
+
+        .drop-slot {
+            flex: 1;
+            min-height: 62px;
+            border: 2.5px dashed #c7d2fe;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .drop-slot.drag-over {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.08);
+            transform: scale(1.02);
+            box-shadow: var(--shadow-hover);
+        }
+        .drop-slot.has-card {
+            border: 2.5px solid transparent;
+            background: transparent;
+            padding: 0;
+        }
+        .drop-slot.correct-slot {
+            border-color: var(--success) !important;
+            background: var(--success-light) !important;
+        }
+        .drop-slot .placeholder-text {
+            color: #a5b4fc;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        /* === Draggable Cards === */
+        .cards-area {
+            animation: slideUp 0.6s ease-out 0.5s both;
+        }
+        .cards-area h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 80px;
+            padding: 16px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 20px;
+            border: 2px dashed #e0e7ff;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            box-shadow: var(--shadow);
+            cursor: grab;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            touch-action: none;
+            position: relative;
+            border: 2px solid transparent;
+            line-height: 1.3;
+        }
+        .card:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+            z-index: 100;
+        }
+        .card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .card.in-slot {
+            width: 100%;
+            margin: 0;
+            border-radius: 14px;
+            border: 2px solid var(--primary-light);
+            background: white;
+        }
+        .card.correct-card {
+            border-color: var(--success) !important;
+            background: var(--success-light) !important;
+            color: #065f46;
+            pointer-events: none;
+        }
+        .card.wrong-shake {
+            animation: shake 0.5s ease;
+            border-color: var(--error) !important;
+            background: var(--error-light) !important;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+        /* === Hint Toast === */
+        .hint-toast {
+            position: fixed;
+            bottom: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card);
+            padding: 14px 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+            font-size: 0.9rem;
+            font-weight: 500;
+            max-width: 90vw;
+            z-index: 999;
+            transition: bottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-left: 5px solid var(--warning);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.4;
+        }
+        .hint-toast.show {
+            bottom: 30px;
+        }
+        .hint-toast .hint-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        /* === Check Button === */
+        .check-btn {
+            display: block;
+            width: 100%;
+            max-width: 350px;
+            margin: 28px auto 0;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            animation: slideUp 0.6s ease-out 0.6s both;
+        }
+        .check-btn:active {
+            transform: scale(0.97);
+        }
+        .check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .check-btn.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        /* === Reset Button === */
+        .reset-btn {
+            display: block;
+            margin: 14px auto 0;
+            padding: 10px 24px;
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary-light);
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        .reset-btn:active {
+            transform: scale(0.97);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* === Success Overlay === */
+        .success-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .success-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+        .success-card {
+            background: white;
+            border-radius: 28px;
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 380px;
+            width: 90%;
+            animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .success-card .trophy {
+            font-size: 72px;
+            animation: bounce 1s infinite;
+        }
+        .success-card h2 {
+            font-size: 1.5rem;
+            color: var(--success);
+            margin: 12px 0 8px;
+        }
+        .success-card p {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .success-card .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 16px 0;
+        }
+        .success-card .stat {
+            text-align: center;
+        }
+        .success-card .stat-num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .success-card .stat-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 600;
+        }
+        .play-again-btn {
+            margin-top: 16px;
+            padding: 14px 36px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        /* === Confetti === */
+        .confetti-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 1001;
+            overflow: hidden;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* === Animations === */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Ghost Element === */
+        .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.92;
+            transform: scale(1.06) rotate(-1.5deg);
+            box-shadow: 0 12px 40px rgba(79, 70, 229, 0.3);
+            border-radius: 14px;
+            background: white;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            font-family: 'Inter', sans-serif;
+            border: 2px solid var(--primary);
+            max-width: 260px;
+            line-height: 1.3;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-decoration">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <div class="icon">&#9878;</div>
+        <h1>Das Insolvenzverfahren</h1>
+        <p>Bringe die Schritte in die richtige Reihenfolge!</p>
+    </div>
+
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="score-display">
+        <div class="score-badge">
+            <span class="dot dot-correct"></span>
+            <span id="correctCount">0</span> / <span id="totalSteps">0</span> richtig
+        </div>
+        <div class="score-badge">
+            <span class="dot dot-attempts"></span>
+            <span id="attemptCount">0</span> Versuche
+        </div>
+    </div>
+
+    <div class="instruction">
+        Ziehe die Karten aus dem unteren Bereich auf die passende Position in der Zeitleiste!
+    </div>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div class="cards-area">
+        <h3>&#128203; Verfügbare Schritte</h3>
+        <div class="cards-container" id="cardsContainer"></div>
+    </div>
+
+    <button class="check-btn" id="checkBtn" onclick="checkAnswers()">
+        &#10004; Antworten überprüfen
+    </button>
+    <button class="reset-btn" onclick="resetGame()">
+        &#8634; Neu starten
+    </button>
+</div>
+
+<div class="hint-toast" id="hintToast">
+    <span class="hint-icon">&#128161;</span>
+    <span id="hintText"></span>
+</div>
+
+<div class="success-overlay" id="successOverlay">
+    <div class="success-card">
+        <div class="trophy">&#127942;</div>
+        <h2>Fantastisch!</h2>
+        <p>Du hast alle Schritte des Insolvenzverfahrens richtig zugeordnet!</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-num" id="finalCorrect">0</div>
+                <div class="stat-label">RICHTIG</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" id="finalAttempts">0</div>
+                <div class="stat-label">VERSUCHE</div>
+            </div>
+        </div>
+        <button class="play-again-btn" onclick="resetGame()">&#128260; Nochmal spielen</button>
+    </div>
+</div>
+
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+    // === Data ===
+    const steps = [
+        {
+            id: 1,
+            title: "Insolvenzantrag stellen",
+            hint: "Bevor etwas passieren kann, muss jemand den ersten Schritt machen. Wer stellt den Antrag? Der Schuldner oder ein Gläubiger - ganz am Anfang!"
+        },
+        {
+            id: 2,
+            title: "Zulässigkeitsprüfung durch das Gericht",
+            hint: "Das Gericht muss erst prüfen, ob der Antrag überhaupt gültig ist. Denke daran: Erst prüfen, dann handeln!"
+        },
+        {
+            id: 3,
+            title: "Vorläufigen Insolvenzverwalter bestellen",
+            hint: "Bevor das Verfahren offiziell eröffnet wird, braucht man jemanden, der sich vorübergehend um alles kümmert. 'Vorläufig' ist hier das Schlüsselwort."
+        },
+        {
+            id: 4,
+            title: "Eröffnung des Insolvenzverfahrens",
+            hint: "Jetzt wird es offiziell! Das Gericht beschließt die Eröffnung. Ab jetzt läuft das eigentliche Verfahren."
+        },
+        {
+            id: 5,
+            title: "Insolvenzverwalter bestellen",
+            hint: "Nach der Eröffnung wird aus dem 'vorläufigen' ein richtiger Verwalter. Er übernimmt jetzt offiziell die Verwaltung."
+        },
+        {
+            id: 6,
+            title: "Forderungen der Gläubiger anmelden",
+            hint: "Die Gläubiger müssen dem Verwalter mitteilen, wie viel Geld ihnen geschuldet wird. Sie melden ihre Forderungen an."
+        },
+        {
+            id: 7,
+            title: "Berichtstermin / Gläubigerversammlung",
+            hint: "Alle kommen zusammen: Der Verwalter berichtet, die Gläubiger versammeln sich. Hier wird über die Zukunft entschieden."
+        },
+        {
+            id: 8,
+            title: "Prüfung der angemeldeten Forderungen",
+            hint: "Nicht jede Forderung ist berechtigt. Jetzt wird genau geprüft: Stimmen die Beträge? Sind die Forderungen gültig?"
+        },
+        {
+            id: 9,
+            title: "Verwertung der Insolvenzmasse",
+            hint: "Jetzt wird das vorhandene Vermögen zu Geld gemacht - z.B. durch Verkauf. Das nennt man 'Verwertung'."
+        },
+        {
+            id: 10,
+            title: "Schlussverteilung und Aufhebung",
+            hint: "Am Ende wird das Geld verteilt und das Verfahren beendet. Das ist der letzte Schritt - der Abschluss von allem."
+        }
+    ];
+
+    let correctCount = 0;
+    let attemptCount = 0;
+    let lockedSlots = new Set();
+    let draggedCard = null;
+    let dragGhost = null;
+    let touchOffsetX = 0;
+    let touchOffsetY = 0;
+
+    document.getElementById('totalSteps').textContent = steps.length;
+
+    // === Initialize ===
+    function initGame() {
+        correctCount = 0;
+        attemptCount = 0;
+        lockedSlots.clear();
+        updateScore();
+
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = '';
+
+        steps.forEach((step, idx) => {
+            const zone = document.createElement('div');
+            zone.className = 'drop-zone';
+            zone.innerHTML = `
+                <div class="step-number" id="num-${idx}">${idx + 1}</div>
+                <div class="drop-slot" id="slot-${idx}" data-index="${idx}">
+                    <span class="placeholder-text">Schritt ${idx + 1} hierher ziehen ...</span>
+                </div>
+            `;
+            timeline.appendChild(zone);
+        });
+
+        const container = document.getElementById('cardsContainer');
+        container.innerHTML = '';
+
+        const shuffled = [...steps].sort(() => Math.random() - 0.5);
+        shuffled.forEach(step => {
+            const card = createCard(step);
+            container.appendChild(card);
+        });
+
+        setupDropZones();
+        document.getElementById('successOverlay').classList.remove('show');
+        document.getElementById('checkBtn').classList.remove('success');
+        document.getElementById('checkBtn').disabled = false;
+        document.getElementById('checkBtn').innerHTML = '&#10004; Antworten überprüfen';
+    }
+
+    function createCard(step) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-id', step.id);
+        card.textContent = step.title;
+        card.draggable = true;
+
+        // Desktop drag events
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+
+        // Touch events
+        card.addEventListener('touchstart', handleTouchStart, { passive: false });
+        card.addEventListener('touchmove', handleTouchMove, { passive: false });
+        card.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+        return card;
+    }
+
+    // === Drag & Drop (Desktop) ===
+    function handleDragStart(e) {
+        if (this.classList.contains('correct-card')) {
+            e.preventDefault();
+            return;
+        }
+        draggedCard = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        draggedCard = null;
+        document.querySelectorAll('.drop-slot').forEach(s => s.classList.remove('drag-over'));
+    }
+
+    // === Touch Drag ===
+    function handleTouchStart(e) {
+        if (this.classList.contains('correct-card')) return;
+        e.preventDefault();
+
+        draggedCard = this;
+        const touch = e.touches[0];
+        const rect = this.getBoundingClientRect();
+        touchOffsetX = touch.clientX - rect.left;
+        touchOffsetY = touch.clientY - rect.top;
+
+        // Create ghost
+        dragGhost = document.createElement('div');
+        dragGhost.className = 'drag-ghost';
+        dragGhost.textContent = this.textContent;
+        dragGhost.style.width = rect.width + 'px';
+        dragGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+        dragGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+        document.body.appendChild(dragGhost);
+
+        this.classList.add('dragging');
+    }
+
+    function handleTouchMove(e) {
+        if (!draggedCard || !dragGhost) return;
+        e.preventDefault();
+
+        const touch = e.touches[0];
+        dragGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+        dragGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+
+        // Highlight drop zone under touch
+        document.querySelectorAll('.drop-slot').forEach(slot => {
+            slot.classList.remove('drag-over');
+            const rect = slot.getBoundingClientRect();
+            if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                if (!lockedSlots.has(parseInt(slot.dataset.index))) {
+                    slot.classList.add('drag-over');
+                }
+            }
+        });
+    }
+
+    function handleTouchEnd(e) {
+        if (!draggedCard || !dragGhost) return;
+        e.preventDefault();
+
+        const touch = e.changedTouches[0];
+        let dropped = false;
+
+        document.querySelectorAll('.drop-slot').forEach(slot => {
+            slot.classList.remove('drag-over');
+            const rect = slot.getBoundingClientRect();
+            if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                if (!lockedSlots.has(parseInt(slot.dataset.index))) {
+                    dropCard(slot);
+                    dropped = true;
+                }
+            }
+        });
+
+        // Also check if dropped back on cards container
+        if (!dropped) {
+            const container = document.getElementById('cardsContainer');
+            const rect = container.getBoundingClientRect();
+            if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                // Return to container
+                returnCardToContainer(draggedCard);
+            }
+        }
+
+        draggedCard.classList.remove('dragging');
+        dragGhost.remove();
+        dragGhost = null;
+        draggedCard = null;
+    }
+
+    // === Setup Drop Zones ===
+    function setupDropZones() {
+        document.querySelectorAll('.drop-slot').forEach(slot => {
+            slot.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!lockedSlots.has(parseInt(slot.dataset.index))) {
+                    slot.classList.add('drag-over');
+                }
+            });
+
+            slot.addEventListener('dragleave', () => {
+                slot.classList.remove('drag-over');
+            });
+
+            slot.addEventListener('drop', e => {
+                e.preventDefault();
+                slot.classList.remove('drag-over');
+                if (draggedCard && !lockedSlots.has(parseInt(slot.dataset.index))) {
+                    dropCard(slot);
+                }
+            });
+        });
+    }
+
+    function dropCard(slot) {
+        if (!draggedCard) return;
+        const idx = parseInt(slot.dataset.index);
+
+        // If slot already has a card, swap it back
+        const existing = slot.querySelector('.card');
+        if (existing && !existing.classList.contains('correct-card')) {
+            returnCardToContainer(existing);
+        }
+
+        // If dragged card was in another slot, clear that slot
+        const prevSlot = draggedCard.closest('.drop-slot');
+        if (prevSlot && prevSlot !== slot) {
+            prevSlot.classList.remove('has-card');
+            const ph = document.createElement('span');
+            ph.className = 'placeholder-text';
+            ph.textContent = `Schritt ${parseInt(prevSlot.dataset.index) + 1} hierher ziehen ...`;
+            prevSlot.appendChild(ph);
+        } else if (!prevSlot) {
+            // Remove from cards container
+        }
+
+        // Place card in slot
+        const placeholder = slot.querySelector('.placeholder-text');
+        if (placeholder) placeholder.remove();
+
+        draggedCard.classList.remove('dragging');
+        draggedCard.classList.add('in-slot');
+        slot.appendChild(draggedCard);
+        slot.classList.add('has-card');
+
+        document.getElementById(`num-${idx}`).classList.add('filled');
+    }
+
+    function returnCardToContainer(card) {
+        const slot = card.closest('.drop-slot');
+        if (slot) {
+            const idx = parseInt(slot.dataset.index);
+            slot.classList.remove('has-card');
+            document.getElementById(`num-${idx}`).classList.remove('filled');
+            const ph = document.createElement('span');
+            ph.className = 'placeholder-text';
+            ph.textContent = `Schritt ${idx + 1} hierher ziehen ...`;
+            slot.appendChild(ph);
+        }
+        card.classList.remove('in-slot');
+        card.classList.remove('wrong-shake');
+        document.getElementById('cardsContainer').appendChild(card);
+    }
+
+    // === Check Answers ===
+    function checkAnswers() {
+        let allFilled = true;
+        let newCorrect = 0;
+        let firstWrong = null;
+
+        for (let i = 0; i < steps.length; i++) {
+            if (lockedSlots.has(i)) {
+                newCorrect++;
+                continue;
+            }
+
+            const slot = document.getElementById(`slot-${i}`);
+            const card = slot.querySelector('.card');
+
+            if (!card) {
+                allFilled = false;
+                continue;
+            }
+
+            const cardId = parseInt(card.getAttribute('data-id'));
+
+            if (cardId === steps[i].id) {
+                // Correct!
+                card.classList.add('correct-card');
+                slot.classList.add('correct-slot');
+                document.getElementById(`num-${i}`).classList.add('correct');
+                lockedSlots.add(i);
+                newCorrect++;
+            } else {
+                // Wrong
+                card.classList.add('wrong-shake');
+                setTimeout(() => card.classList.remove('wrong-shake'), 600);
+
+                if (!firstWrong) {
+                    firstWrong = { slotIndex: i, cardId: cardId };
+                }
+            }
+        }
+
+        attemptCount++;
+        correctCount = newCorrect;
+        updateScore();
+
+        if (!allFilled && newCorrect < steps.length) {
+            showHint("Fülle erst alle Positionen aus, bevor du prüfst! Ziehe die verbleibenden Karten in die leeren Felder.");
+            return;
+        }
+
+        if (firstWrong) {
+            const wrongStep = steps.find(s => s.id === firstWrong.cardId);
+            const correctForSlot = steps[firstWrong.slotIndex];
+            showHint(correctForSlot.hint);
+        }
+
+        if (newCorrect === steps.length) {
+            showSuccess();
+        }
+    }
+
+    function updateScore() {
+        document.getElementById('correctCount').textContent = correctCount;
+        document.getElementById('attemptCount').textContent = attemptCount;
+        const pct = (correctCount / steps.length) * 100;
+        document.getElementById('progressBar').style.width = pct + '%';
+    }
+
+    function showHint(text) {
+        const toast = document.getElementById('hintToast');
+        document.getElementById('hintText').textContent = text;
+        toast.classList.add('show');
+        clearTimeout(window._hintTimeout);
+        window._hintTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 5000);
+    }
+
+    function showSuccess() {
+        document.getElementById('finalCorrect').textContent = steps.length;
+        document.getElementById('finalAttempts').textContent = attemptCount;
+        document.getElementById('successOverlay').classList.add('show');
+        document.getElementById('checkBtn').classList.add('success');
+        document.getElementById('checkBtn').innerHTML = '&#127881; Geschafft!';
+        document.getElementById('checkBtn').disabled = true;
+        launchConfetti();
+    }
+
+    // === Confetti ===
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        container.innerHTML = '';
+        const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#06b6d4'];
+
+        for (let i = 0; i < 80; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = (Math.random() * 8 + 6) + 'px';
+            confetti.style.height = (Math.random() * 8 + 6) + 'px';
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            confetti.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+            confetti.style.animationDelay = (Math.random() * 1.5) + 's';
+            container.appendChild(confetti);
+        }
+
+        setTimeout(() => container.innerHTML = '', 5000);
+    }
+
+    function resetGame() {
+        initGame();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('confettiContainer').innerHTML = '';
+    }
+
+    // Init
+    initGame();
+</script>
+
+</body>
+</html>
