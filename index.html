@@ -266,7 +266,7 @@
             margin-bottom: 0.3rem;
         }
 
-        .desc-box input, .desc-box textarea {
+        .desc-box input, .desc-box textarea, .desc-box select {
             width: 100%;
             padding: 0.5rem 0.7rem;
             border: 2px solid #e0e0e0;
@@ -274,6 +274,7 @@
             font-size: 0.9rem;
             font-family: inherit;
             margin-bottom: 0.6rem;
+            background: #fff;
         }
 
         .desc-box textarea { resize: vertical; height: 50px; }
@@ -327,6 +328,39 @@
             color: #1a1a2e;
             font-size: 1.2rem;
             margin: 0;
+        }
+
+        .app-list-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            padding: 0.35rem 0.7rem;
+            border: none;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button:hover {
+            background: #f0f1f3;
+        }
+
+        .view-toggle button.active {
+            background: #4a6cf7;
+            color: #fff;
         }
 
         .filter-bar {
@@ -417,12 +451,27 @@
             color: #92400e;
         }
 
+        .badge-kategorie {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
         .app-item-actions {
             display: flex;
             gap: 0.5rem;
             align-items: center;
             flex-shrink: 0;
             margin-left: 0.5rem;
+        }
+
+        .kategorie-dropdown {
+            padding: 0.25rem 0.4rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: #fff;
+            cursor: pointer;
+            max-width: 130px;
         }
 
         .btn-sm {
@@ -487,6 +536,148 @@
             display: flex;
             gap: 0.5rem;
             justify-content: center;
+        }
+
+        /* Deploy Success Modal */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .deploy-success-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .deploy-success-overlay.active {
+            display: flex;
+        }
+
+        .deploy-success-modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            text-align: center;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+            max-width: 420px;
+            width: 90%;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .deploy-success-icon {
+            width: 64px;
+            height: 64px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: #fff;
+        }
+
+        .deploy-success-modal h3 {
+            color: #166534;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .deploy-success-filename {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            word-break: break-all;
+        }
+
+        .deploy-success-qr {
+            display: inline-block;
+            padding: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .deploy-success-url {
+            font-size: 0.85rem;
+            color: #4a6cf7;
+            word-break: break-all;
+            margin-bottom: 0.5rem;
+        }
+
+        .deploy-success-url a {
+            color: #4a6cf7;
+            text-decoration: none;
+        }
+
+        .deploy-success-url a:hover { text-decoration: underline; }
+
+        .deploy-success-popup-hint {
+            font-size: 0.8rem;
+            color: #b45309;
+            background: #fef3c7;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            margin-bottom: 0.8rem;
+        }
+
+        .deploy-success-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Folder View */
+        .folder-section {
+            margin-bottom: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .folder-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            background: #f8f9fa;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .folder-header:hover {
+            background: #f0f1f3;
+        }
+
+        .folder-arrow {
+            font-size: 0.75rem;
+            color: #888;
+            width: 1rem;
+            text-align: center;
+        }
+
+        .folder-icon {
+            font-size: 1.15rem;
+        }
+
+        .folder-name {
+            font-weight: 600;
+            color: #1a1a2e;
+            flex: 1;
+        }
+
+        .folder-count {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .folder-content {
+            padding: 0.5rem;
         }
 
         /* Status messages */
@@ -565,8 +756,9 @@
             .CodeMirror { height: 300px; }
             .filename-row { flex-direction: column; }
             .app-item { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
-            .app-item-actions { width: 100%; justify-content: flex-end; margin-left: 0; }
+            .app-item-actions { width: 100%; justify-content: flex-end; margin-left: 0; flex-wrap: wrap; }
             .desc-row { flex-direction: column; gap: 0; }
+            .deploy-success-actions { flex-direction: column; }
         }
     </style>
 </head>
@@ -628,6 +820,25 @@
     </div>
 </div>
 
+<!-- Deploy Success Modal -->
+<div class="deploy-success-overlay" id="deploySuccessModal" onclick="closeDeploySuccess(event)">
+    <div class="deploy-success-modal" onclick="event.stopPropagation()">
+        <div class="deploy-success-icon">&#10003;</div>
+        <h3>Erfolgreich deployt!</h3>
+        <p class="deploy-success-filename" id="deploySuccessFilename"></p>
+        <div class="deploy-success-qr" id="deploySuccessQR"></div>
+        <div class="deploy-success-url" id="deploySuccessUrl"></div>
+        <p class="deploy-success-popup-hint" id="deployPopupHint" style="display:none;">
+            Popup-Blocker hat den neuen Tab verhindert. Bitte die URL manuell &ouml;ffnen.
+        </p>
+        <div class="deploy-success-actions">
+            <button class="btn btn-primary btn-sm" onclick="copyDeployUrl()">URL kopieren</button>
+            <button class="btn btn-secondary btn-sm" onclick="enlargeDeployQR()">QR vergr&ouml;&szlig;ern</button>
+            <button class="btn btn-secondary btn-sm" onclick="closeDeploySuccess()">Schlie&szlig;en</button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
 
     <!-- Setup Banner -->
@@ -659,6 +870,24 @@
                     <label for="descStufe">Jahrgangsstufe</label>
                     <input type="text" id="descStufe" placeholder="z.B. 7, 8–10">
                 </div>
+                <div>
+                    <label for="descKategorie">Kategorie</label>
+                    <select id="descKategorie">
+                        <option value="">—</option>
+                        <option value="BWR">BWR</option>
+                        <option value="Wirtschaft & Recht">Wirtschaft &amp; Recht</option>
+                        <option value="Mathematik">Mathematik</option>
+                        <option value="Englisch">Englisch</option>
+                        <option value="Franz&ouml;sisch">Franz&ouml;sisch</option>
+                        <option value="Deutsch">Deutsch</option>
+                        <option value="Naturwissenschaften">Naturwissenschaften</option>
+                        <option value="Geographie">Geographie</option>
+                        <option value="Sport">Sport</option>
+                        <option value="Informatik">Informatik</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Sonstiges">Sonstiges</option>
+                    </select>
+                </div>
             </div>
             <label for="descText">Beschreibung</label>
             <textarea id="descText" placeholder="Kurze Beschreibung der App..."></textarea>
@@ -684,12 +913,21 @@
     <div class="app-list-section">
         <div class="app-list-header">
             <h2>Deployte Apps <span class="app-count" id="appCount"></span></h2>
-            <button class="btn btn-secondary btn-sm" onclick="loadApps()">&#8635; Aktualisieren</button>
+            <div class="app-list-controls">
+                <div class="view-toggle">
+                    <button id="viewListBtn" class="active" onclick="setView('list')">Liste</button>
+                    <button id="viewFolderBtn" onclick="setView('folder')">Ordner</button>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="loadApps()">&#8635; Aktualisieren</button>
+            </div>
         </div>
         <div class="filter-bar">
             <input type="text" id="filterSearch" placeholder="Suchen..." oninput="filterApps()">
             <select id="filterFach" onchange="filterApps()">
                 <option value="">Alle F&auml;cher</option>
+            </select>
+            <select id="filterKategorie" onchange="filterApps()">
+                <option value="">Alle Kategorien</option>
             </select>
             <select id="sortOrder" onchange="filterApps()">
                 <option value="newest">Neueste zuerst</option>
@@ -697,6 +935,7 @@
                 <option value="name-az">Name A–Z</option>
                 <option value="name-za">Name Z–A</option>
                 <option value="fach">Nach Fach</option>
+                <option value="kategorie">Nach Kategorie</option>
             </select>
         </div>
         <div id="appList">
@@ -707,6 +946,51 @@
 </div>
 
 <script>
+    // ----- Constants -----
+    const KATEGORIEN = [
+        'BWR', 'Wirtschaft & Recht', 'Mathematik', 'Englisch', 'Französisch',
+        'Deutsch', 'Naturwissenschaften', 'Geographie', 'Sport', 'Informatik',
+        'Tools', 'Sonstiges'
+    ];
+
+    const KATEGORIE_ICONS = {
+        'BWR': '\u{1F4CA}',
+        'Wirtschaft & Recht': '\u{2696}\u{FE0F}',
+        'Mathematik': '\u{2795}',
+        'Englisch': '\u{1F1EC}\u{1F1E7}',
+        'Französisch': '\u{1F1EB}\u{1F1F7}',
+        'Deutsch': '\u{1F4DD}',
+        'Naturwissenschaften': '\u{1F52C}',
+        'Geographie': '\u{1F30D}',
+        'Sport': '\u{26BD}',
+        'Informatik': '\u{1F4BB}',
+        'Tools': '\u{1F527}',
+        'Sonstiges': '\u{1F4C1}'
+    };
+
+    const FACH_TO_KATEGORIE = {
+        'BWR': 'BWR',
+        'WR': 'Wirtschaft & Recht',
+        'Wirtschaft': 'Wirtschaft & Recht',
+        'Wirtschaft und Recht': 'Wirtschaft & Recht',
+        'Mathematik': 'Mathematik',
+        'Mathe': 'Mathematik',
+        'Englisch': 'Englisch',
+        'Französisch': 'Französisch',
+        'Deutsch': 'Deutsch',
+        'Physik': 'Naturwissenschaften',
+        'Biologie': 'Naturwissenschaften',
+        'Chemie': 'Naturwissenschaften',
+        'Geographie': 'Geographie',
+        'Erdkunde': 'Geographie',
+        'Sport': 'Sport',
+        'Informatik': 'Informatik',
+        'IT': 'Informatik',
+        'Tool': 'Tools',
+        'Tools': 'Tools',
+        'Fächerübergreifend': 'Sonstiges'
+    };
+
     // ----- State -----
     let editor;
     let editingSha = null;
@@ -714,6 +998,9 @@
     let descriptions = {};
     let descriptionsSha = null;
     let allAppFiles = [];
+    let currentView = 'list';
+    let openCategories = new Set();
+    let deploySuccessUrl = '';
 
     // ----- Init -----
     document.addEventListener('DOMContentLoaded', () => {
@@ -732,7 +1019,10 @@
         if (!getConfig().token) {
             document.getElementById('setupBanner').style.display = 'block';
         } else {
-            loadDescriptions().then(() => loadApps());
+            loadDescriptions().then(() => {
+                migrateCategories();
+                loadApps();
+            });
         }
     });
 
@@ -778,7 +1068,10 @@
         closeSettings();
         document.getElementById('setupBanner').style.display = 'none';
         showStatus('Einstellungen gespeichert!', 'success');
-        loadDescriptions().then(() => loadApps());
+        loadDescriptions().then(() => {
+            migrateCategories();
+            loadApps();
+        });
     }
 
     // ----- GitHub API -----
@@ -850,6 +1143,23 @@
         }
     }
 
+    // ----- Category Migration -----
+    function migrateCategories() {
+        let changed = false;
+        for (const [filename, desc] of Object.entries(descriptions)) {
+            if (!desc.kategorie && desc.fach) {
+                const mapped = FACH_TO_KATEGORIE[desc.fach];
+                if (mapped) {
+                    desc.kategorie = mapped;
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            saveDescriptions();
+        }
+    }
+
     // ----- Load Apps -----
     async function loadApps() {
         const cfg = getConfig();
@@ -883,12 +1193,10 @@
                 );
                 if (commitsResp.ok) {
                     const commits = await commitsResp.json();
-                    // Build map: filename -> latest commit date
                     const dateMap = {};
                     for (const commit of commits) {
                         const date = commit.commit.committer.date;
                         const msg = commit.commit.message;
-                        // Try to extract filename from commit message
                         for (const f of htmlFiles) {
                             if (msg.includes(f.name) && !dateMap[f.name]) {
                                 dateMap[f.name] = date;
@@ -898,13 +1206,13 @@
                     htmlFiles.forEach(f => { f._date = dateMap[f.name] || '2000-01-01'; });
                 }
             } catch (e) {
-                // Fallback: no date info
                 htmlFiles.forEach((f, i) => { f._date = '2000-01-01'; });
             }
 
             allAppFiles = htmlFiles;
 
             buildFachFilter();
+            buildKategorieFilter();
             renderApps();
         } catch (err) {
             listEl.innerHTML = `<div class="app-list-empty" style="color:#991b1b;">Fehler: ${err.message}</div>`;
@@ -920,7 +1228,7 @@
 
         const select = document.getElementById('filterFach');
         const current = select.value;
-        select.innerHTML = '<option value="">Alle Fächer</option>';
+        select.innerHTML = '<option value="">Alle F\u00e4cher</option>';
         [...faecher].sort().forEach(fach => {
             const opt = document.createElement('option');
             opt.value = fach;
@@ -930,25 +1238,47 @@
         select.value = current;
     }
 
+    function buildKategorieFilter() {
+        const kats = new Set();
+        allAppFiles.forEach(f => {
+            const desc = descriptions[f.name];
+            if (desc && desc.kategorie) kats.add(desc.kategorie);
+        });
+
+        const select = document.getElementById('filterKategorie');
+        const current = select.value;
+        select.innerHTML = '<option value="">Alle Kategorien</option>';
+        KATEGORIEN.filter(k => kats.has(k)).forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = k;
+            select.appendChild(opt);
+        });
+        select.value = current;
+    }
+
     function filterApps() {
         renderApps();
     }
 
-    function renderApps() {
-        const listEl = document.getElementById('appList');
+    // ----- Render Apps -----
+    function getFilteredApps() {
         const searchTerm = document.getElementById('filterSearch').value.toLowerCase();
         const fachFilter = document.getElementById('filterFach').value;
+        const kategorieFilter = document.getElementById('filterKategorie').value;
 
         let filtered = allAppFiles.filter(f => {
             const desc = descriptions[f.name];
             const nameMatch = f.name.toLowerCase().includes(searchTerm);
             const descMatch = desc && (
                 (desc.beschreibung || '').toLowerCase().includes(searchTerm) ||
-                (desc.fach || '').toLowerCase().includes(searchTerm)
+                (desc.fach || '').toLowerCase().includes(searchTerm) ||
+                (desc.kategorie || '').toLowerCase().includes(searchTerm)
             );
 
             if (searchTerm && !nameMatch && !descMatch) return false;
             if (fachFilter && (!desc || desc.fach !== fachFilter)) return false;
+            if (kategorieFilter && (!desc || desc.kategorie !== kategorieFilter)) return false;
             return true;
         });
 
@@ -964,50 +1294,145 @@
                     const fa = (descriptions[a.name]?.fach || 'ZZZ').toLowerCase();
                     const fb = (descriptions[b.name]?.fach || 'ZZZ').toLowerCase();
                     return fa.localeCompare(fb) || a.name.localeCompare(b.name);
+                case 'kategorie':
+                    const ka = (descriptions[a.name]?.kategorie || 'ZZZ').toLowerCase();
+                    const kb = (descriptions[b.name]?.kategorie || 'ZZZ').toLowerCase();
+                    return ka.localeCompare(kb) || a.name.localeCompare(b.name);
                 default: return 0;
             }
         });
 
+        return filtered;
+    }
+
+    function renderApps() {
+        const filtered = getFilteredApps();
         document.getElementById('appCount').textContent = `(${filtered.length} von ${allAppFiles.length})`;
 
+        const listEl = document.getElementById('appList');
         if (filtered.length === 0) {
             listEl.innerHTML = '<div class="app-list-empty">Keine Apps gefunden.</div>';
             return;
         }
 
+        if (currentView === 'folder') {
+            renderFolderView(filtered);
+        } else {
+            renderListView(filtered);
+        }
+    }
+
+    function createAppItemHTML(file) {
+        const url = pagesUrl(file.name);
+        const desc = descriptions[file.name];
+
+        let descHtml = '';
+        if (desc) {
+            descHtml = '<div class="app-item-desc">';
+            if (desc.fach) descHtml += `<span class="badge badge-fach">${esc(desc.fach)}</span>`;
+            if (desc.stufe) descHtml += `<span class="badge badge-stufe">Jgst. ${esc(desc.stufe)}</span>`;
+            if (desc.kategorie) descHtml += `<span class="badge badge-kategorie">${esc(desc.kategorie)}</span>`;
+            if (desc.beschreibung) descHtml += ` ${esc(desc.beschreibung)}`;
+            descHtml += '</div>';
+        }
+
+        // Kategorie dropdown
+        let katOpts = '<option value="">\u2014</option>';
+        KATEGORIEN.forEach(k => {
+            const sel = (desc?.kategorie === k) ? ' selected' : '';
+            katOpts += `<option value="${esc(k)}"${sel}>${esc(k)}</option>`;
+        });
+
+        return `
+            <div class="app-item">
+                <div class="app-item-info">
+                    <div class="app-item-name">
+                        <a href="${url}" target="_blank">${esc(file.name)}</a>
+                    </div>
+                    ${descHtml}
+                </div>
+                <div class="app-item-actions">
+                    <select class="kategorie-dropdown" onchange="assignCategory('${esc(file.name)}', this.value)" title="Kategorie zuweisen">${katOpts}</select>
+                    <button class="btn btn-secondary btn-sm" onclick="openQRModal('${esc(file.name)}', '${url}')">QR</button>
+                    <button class="btn btn-primary btn-sm" onclick="editApp('${esc(file.name)}')">Bearbeiten</button>
+                    <button class="btn btn-danger btn-sm" onclick="confirmDelete('${esc(file.name)}', '${file.sha}')">L\u00f6schen</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderListView(filtered) {
+        const listEl = document.getElementById('appList');
         listEl.innerHTML = '';
         filtered.forEach(file => {
-            const url = pagesUrl(file.name);
-            const itemId = 'qr-' + file.name.replace(/[^a-zA-Z0-9]/g, '-');
-            const desc = descriptions[file.name];
-
-            let descHtml = '';
-            if (desc) {
-                descHtml = '<div class="app-item-desc">';
-                if (desc.fach) descHtml += `<span class="badge badge-fach">${esc(desc.fach)}</span>`;
-                if (desc.stufe) descHtml += `<span class="badge badge-stufe">Jgst. ${esc(desc.stufe)}</span>`;
-                if (desc.beschreibung) descHtml += ` ${esc(desc.beschreibung)}`;
-                descHtml += '</div>';
-            }
-
             const itemDiv = document.createElement('div');
-            itemDiv.innerHTML = `
-                <div class="app-item">
-                    <div class="app-item-info">
-                        <div class="app-item-name">
-                            <a href="${url}" target="_blank">${esc(file.name)}</a>
-                        </div>
-                        ${descHtml}
-                    </div>
-                    <div class="app-item-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="openQRModal('${esc(file.name)}', '${url}')">QR</button>
-                        <button class="btn btn-primary btn-sm" onclick="editApp('${esc(file.name)}')">Bearbeiten</button>
-                        <button class="btn btn-danger btn-sm" onclick="confirmDelete('${esc(file.name)}', '${file.sha}')">L\u00f6schen</button>
-                    </div>
-                </div>
-            `;
+            itemDiv.innerHTML = createAppItemHTML(file);
             listEl.appendChild(itemDiv);
         });
+    }
+
+    function renderFolderView(filtered) {
+        const listEl = document.getElementById('appList');
+
+        // Group by kategorie
+        const groups = {};
+        filtered.forEach(file => {
+            const desc = descriptions[file.name];
+            const kat = desc?.kategorie || 'Sonstiges';
+            if (!groups[kat]) groups[kat] = [];
+            groups[kat].push(file);
+        });
+
+        // Sort groups by KATEGORIEN order
+        const sortedKats = KATEGORIEN.filter(k => groups[k]);
+
+        listEl.innerHTML = '';
+        sortedKats.forEach(kat => {
+            const apps = groups[kat];
+            const isOpen = openCategories.has(kat);
+            const icon = KATEGORIE_ICONS[kat] || '\u{1F4C1}';
+
+            const folderDiv = document.createElement('div');
+            folderDiv.className = 'folder-section';
+            folderDiv.innerHTML = `
+                <div class="folder-header" onclick="toggleCategory('${esc(kat)}')">
+                    <span class="folder-arrow">${isOpen ? '\u25BC' : '\u25B6'}</span>
+                    <span class="folder-icon">${icon}</span>
+                    <span class="folder-name">${esc(kat)}</span>
+                    <span class="folder-count">(${apps.length})</span>
+                </div>
+                <div class="folder-content" style="${isOpen ? '' : 'display:none;'}">
+                    ${apps.map(f => createAppItemHTML(f)).join('')}
+                </div>
+            `;
+            listEl.appendChild(folderDiv);
+        });
+    }
+
+    function setView(view) {
+        currentView = view;
+        document.getElementById('viewListBtn').classList.toggle('active', view === 'list');
+        document.getElementById('viewFolderBtn').classList.toggle('active', view === 'folder');
+        renderApps();
+    }
+
+    function toggleCategory(kat) {
+        if (openCategories.has(kat)) {
+            openCategories.delete(kat);
+        } else {
+            openCategories.add(kat);
+        }
+        renderApps();
+    }
+
+    async function assignCategory(filename, kategorie) {
+        if (!descriptions[filename]) {
+            descriptions[filename] = {};
+        }
+        descriptions[filename].kategorie = kategorie;
+        await saveDescriptions();
+        buildKategorieFilter();
+        renderApps();
     }
 
     function esc(str) {
@@ -1040,9 +1465,49 @@
         });
     }
 
+    // ----- Deploy Success Modal -----
+    function showDeploySuccess(filename, url) {
+        deploySuccessUrl = url;
+        document.getElementById('deploySuccessFilename').textContent = filename;
+
+        const qrDiv = document.getElementById('deploySuccessQR');
+        qrDiv.innerHTML = '';
+        new QRCode(qrDiv, { text: url, width: 150, height: 150 });
+
+        document.getElementById('deploySuccessUrl').innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+
+        // Auto-open in new tab
+        const newTab = window.open(url, '_blank');
+        if (!newTab) {
+            document.getElementById('deployPopupHint').style.display = 'block';
+        } else {
+            document.getElementById('deployPopupHint').style.display = 'none';
+        }
+
+        document.getElementById('deploySuccessModal').classList.add('active');
+    }
+
+    function closeDeploySuccess(event) {
+        if (event && event.target !== document.getElementById('deploySuccessModal')) return;
+        document.getElementById('deploySuccessModal').classList.remove('active');
+    }
+
+    function copyDeployUrl() {
+        navigator.clipboard.writeText(deploySuccessUrl).then(() => {
+            showStatus('URL kopiert!', 'success');
+        });
+    }
+
+    function enlargeDeployQR() {
+        const filename = document.getElementById('deploySuccessFilename').textContent;
+        document.getElementById('deploySuccessModal').classList.remove('active');
+        openQRModal(filename, deploySuccessUrl);
+    }
+
     // ESC key handler
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            document.getElementById('deploySuccessModal').classList.remove('active');
             document.getElementById('qrModal').classList.remove('active');
             document.getElementById('settingsModal').classList.remove('active');
         }
@@ -1066,7 +1531,7 @@
         filename = filename.replace(/\.html$/i, '');
         filename = filename.replace(/[^a-zA-Z0-9_\-]/g, '-').toLowerCase();
         if (!filename) {
-            showStatus('Ungültiger Dateiname.', 'error');
+            showStatus('Ung\u00fcltiger Dateiname.', 'error');
             return;
         }
         filename += '.html';
@@ -1117,17 +1582,26 @@
             const fach = document.getElementById('descFach').value.trim();
             const stufe = document.getElementById('descStufe').value.trim();
             const beschreibung = document.getElementById('descText').value.trim();
+            const kategorie = document.getElementById('descKategorie').value;
 
-            if (fach || stufe || beschreibung) {
-                descriptions[filename] = { fach, stufe, beschreibung };
+            if (fach || stufe || beschreibung || kategorie) {
+                descriptions[filename] = {
+                    ...descriptions[filename],
+                    fach, stufe, beschreibung, kategorie
+                };
                 await saveDescriptions();
             }
 
             const url = pagesUrl(filename);
-            showStatus(`Erfolgreich deployt: ${filename}`, 'success');
-            generateQR(url);
+
+            // Show deploy success modal instead of just status + QR
+            showDeploySuccess(filename, url);
             cancelEdit();
             loadApps();
+
+            // Auto-generate description in background (fire and forget)
+            autoGenerateDescriptionIfNeeded(filename, content);
+
         } catch (err) {
             showStatus(`Deploy fehlgeschlagen: ${err.message}`, 'error');
         } finally {
@@ -1136,7 +1610,69 @@
         }
     }
 
-    // ----- Claude AI Description -----
+    // ----- Auto KI-Beschreibung -----
+    function autoGenerateDescriptionIfNeeded(filename, content) {
+        const cfg = getConfig();
+        if (!cfg.claudeKey) return;
+        if (descriptions[filename]?.beschreibung) return;
+
+        // Fire and forget - runs in background
+        (async () => {
+            try {
+                const resp = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': cfg.claudeKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-5-20250929',
+                        max_tokens: 300,
+                        messages: [{
+                            role: 'user',
+                            content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen vier Feldern:
+- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Franz\u00f6sisch", "Deutsch", "Informatik", "Geographie", "Sport", "F\u00e4cher\u00fcbergreifend" oder "Tool")
+- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8\u201310", "5\u20136")
+- "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
+- "kategorie": Eine der folgenden Kategorien: ${KATEGORIEN.join(', ')}
+
+HTML-Code:
+${content.substring(0, 6000)}`
+                        }]
+                    })
+                });
+
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                let text = data.content[0].text.trim();
+                text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+                const parsed = JSON.parse(text);
+
+                // Reload descriptions to avoid race conditions
+                await loadDescriptions();
+
+                descriptions[filename] = {
+                    ...descriptions[filename],
+                    fach: parsed.fach || '',
+                    stufe: parsed.stufe || '',
+                    beschreibung: parsed.beschreibung || '',
+                    kategorie: parsed.kategorie || 'Sonstiges'
+                };
+
+                await saveDescriptions();
+                buildFachFilter();
+                buildKategorieFilter();
+                renderApps();
+            } catch (e) {
+                console.log('Auto-Beschreibung fehlgeschlagen:', e);
+            }
+        })();
+    }
+
+    // ----- Claude AI Description (manual) -----
     async function generateDescription() {
         const cfg = getConfig();
         if (!cfg.claudeKey) {
@@ -1147,7 +1683,7 @@
 
         const content = editor.getValue();
         if (!content.trim()) {
-            showStatus('Der Editor ist leer – bitte zuerst Code einfügen.', 'error');
+            showStatus('Der Editor ist leer \u2013 bitte zuerst Code einf\u00fcgen.', 'error');
             return;
         }
 
@@ -1172,10 +1708,11 @@
                     max_tokens: 300,
                     messages: [{
                         role: 'user',
-                        content: `Analysiere diese HTML-Webapp für Schüler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen drei Feldern:
-- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Französisch", "Deutsch", "Informatik", "Geographie", "Sport", "Fächerübergreifend" oder "Tool")
-- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8–10", "5–6")
+                        content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen vier Feldern:
+- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Franz\u00f6sisch", "Deutsch", "Informatik", "Geographie", "Sport", "F\u00e4cher\u00fcbergreifend" oder "Tool")
+- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8\u201310", "5\u20136")
 - "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
+- "kategorie": Eine der folgenden Kategorien: ${KATEGORIEN.join(', ')}
 
 HTML-Code:
 ${content.substring(0, 6000)}`
@@ -1190,15 +1727,15 @@ ${content.substring(0, 6000)}`
 
             const data = await resp.json();
             let text = data.content[0].text.trim();
-            // Strip markdown code block if present
-            text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/,'');
+            text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
             const parsed = JSON.parse(text);
 
             document.getElementById('descFach').value = parsed.fach || '';
             document.getElementById('descStufe').value = parsed.stufe || '';
             document.getElementById('descText').value = parsed.beschreibung || '';
+            document.getElementById('descKategorie').value = parsed.kategorie || '';
 
-            showStatus('Beschreibung generiert! Bitte prüfen und bei Bedarf anpassen.', 'success');
+            showStatus('Beschreibung generiert! Bitte pr\u00fcfen und bei Bedarf anpassen.', 'success');
         } catch (err) {
             showStatus(`KI-Beschreibung fehlgeschlagen: ${err.message}`, 'error');
         } finally {
@@ -1229,11 +1766,13 @@ ${content.substring(0, 6000)}`
                 document.getElementById('descFach').value = desc.fach || '';
                 document.getElementById('descStufe').value = desc.stufe || '';
                 document.getElementById('descText').value = desc.beschreibung || '';
+                document.getElementById('descKategorie').value = desc.kategorie || '';
                 document.getElementById('descBox').classList.add('active');
             } else {
                 document.getElementById('descFach').value = '';
                 document.getElementById('descStufe').value = '';
                 document.getElementById('descText').value = '';
+                document.getElementById('descKategorie').value = '';
                 document.getElementById('descBox').classList.remove('active');
             }
 
@@ -1253,18 +1792,19 @@ ${content.substring(0, 6000)}`
         document.getElementById('descFach').value = '';
         document.getElementById('descStufe').value = '';
         document.getElementById('descText').value = '';
+        document.getElementById('descKategorie').value = '';
         document.getElementById('descBox').classList.remove('active');
     }
 
     // ----- Delete App -----
     async function confirmDelete(filename, sha) {
-        if (!confirm(`"${filename}" wirklich löschen?`)) return;
+        if (!confirm(`"${filename}" wirklich l\u00f6schen?`)) return;
         await deleteApp(filename, sha);
     }
 
     async function deleteApp(filename, sha) {
         try {
-            showStatus(`Lösche ${filename}...`, 'info');
+            showStatus(`L\u00f6sche ${filename}...`, 'info');
 
             const resp = await fetch(`${apiBase()}/${filename}`, {
                 method: 'DELETE',
@@ -1286,19 +1826,11 @@ ${content.substring(0, 6000)}`
                 await saveDescriptions();
             }
 
-            showStatus(`${filename} gelöscht.`, 'success');
+            showStatus(`${filename} gel\u00f6scht.`, 'success');
             loadApps();
         } catch (err) {
-            showStatus(`Fehler beim Löschen: ${err.message}`, 'error');
+            showStatus(`Fehler beim L\u00f6schen: ${err.message}`, 'error');
         }
-    }
-
-    // ----- QR Code (after deploy) -----
-    function generateQR(url) {
-        // Extract filename from URL
-        const parts = url.split('/');
-        const filename = parts[parts.length - 1];
-        openQRModal(filename, url);
     }
 
     // ----- Preview -----
