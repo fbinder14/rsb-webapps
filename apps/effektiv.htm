@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effektiver Zinssatz Rechner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .result-display {
+            background: linear-gradient(135deg, var(--success-color), #20c997);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(25, 135, 84, 0.3);
+        }
+        
+        .result-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .input-group-text {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem;
+        }
+        
+        .btn-calculate {
+            background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="calculator-container p-4">
+                    <div class="text-center mb-4">
+                        <h1 class="display-5 fw-bold text-primary mb-2">Effektiver Zinssatz Rechner</h1>
+                        <p class="lead text-muted">Berechnen Sie den effektiven Jahreszins unter Berücksichtigung der Zinseszinseffekte</p>
+                    </div>
+                    
+                    <form id="interestForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nominalRate" class="form-label fw-semibold">Nominaler Zinssatz (%)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">%</span>
+                                    <input type="number" class="form-control" id="nominalRate" 
+                                           value="6.0" min="0" max="100" step="0.01" 
+                                           onchange="calculateEffectiveRate()">
+                                </div>
+                                <small class="form-text text-muted">Der angegebene/nominale Zinssatz</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="compoundingPeriods" class="form-label fw-semibold">Zinseszinsperioden pro Jahr</label>
+                                <select class="form-control" id="compoundingPeriods" onchange="calculateEffectiveRate()">
+                                    <option value="1">Jährlich (1x)</option>
+                                    <option value="2">Halbjährlich (2x)</option>
+                                    <option value="4" selected>Vierteljährlich (4x)</option>
+                                    <option value="12">Monatlich (12x)</option>
+                                    <option value="52">Wöchentlich (52x)</option>
+                                    <option value="365">Täglich (365x)</option>
+                                </select>
+                                <small class="form-text text-muted">Wie oft werden Zinsen pro Jahr kapitalisiert</small>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary btn-calculate" onclick="calculateEffectiveRate()">
+                                <i class="fas fa-calculator me-2"></i>Berechnen
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="result-display" id="resultDisplay" style="display: none;">
+                        <h3 class="mb-3">Effektiver Jahreszins (EAR)</h3>
+                        <div class="result-value" id="effectiveRate">-</div>
+                        <p class="mb-0">Der tatsächliche Jahreszins unter Berücksichtigung der Zinseszinseffekte</p>
+                    </div>
+                    
+                    <div class="mt-4" id="comparisonSection" style="display: none;">
+                        <h4 class="mb-3 text-center">Vergleich verschiedener Zinseszinsperioden</h4>
+                        <div class="table-responsive comparison-table">
+                            <table class="table table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Zinseszinsperiode</th>
+                                        <th>Häufigkeit</th>
+                                        <th>Effektiver Zinssatz</th>
+                                        <th>Unterschied</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="comparisonTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><strong>Formel und Erklärung</strong></h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Formel:</strong> EAR = [1 + (i ÷ n)]^n - 1</p>
+                                <ul class="mb-0">
+                                    <li><strong>i</strong> = Nominaler Zinssatz (in Dezimalform)</li>
+                                    <li><strong>n</strong> = Anzahl der Zinseszinsperioden pro Jahr</li>
+                                    <li><strong>EAR</strong> = Effektiver Jahreszins</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function calculateEffectiveRate() {
+            const nominalRate = parseFloat(document.getElementById('nominalRate').value);
+            const compoundingPeriods = parseInt(document.getElementById('compoundingPeriods').value);
+            
+            if (isNaN(nominalRate) || nominalRate < 0) {
+                alert('Bitte geben Sie einen gültigen nominalen Zinssatz ein.');
+                return;
+            }
+            
+            // Berechnung des effektiven Zinssatzes mit der Formel: EAR = [1 + (i ÷ n)]^n - 1
+            const i = nominalRate / 100; // Umwandlung in Dezimalform
+            const n = compoundingPeriods;
+            const effectiveRate = Math.pow(1 + (i / n), n) - 1;
+            const effectiveRatePercent = effectiveRate * 100;
+            
+            // Ergebnis anzeigen
+            document.getElementById('effectiveRate').textContent = effectiveRatePercent.toFixed(4) + '%';
+            document.getElementById('resultDisplay').style.display = 'block';
+            
+            // Vergleichstabelle erstellen
+            createComparisonTable(nominalRate);
+            document.getElementById('comparisonSection').style.display = 'block';
+        }
+        
+        function createComparisonTable(nominalRate) {
+            const periods = [
+                { name: 'Jährlich', frequency: 1 },
+                { name: 'Halbjährlich', frequency: 2 },
+                { name: 'Vierteljährlich', frequency: 4 },
+                { name: 'Monatlich', frequency: 12 },
+                { name: 'Wöchentlich', frequency: 52 },
+                { name: 'Täglich', frequency: 365 }
+            ];
+            
+            const i = nominalRate / 100;
+            const tableBody = document.getElementById('comparisonTableBody');
+            tableBody.innerHTML = '';
+            
+            let baselineRate = null;
+            
+            periods.forEach((period, index) => {
+                const effectiveRate = Math.pow(1 + (i / period.frequency), period.frequency) - 1;
+                const effectiveRatePercent = effectiveRate * 100;
+                
+                if (index === 0) {
+                    baselineRate = effectiveRatePercent;
+                }
+                
+                const difference = effectiveRatePercent - baselineRate;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="fw-semibold">${period.name}</td>
+                    <td>${period.frequency}x pro Jahr</td>
+                    <td class="fw-bold text-primary">${effectiveRatePercent.toFixed(4)}%</td>
+                    <td class="${difference > 0 ? 'text-success' : 'text-muted'}">
+                        ${difference > 0 ? '+' : ''}${difference.toFixed(4)}%
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Berechnung beim Laden der Seite ausführen
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateEffectiveRate();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Französisch Trainer 6c</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom Smooth Transitions */
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+        /* iOS Input Styles to prevent zoom */
+        select { font-size: 16px !important; }
+        
+        /* Shake Animation for wrong answer */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-20">
+
+    <div class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="font-bold text-lg text-indigo-600">Verben Trainer</h1>
+                <p class="text-xs text-slate-500">regarder, chercher, trouver</p>
+            </div>
+            <div class="text-right">
+                <span id="score" class="font-bold text-slate-800 text-lg">0</span><span class="text-slate-400 text-sm">/20</span>
+            </div>
+        </div>
+        <div class="w-full bg-slate-200 h-1.5">
+            <div id="progress-bar" class="bg-indigo-500 h-1.5 transition-all w-0"></div>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto pt-24 px-4 space-y-4" id="exercise-container">
+        </div>
+
+    <div id="completion-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 text-center max-w-sm w-full shadow-2xl transform scale-100 transition-transform">
+            <div class="mb-4 text-5xl">🏆</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Bravo!</h2>
+            <p class="text-slate-600 mb-6">Du hast alle Aufgaben gelöst. Viel Erfolg morgen!</p>
+            <button onclick="location.reload()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-colors">
+                Nochmal üben
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure with the 20 sentences
+        const exercises = [
+            { subject: "Je", verb: "chercher", rest: "mon stylo.", correct: "cherche" },
+            { subject: "Tu", verb: "regarder", rest: "un film à la télé.", correct: "regardes" },
+            { subject: "Nous", verb: "trouver", rest: "le livre.", correct: "trouvons" },
+            { subject: "Il", verb: "chercher", rest: "son ami Paul.", correct: "cherche" },
+            { subject: "Vous", verb: "regarder", rest: "le professeur.", correct: "regardez" },
+            { subject: "Elles", verb: "trouver", rest: "une solution.", correct: "trouvent" },
+            { subject: "Tu", verb: "chercher", rest: "ton chien?", correct: "cherches" },
+            { subject: "On", verb: "regarder", rest: "la carte.", correct: "regarde" },
+            { subject: "Nous", verb: "chercher", rest: "la rue.", correct: "cherchons" },
+            { subject: "Je", verb: "regarder", rest: "les photos.", correct: "regarde" },
+            { subject: "Vous", verb: "trouver", rest: "ma maison?", correct: "trouvez" },
+            { subject: "Les amis", verb: "regarder", rest: "le match.", correct: "regardent" },
+            { subject: "Elle", verb: "trouver", rest: "le café.", correct: "trouve" },
+            { subject: "Les garçons", verb: "chercher", rest: "la balle.", correct: "cherchent" },
+            { subject: "Nous", verb: "regarder", rest: "le ciel.", correct: "regardons" },
+            { subject: "Je", verb: "trouver", rest: "ça super.", correct: "trouve" },
+            { subject: "Tu", verb: "regarder", rest: "ton portable?", correct: "regardes" },
+            { subject: "Vous", verb: "chercher", rest: "un bon restaurant?", correct: "cherchez" },
+            { subject: "Il", verb: "regarder", rest: "la mer.", correct: "regarde" },
+            { subject: "Mes parents", verb: "trouver", rest: "la ville jolie.", correct: "trouvent" }
+        ];
+
+        let correctCount = 0;
+
+        // Helper to get conjugated forms for the dropdown
+        // Note: I randomize them so he doesn't just memorize the position
+        function getOptions(verb) {
+            let root = verb.substring(0, verb.length - 2); // remove 'er'
+            let forms = [
+                root + 'e',
+                root + 'es',
+                root + 'ons',
+                root + 'ez',
+                root + 'ent'
+            ];
+            // Simple shuffle
+            return forms.sort(() => Math.random() - 0.5);
+        }
+
+        function initApp() {
+            const container = document.getElementById('exercise-container');
+            
+            exercises.forEach((ex, index) => {
+                const options = getOptions(ex.verb);
+                
+                // Create Card HTML
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3 relative overflow-hidden transition-all";
+                card.id = `card-${index}`;
+
+                // Status Icon placeholder
+                const iconHtml = `<div id="icon-${index}" class="absolute top-4 right-4 text-slate-200 text-xl"><i class="fa-regular fa-circle"></i></div>`;
+
+                const label = `<div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Satz ${index + 1}</div>`;
+                
+                // Sentence structure
+                const sentence = `
+                    <div class="text-lg leading-relaxed text-slate-700 flex flex-wrap items-center gap-2">
+                        <span class="font-medium">${ex.subject}</span>
+                        
+                        <div class="relative inline-block w-40">
+                            <select id="select-${index}" class="appearance-none w-full bg-slate-50 border-2 border-slate-200 text-slate-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors cursor-pointer font-medium" onchange="checkAnswer(this, ${index}, '${ex.correct}')">
+                                <option value="" disabled selected>(${ex.verb})</option>
+                                ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        <span>${ex.rest}</span>
+                    </div>
+                    <div id="feedback-${index}" class="text-sm font-medium h-5 mt-1 transition-all opacity-0"></div>
+                `;
+
+                card.innerHTML = iconHtml + label + sentence;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(selectElement, index, correctAnswer) {
+            const card = document.getElementById(`card-${index}`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            const val = selectElement.value;
+
+            // Reset styles first
+            selectElement.classList.remove('border-green-500', 'bg-green-50', 'text-green-700', 'border-red-500', 'bg-red-50', 'text-red-700');
+            card.classList.remove('ring-2', 'ring-green-400', 'ring-red-200');
+            selectElement.parentElement.classList.remove('shake');
+
+            if (val === correctAnswer) {
+                // CORRECT
+                selectElement.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                card.classList.add('ring-2', 'ring-green-400');
+                
+                feedback.textContent = "Super! Das ist richtig.";
+                feedback.className = "text-sm font-bold text-green-600 mt-1 transition-all opacity-100";
+                
+                icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>';
+                
+                // Disable to prevent changing back
+                selectElement.disabled = true;
+                
+                updateScore();
+            } else {
+                // WRONG
+                selectElement.classList.add('border-red-500', 'bg-red-50', 'text-red-700');
+                // Shake effect
+                selectElement.parentElement.classList.add('shake');
+                
+                feedback.textContent = "Fast! Versuch es nochmal.";
+                feedback.className = "text-sm font-bold text-red-500 mt-1 transition-all opacity-100";
+                
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-400"></i>';
+                
+                // Remove shake after animation
+                setTimeout(() => {
+                    selectElement.parentElement.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        function updateScore() {
+            correctCount++;
+            document.getElementById('score').innerText = correctCount;
+            
+            // Update Progress Bar
+            const percentage = (correctCount / exercises.length) * 100;
+            document.getElementById('progress-bar').style.width = percentage + "%";
+
+            // Check if finished
+            if (correctCount === exercises.length) {
+                setTimeout(() => {
+                    document.getElementById('completion-modal').classList.remove('hidden');
+                }, 800);
+            }
+        }
+
+        // Start the app
+        initApp();
+
+    </script>
+</body>
+</html>

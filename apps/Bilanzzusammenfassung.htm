@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>KBKV Quiz für Zwei Spieler</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .scoreboard {
+            background-color: #343a40;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .player-area {
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 150px;
+        }
+        .player-a {
+            background-color: #d1e7dd;
+        }
+        .player-b {
+            background-color: #f8d7da;
+        }
+        .active-turn {
+            border: 2px solid #0d6efd;
+        }
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .feedback {
+            font-size: 2rem;
+            margin-top: 10px;
+        }
+        .final-result {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .final-result.hidden {
+            display: none;
+        }
+        .button-option {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container my-4">
+
+    <!-- Scoreboard -->
+    <div class="scoreboard d-flex justify-content-between align-items-center">
+        <div>
+            <h4>Punkte</h4>
+            <div class="d-flex">
+                <div class="me-4">
+                    <span>Spieler A: </span><span id="scoreA">0</span>
+                </div>
+                <div>
+                    <span>Spieler B: </span><span id="scoreB">0</span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h4>Gesamtzeit</h4>
+            <div class="d-flex">
+                <div class="me-4">
+                    <span>Spieler A: </span><span id="timeA">0.0</span> s
+                </div>
+                <div>
+                    <span>Spieler B: </span><span id="timeB">0.0</span> s
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Area -->
+    <div class="row">
+        <!-- Spieler A -->
+        <div class="col-md-5">
+            <div id="playerA" class="player-area player-a">
+                <h5>Spieler A</h5>
+                <div id="statusA"></div>
+                <div id="timerA" class="timer"></div>
+                <div id="feedbackA" class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- Question Area -->
+        <div class="col-md-2 d-flex flex-column justify-content-center align-items-center">
+            <div id="question-container" class="text-center">
+                <h5 id="question-code">Frage wird geladen...</h5>
+                <div id="options" class="mt-3">
+                    <!-- Antwortoptionen werden hier eingefügt -->
+                </div>
+                <div id="feedback" class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- Spieler B -->
+        <div class="col-md-5">
+            <div id="playerB" class="player-area player-b">
+                <h5>Spieler B</h5>
+                <div id="statusB"></div>
+                <div id="timerB" class="timer"></div>
+                <div id="feedbackB" class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Final Result Modal -->
+<div id="finalResult" class="final-result hidden">
+    <h2>Spiel beendet!</h2>
+    <div id="finalScores" class="my-3"></div>
+    <div id="totalTime" class="my-3"></div>
+    <button class="btn btn-light" onclick="location.reload()">Neues Spiel</button>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Quiz-Daten
+    const questions = [
+        {code: "4200 KBKV", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"},
+        {code: "2600 VORST", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Eigenkapital"], correct: "Forderungen"},
+        {code: "2000 R", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Langfristiges Fremdkapital"], correct: "Vorräte"},
+        {code: "2400 FO", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Forderungen"},
+        {code: "2880 KA", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Flüssige Mittel"], correct: "Flüssige Mittel"},
+        {code: "0860 BM", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Flüssige Mittel"], correct: "Anlagevermögen"},
+        {code: "3000 EK", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Eigenkapital"], correct: "Eigenkapital"},
+        {code: "4830 VFA", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"},
+        {code: "3670 EWB", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Langfristiges Fremdkapital"], correct: "Forderungen"},
+        {code: "2800 BK", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Flüssige Mittel"], correct: "Flüssige Mittel"},
+        {code: "0530 BVG", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Eigenkapital"], correct: "Anlagevermögen"},
+        {code: "3900 RST", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"},
+        {code: "0840 FP", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Anlagevermögen"},
+        {code: "2010 F", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Vorräte"},
+        {code: "4250 LBKV", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Langfristiges Fremdkapital"], correct: "Langfristiges Fremdkapital"},
+        {code: "4400 VE", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"},
+        {code: "2030 B", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Flüssige Mittel"], correct: "Vorräte"},
+        {code: "0870 BGA", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Anlagevermögen"},
+        {code: "4840 VSV", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"},
+        {code: "0700 MA", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Langfristiges Fremdkapital"], correct: "Anlagevermögen"},
+        {code: "3680 PWB", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Eigenkapital"], correct: "Forderungen"},
+        {code: "1500 WP", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Eigenkapital"], correct: "Anlagevermögen"},
+        {code: "2470 ZWFO", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Langfristiges Fremdkapital"], correct: "Forderungen"},
+        {code: "0500 GR", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Flüssige Mittel"], correct: "Anlagevermögen"},
+        {code: "2900 ARA", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Forderungen"},
+        {code: "4800 UST", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"},
+        {code: "2020 H", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Eigenkapital"], correct: "Vorräte"},
+        {code: "4250 LBKV", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Langfristiges Fremdkapital"], correct: "Langfristiges Fremdkapital"},
+        {code: "3900 RST", options: ["Anlagevermögen", "Vorräte", "Forderungen", "Kurzfristiges Fremdkapital"], correct: "Kurzfristiges Fremdkapital"}
+    ];
+
+    // Spielstatus
+    let currentQuestionIndex = 0;
+    let currentPlayer = 'A'; // 'A' oder 'B'
+    let scoreA = 0;
+    let scoreB = 0;
+    let timeA = 0;
+    let timeB = 0;
+    let totalTimeA = 0;
+    let totalTimeB = 0;
+    let timerInterval;
+    let turnStartTime;
+
+    // Shuffle questions
+    shuffleArray(questions);
+
+    // Initial Setup
+    displayQuestion();
+
+    function displayQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            endGame();
+            return;
+        }
+
+        const question = questions[currentQuestionIndex];
+        document.getElementById('question-code').innerText = question.code;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+
+        question.options.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-primary button-option w-100';
+            btn.innerText = option;
+            btn.onclick = () => handleAnswer(option);
+            optionsDiv.appendChild(btn);
+        });
+
+        // Reset feedback
+        document.getElementById('feedback').innerText = '';
+
+        // Highlight active player
+        highlightActivePlayer();
+
+        // Start timer
+        startTimer();
+    }
+
+    function handleAnswer(selectedOption) {
+        clearInterval(timerInterval);
+        const question = questions[currentQuestionIndex];
+        const isCorrect = selectedOption === question.correct;
+
+        if (currentPlayer === 'A') {
+            if (isCorrect) scoreA++;
+            timeA += (Date.now() - turnStartTime) / 1000;
+            document.getElementById('scoreA').innerText = scoreA;
+            document.getElementById('timeA').innerText = timeA.toFixed(1);
+            document.getElementById('feedbackA').innerHTML = isCorrect ? '😊' : '😞';
+        } else {
+            if (isCorrect) scoreB++;
+            timeB += (Date.now() - turnStartTime) / 1000;
+            document.getElementById('scoreB').innerText = scoreB;
+            document.getElementById('timeB').innerText = timeB.toFixed(1);
+            document.getElementById('feedbackB').innerHTML = isCorrect ? '😊' : '😞';
+        }
+
+        // Show feedback
+        document.getElementById('feedback').innerText = isCorrect ? 'Richtig!' : 'Falsch!';
+
+        // Move to next question and switch player
+        currentQuestionIndex++;
+        currentPlayer = currentPlayer === 'A' ? 'B' : 'A';
+
+        setTimeout(displayQuestion, 1000);
+    }
+
+    function startTimer() {
+        turnStartTime = Date.now();
+        let elapsed = 0;
+        const timerElement = currentPlayer === 'A' ? document.getElementById('timerA') : document.getElementById('timerB');
+        timerElement.innerText = '0.0 s';
+
+        timerInterval = setInterval(() => {
+            elapsed = (Date.now() - turnStartTime) / 1000;
+            timerElement.innerText = elapsed.toFixed(1) + ' s';
+
+            if (elapsed >= 10) {
+                clearInterval(timerInterval);
+                // Update total time
+                if (currentPlayer === 'A') {
+                    timeA += 10;
+                    document.getElementById('timeA').innerText = timeA.toFixed(1);
+                } else {
+                    timeB += 10;
+                    document.getElementById('timeB').innerText = timeB.toFixed(1);
+                }
+                // Switch player
+                currentPlayer = currentPlayer === 'A' ? 'B' : 'A';
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }, 100);
+    }
+
+    function highlightActivePlayer() {
+        const playerA = document.getElementById('playerA');
+        const playerB = document.getElementById('playerB');
+        if (currentPlayer === 'A') {
+            playerA.classList.add('active-turn');
+            playerB.classList.remove('active-turn');
+        } else {
+            playerB.classList.add('active-turn');
+            playerA.classList.remove('active-turn');
+        }
+    }
+
+    function endGame() {
+        // Calculate Gesamtzeit
+        const totalTime = timeA + timeB;
+
+        // Determine Gewinner
+        let resultText = '';
+        if (scoreA > scoreB) {
+            resultText = 'Spieler A gewinnt!';
+        } else if (scoreB > scoreA) {
+            resultText = 'Spieler B gewinnt!';
+        } else {
+            resultText = 'Unentschieden!';
+        }
+
+        // Display Final Result
+        const finalResult = document.getElementById('finalResult');
+        finalResult.classList.remove('hidden');
+
+        const finalScores = document.getElementById('finalScores');
+        finalScores.innerHTML = `
+            <p>Punkte Spieler A: ${scoreA}</p>
+            <p>Punkte Spieler B: ${scoreB}</p>
+            <p>${resultText}</p>
+        `;
+
+        const totalTimeElement = document.getElementById('totalTime');
+        totalTimeElement.innerHTML = `
+            <p>Gesamtzeit Spieler A: ${timeA.toFixed(1)} s</p>
+            <p>Gesamtzeit Spieler B: ${timeB.toFixed(1)} s</p>
+            <p>Gesamte Spielzeit: ${totalTime.toFixed(1)} s</p>
+        `;
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length -1; i > 0; i--){
+            const j = Math.floor(Math.random() * (i +1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+</script>
+
+</body>
+</html>

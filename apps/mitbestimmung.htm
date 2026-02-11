@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mitbestimmung im Unternehmen – Unterrichts-Dashboard</title>
+<meta name="color-scheme" content="light dark"/>
+<style>
+  :root{
+    --bg:#f8f9fb;--card:#fff;--text:#111;--muted:#6e6e73;--accent:#007aff;--ok:#34c759;--warn:#ff9f0a;--danger:#ff3b30;
+    --shadow:0 6px 22px rgba(0,0,0,.08);--radius:16px;--radius-sm:12px;--ring:0 0 0 3px rgba(0,122,255,.12)
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#0b0c0f;--card:#121418;--text:#f2f2f7;--muted:#a1a1a6;--accent:#0a84ff;--shadow:0 8px 28px rgba(0,0,0,.55)}
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Roboto,Segoe UI,system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+  /* Header / Toolbar */
+  header{position:sticky;top:0;z-index:50;background:var(--card);box-shadow:var(--shadow)}
+  .bar{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;flex-wrap:wrap}
+  .title{font-weight:700;font-size:1.15rem;margin-right:auto}
+  .chip{background:linear-gradient(180deg,rgba(0,122,255,.12),transparent);border:1px solid rgba(0,122,255,.25);color:var(--accent);padding:.25rem .6rem;border-radius:999px;font-size:.8rem}
+  .btn{appearance:none;border:1px solid rgba(0,0,0,.08);background:var(--card);color:var(--text);padding:.55rem .9rem;border-radius:12px;cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.15) inset;transition:transform .06s ease, box-shadow .2s ease}
+  .btn:hover{box-shadow:var(--ring)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+  .btn.ghost{border-color:rgba(255,255,255,.08);background:transparent}
+  .seg{display:inline-flex;border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden}
+  .seg button{border:0;border-right:1px solid rgba(0,0,0,.08)}
+  .seg button:last-child{border-right:0}
+  /* Layout */
+  main{flex:1;padding:1.25rem;display:grid;gap:1rem;grid-template-columns:repeat(12,1fr)}
+  .card{grid-column:span 4;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.1rem;transition:transform .18s ease, box-shadow .25s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(0,0,0,.12)}
+  .card h2{font-size:1rem;margin:.2rem 0 0.75rem;color:var(--accent)}
+  .muted{color:var(--muted)}
+  .row{display:flex;gap:.6rem;flex-wrap:wrap}
+  .list{padding-left:1.2rem;margin:.3rem 0}
+  .num{background:rgba(0,122,255,.1);color:var(--accent);border:1px solid rgba(0,122,255,.25);border-radius:10px;padding:.1rem .45rem;font-size:.8rem}
+  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:rgba(127,127,127,.15);padding:.1rem .35rem;border-radius:6px;border:1px solid rgba(127,127,127,.25)}
+  /* Responsive */
+  @media (max-width:1200px){.card{grid-column:span 6}}
+  @media (max-width:760px){main{grid-template-columns:repeat(6,1fr)}.card{grid-column:span 6}}
+  /* Components */
+  .meter{height:10px;background:rgba(0,0,0,.08);border-radius:999px;overflow:hidden}
+  .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#50b7ff);width:0%}
+  .pill{display:inline-flex;gap:.5rem;align-items:center;background:rgba(0,122,255,.1);border:1px solid rgba(0,122,255,.25);padding:.35rem .6rem;border-radius:999px}
+  input[type="text"], input[type="number"], textarea{width:100%;padding:.65rem .7rem;border-radius:12px;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--text)}
+  textarea{min-height:110px;resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+  .stat{background:rgba(127,127,127,.08);padding:.6rem;border-radius:10px;text-align:center}
+  .big{font-size:1.6rem;font-weight:800}
+  .center{text-align:center}
+  .tag{background:rgba(0,0,0,.08);padding:.25rem .55rem;border-radius:999px;font-size:.8rem}
+  /* Dialogs / sheets */
+  dialog{border:0;border-radius:16px;box-shadow:var(--shadow);padding:1rem 1.1rem;max-width:720px;width:min(92vw,720px)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .dialog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+  .law-list{max-height:50vh;overflow:auto;border:1px solid rgba(127,127,127,.2);border-radius:12px;padding:.6rem}
+  .law-item{padding:.5rem;border-radius:10px;cursor:pointer}
+  .law-item:hover{background:rgba(0,122,255,.08)}
+  /* Freeze overlay */
+  .freeze{position:fixed;inset:0;background:rgba(255,255,255,.75);backdrop-filter:saturate(0%) blur(2px);display:none;z-index:1000}
+  .freeze .msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-weight:700;color:#111;background:#fff;border-radius:14px;padding:1rem 1.25rem;box-shadow:var(--shadow)}
+  @media (prefers-color-scheme: dark){.freeze{background:rgba(0,0,0,.55)}.freeze .msg{background:#16181d;color:#fff}}
+  /* Mini badges */
+  .pct{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+  <!-- HEADER / MODERATION TOOLBAR -->
+  <header>
+    <div class="bar">
+      <div class="title">Mitbestimmung im Unternehmen <span class="chip">Unterrichts-Dashboard</span></div>
+      <div class="seg" role="group" aria-label="Timer Presets">
+        <button class="btn" onclick="startCountdown(5)">5 min</button>
+        <button class="btn" onclick="startCountdown(10)">10 min</button>
+        <button class="btn" onclick="startCountdown(15)">15 min</button>
+      </div>
+      <button class="btn" onclick="toggleStopwatch()">Stoppuhr</button>
+      <button class="btn" onclick="openLawLibrary()">§-Bibliothek</button>
+      <button class="btn" onclick="toggleFreeze()">Freeze</button>
+      <button class="btn" onclick="playChime()">🔔</button>
+      <button class="btn" onclick="toggleFullscreen()">Vollbild</button>
+      <button class="btn" onclick="toggleDarkMode()">Dark</button>
+      <button class="btn primary" onclick="openCommand()">⌘K</button>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <main>
+    <!-- Lernkern -->
+    <section class="card" style="grid-column:span 6">
+      <h2>1. Bedeutung der Mitbestimmung</h2>
+      <p>Mitbestimmung bedeutet, dass Arbeitnehmer im Betrieb bei wichtigen Entscheidungen <b>mitwirken</b> oder <b>mitbestimmen</b>. Ziel ist ein faires Miteinander und nachhaltige Entscheidungen.</p>
+      <div class="row">
+        <span class="pill"><span class="num">A1</span> Wissen</span>
+        <span class="pill"><span class="num">A2</span> Verstehen</span>
+        <span class="pill"><span class="num">A3</span> Bewerten</span>
+      </div>
+      <div style="margin-top:.8rem" class="meter" aria-label="Stundenfortschritt">
+        <span id="progressBar" style="width:0%"></span>
+      </div>
+      <div class="muted" style="margin-top:.3rem"><span id="progressTxt" class="pct">0 %</span> Fortschritt</div>
+    </section>
+
+    <!-- Betriebsrat -->
+    <section class="card">
+      <h2>2. Betriebsrat</h2>
+      <ul class="list">
+        <li>gewählt ab <b>mind. 5</b> ständig Beschäftigten</li>
+        <li>vertritt Interessen aller Arbeitnehmer</li>
+        <li>Mitwirkung/-bestimmung z. B. <i>Arbeitszeit, Pausen, Urlaub, Kündigungen</i></li>
+      </ul>
+      <div class="row">
+        <button class="btn" onclick="openLaw('§87 BetrVG')">§87 BetrVG</button>
+        <button class="btn" onclick="openLaw('§99 BetrVG')">§99 BetrVG</button>
+        <button class="btn" onclick="openLaw('§102 BetrVG')">§102 BetrVG</button>
+      </div>
+    </section>
+
+    <!-- JAV -->
+    <section class="card">
+      <h2>3. Jugend- und Auszubildendenvertretung (JAV)</h2>
+      <ul class="list">
+        <li>vorausgesetzt: Betriebsrat + <b>mind. 5</b> jugendliche Arbeitnehmer/Azubis</li>
+        <li>vertritt Anliegen junger Beschäftigter (Ausbildung, Zeiten, Schule)</li>
+        <li>arbeitet eng mit dem Betriebsrat zusammen</li>
+      </ul>
+      <div class="row">
+        <button class="btn" onclick="openLaw('§60 BetrVG')">§60 BetrVG</button>
+        <button class="btn" onclick="openLaw('§67 BetrVG')">§67 BetrVG</button>
+      </div>
+    </section>
+
+    <!-- Timer Suite -->
+    <section class="card">
+      <h2>Timer</h2>
+      <div class="grid2">
+        <div>
+          <label class="muted">Countdown (Minuten)</label>
+          <div class="row">
+            <input type="number" id="cdMin" min="0" value="5" />
+            <button class="btn" onclick="startCustomCountdown()">Start</button>
+            <button class="btn ghost" onclick="stopCountdown()">Stopp</button>
+            <button class="btn ghost" onclick="resetCountdown()">Reset</button>
+          </div>
+          <div class="center" style="margin-top:.5rem">
+            <div class="big" id="cdOut">05:00</div>
+            <div class="muted">Signal beim Ablauf</div>
+          </div>
+        </div>
+        <div>
+          <label class="muted">Stoppuhr</label>
+          <div class="row">
+            <button class="btn" onclick="startStopwatch()">Start</button>
+            <button class="btn ghost" onclick="pauseStopwatch()">Pause</button>
+            <button class="btn ghost" onclick="resetStopwatch()">Reset</button>
+          </div>
+          <div class="center" style="margin-top:.5rem">
+            <div class="big" id="swOut">00:00.0</div>
+            <div class="muted">Runden: <span id="lapsCount">0</span></div>
+            <button class="btn" onclick="lapStopwatch()">Runde</button>
+            <div id="lapsList" class="muted" style="max-height:90px;overflow:auto;margin-top:.3rem"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Poll -->
+    <section class="card">
+      <h2>Schnell-Abstimmung (A/B/C/D)</h2>
+      <div class="grid4">
+        <div class="stat"><div class="big" id="vA">0</div><div>A</div></div>
+        <div class="stat"><div class="big" id="vB">0</div><div>B</div></div>
+        <div class="stat"><div class="big" id="vC">0</div><div>C</div></div>
+        <div class="stat"><div class="big" id="vD">0</div><div>D</div></div>
+      </div>
+      <div class="row" style="margin-top:.6rem">
+        <button class="btn" onclick="vote('A')">+A</button>
+        <button class="btn" onclick="vote('B')">+B</button>
+        <button class="btn" onclick="vote('C')">+C</button>
+        <button class="btn" onclick="vote('D')">+D</button>
+        <button class="btn ghost" onclick="resetVotes()">Reset</button>
+      </div>
+      <div class="muted" id="vPct" style="margin-top:.4rem">0 % · 0 % · 0 % · 0 %</div>
+    </section>
+
+    <!-- Zufallsauswahl -->
+    <section class="card" style="grid-column:span 6">
+      <h2>Namens-Zufallsauswahl</h2>
+      <div class="grid2">
+        <textarea id="roster" placeholder="Ein Name pro Zeile. Beispiel:
+Leonie
+Alisa
+Lucas
+..."></textarea>
+        <div>
+          <div class="row">
+            <button class="btn" onclick="pickName()">Ziehen</button>
+            <button class="btn ghost" onclick="resetDraw()">Zurücksetzen</button>
+            <button class="btn ghost" onclick="loadSampleRoster()">Beispiel</button>
+          </div>
+          <div class="center" style="margin-top:.6rem">
+            <div class="big" id="picked">—</div>
+            <div class="muted">Bereits gezogen (ohne Wiederholung):</div>
+            <div id="pickedList" class="muted" style="max-height:110px;overflow:auto"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notiz & Tafelmodus -->
+    <section class="card" style="grid-column:span 6">
+      <h2>Tafel-Notizen (Autosave)</h2>
+      <textarea id="notes" placeholder="Stichpunkte, Lösungen, spontane Beispiele …"></textarea>
+      <div class="row" style="margin-top:.5rem">
+        <button class="btn" onclick="clearNotes()">Leeren</button>
+        <button class="btn" onclick="exportNotes()">Export .txt</button>
+        <span class="muted">Autosave <span id="saveDot">●</span></span>
+      </div>
+    </section>
+
+    <!-- Fallkarten-Generator -->
+    <section class="card">
+      <h2>Fallkarten – Diskussion</h2>
+      <p class="muted">Klicke für neue Unterrichtsfälle zur Mitbestimmung.</p>
+      <button class="btn" onclick="newCase()">Neue Fallkarte</button>
+      <div id="caseOut" style="margin-top:.6rem"></div>
+    </section>
+
+    <!-- JAV-Checkliste -->
+    <section class="card">
+      <h2>JAV-Checkliste</h2>
+      <div class="list">
+        <label><input type="checkbox" onchange="persistChecklist(this)"> Voraussetzungen prüfen (Betriebsrat + mind. 5 jugendl. Beschäftigte)</label><br/>
+        <label><input type="checkbox" onchange="persistChecklist(this)"> Wahlvorstand festlegen</label><br/>
+        <label><input type="checkbox" onchange="persistChecklist(this)"> Wahl ausschreiben (Fristen beachten)</label><br/>
+        <label><input type="checkbox" onchange="persistChecklist(this)"> Kandidaturen sammeln</label><br/>
+        <label><input type="checkbox" onchange="persistChecklist(this)"> Wahl durchführen & Ergebnis bekanntgeben</label><br/>
+        <label><input type="checkbox" onchange="persistChecklist(this)"> Zusammenarbeit mit Betriebsrat organisieren</label>
+      </div>
+    </section>
+
+    <!-- Rechtsgrundlagen Quick-Cards -->
+    <section class="card">
+      <h2>Rechtsgrundlagen (Quick)</h2>
+      <div class="row">
+        <button class="btn" onclick="openLaw('§87 BetrVG')">§87</button>
+        <button class="btn" onclick="openLaw('§99 BetrVG')">§99</button>
+        <button class="btn" onclick="openLaw('§102 BetrVG')">§102</button>
+        <button class="btn" onclick="openLaw('§104 BetrVG')">§104</button>
+        <button class="btn" onclick="openLaw('§111 BetrVG')">§111</button>
+        <button class="btn" onclick="openLaw('§60 BetrVG')">§60</button>
+        <button class="btn" onclick="openLaw('§67 BetrVG')">§67</button>
+        <button class="btn" onclick="openLaw('JArbSchG §8')">JArbSchG §8</button>
+      </div>
+    </section>
+
+    <!-- Überblick / Lernziele -->
+    <section class="card">
+      <h2>Stunden-Kompass</h2>
+      <ol class="list">
+        <li>Mitbestimmung: Begriff & Ziel</li>
+        <li>Betriebsrat & JAV – Aufgaben</li>
+        <li>Mitwirkung vs. Mitbestimmung</li>
+        <li>Fallarbeit & Diskussion</li>
+        <li>Abschluss: Kurz-Abstimmung + Transfer</li>
+      </ol>
+      <div class="row">
+        <button class="btn" onclick="advanceProgress(20)">+20 %</button>
+        <button class="btn" onclick="advanceProgress(10)">+10 %</button>
+        <button class="btn ghost" onclick="setProgress(0)">Reset</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="muted" style="text-align:center;padding:.9rem">© Unterricht WR 9 · Realschule Bayern · Dashboard (offline, responsive)</footer>
+
+  <!-- DIALOGS -->
+  <dialog id="lawDialog">
+    <div class="dialog-head">
+      <h3 id="lawTitle" style="margin:.2rem 0"></h3>
+      <button class="btn ghost" onclick="closeLaw()">Schließen</button>
+    </div>
+    <div class="muted" style="margin-bottom:.5rem">
+      Suche: <input type="text" id="lawSearch" placeholder="z. B. Arbeitszeit, Kündigung, Überwachung …" oninput="filterLawText()">
+    </div>
+    <div id="lawText" style="white-space:pre-wrap;line-height:1.55"></div>
+  </dialog>
+
+  <dialog id="libraryDialog">
+    <div class="dialog-head">
+      <h3 style="margin:.2rem 0">§-Bibliothek</h3>
+      <button class="btn ghost" onclick="closeLibrary()">Schließen</button>
+    </div>
+    <div class="law-list" id="lawList"></div>
+  </dialog>
+
+  <dialog id="cmdDialog">
+    <div class="dialog-head">
+      <h3 style="margin:.2rem 0">Kommando-Palette</h3>
+      <button class="btn ghost" onclick="closeCommand()">Schließen</button>
+    </div>
+    <input type="text" id="cmdInput" placeholder="Tippe z. B. „§87“, „Timer 10“, „Ziehen“, „Freeze“ …" onkeydown="cmdKey(event)" />
+    <div id="cmdHelp" class="muted" style="margin-top:.5rem">
+      Kurzbefehle: <span class="kbd">⌘/Ctrl</span> + <span class="kbd">K</span> · <span class="kbd">F</span> Freeze · <span class="kbd">T</span> Timer-Start · <span class="kbd">V</span> Vollbild
+    </div>
+  </dialog>
+
+  <!-- FREEZE OVERLAY -->
+  <div id="freeze" class="freeze"><div class="msg">Bildschirm eingefroren – erneut <span class="kbd">F</span> drücken</div></div>
+
+<script>
+/* ---------- Law data (Kurzfassungen, didaktisch) ---------- */
+const LAWS = {
+  "§87 BetrVG": "Mitbestimmung des Betriebsrats in sozialen Angelegenheiten, u. a. Beginn/Ende der Arbeitszeit, Pausen, Urlaubsgrundsätze, Ordnung des Betriebs, technische Einrichtungen zur Leistungs-/Verhaltenskontrolle, Akkord-/Prämiengrundsätze.",
+  "§99 BetrVG": "Personelle Einzelmaßnahmen: Einstellung, Eingruppierung, Umgruppierung, Versetzung – Arbeitgeber muss den Betriebsrat vorab beteiligen; ggf. Zustimmungsverweigerung aus bestimmten Gründen.",
+  "§102 BetrVG": "Anhörung des Betriebsrats bei Kündigungen: Ohne Anhörung ist die Kündigung unwirksam.",
+  "§104 BetrVG": "Entfernung betriebsstörender Arbeitnehmer: Betriebsrat kann Maßnahmen verlangen, wenn Arbeitnehmer den Betriebsfrieden stören (z. B. durch rassistische Tätlichkeiten).",
+  "§111 BetrVG": "Betriebsänderungen (z. B. Stilllegung, Verlegung, wesentliche Einschränkung): Unterrichtungs- und Beratungsrechte; Interessenausgleich & Sozialplan.",
+  "§60 BetrVG": "JAV: In Betrieben mit Betriebsrat und mind. 5 jugendl. Arbeitnehmern/Auszubildenden zu wählen; Interessenvertretung junger Beschäftigter.",
+  "§67 BetrVG": "Teilnahme- und Rederecht der JAV in Betriebsratssitzungen bei Angelegenheiten der Jugend/Azubis.",
+  "JArbSchG §8": "Arbeitszeit Jugendliche: Grundsätzlich max. 8 Std/Tag und 40 Std/Woche; Ausgleichsmöglichkeiten und Ruhepausen geregelt."
+};
+/* ---------- UI helpers ---------- */
+const $ = s => document.querySelector(s);
+const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const load = (k,d=null)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{ return d }};
+function fmt2(n){return n.toString().padStart(2,'0')}
+
+/* ---------- Progress ---------- */
+function setProgress(p){ p=Math.max(0,Math.min(100,p)); $('#progressBar').style.width=p+'%'; $('#progressTxt').textContent=p+' %'; save('progress',p) }
+function advanceProgress(x){ setProgress((load('progress',0) + x)) }
+setProgress(load('progress',0));
+
+/* ---------- Countdown ---------- */
+let cdTimer=null, cdLeft=0;
+function startCountdown(min){ $('#cdMin').value=min; startCustomCountdown() }
+function startCustomCountdown(){
+  stopCountdown();
+  let m = parseInt($('#cdMin').value||'0',10);
+  cdLeft = Math.max(0,m*60*1000);
+  tickCountdown();
+  cdTimer = setInterval(tickCountdown,100);
+}
+function tickCountdown(){
+  if(cdLeft<=0){ resetCountdown(); playChime(); return; }
+  cdLeft-=100;
+  const t=Math.max(0,cdLeft);
+  const m=Math.floor(t/60000), s=Math.floor((t%60000)/1000);
+  $('#cdOut').textContent=`${fmt2(m)}:${fmt2(s)}`;
+}
+function stopCountdown(){ if(cdTimer){ clearInterval(cdTimer); cdTimer=null } }
+function resetCountdown(){ stopCountdown(); $('#cdOut').textContent='00:00' }
+
+/* ---------- Stopwatch ---------- */
+let swTimer=null, swStart=0, swElapsed=0, laps=[];
+function toggleStopwatch(){ if(swTimer){ pauseStopwatch() } else { startStopwatch() } }
+function startStopwatch(){
+  if(swTimer) return;
+  swStart = performance.now() - swElapsed;
+  swTimer = setInterval(()=>{
+    swElapsed = performance.now()-swStart;
+    const ms=Math.floor(swElapsed%1000/100), s=Math.floor(swElapsed/1000)%60, m=Math.floor(swElapsed/60000);
+    $('#swOut').textContent=`${fmt2(m)}:${fmt2(s)}.${ms}`;
+  },100);
+}
+function pauseStopwatch(){ if(swTimer){ clearInterval(swTimer); swTimer=null } }
+function resetStopwatch(){ pauseStopwatch(); swElapsed=0; $('#swOut').textContent='00:00.0'; laps=[]; $('#lapsCount').textContent='0'; $('#lapsList').innerHTML='' }
+function lapStopwatch(){ const t=$('#swOut').textContent; laps.push(t); $('#lapsCount').textContent=''+laps.length; const e=document.createElement('div'); e.textContent=`Runde ${laps.length}: ${t}`; $('#lapsList').prepend(e) }
+
+/* ---------- Votes ---------- */
+let votes={A:0,B:0,C:0,D:0};
+function renderVotes(){
+  $('#vA').textContent=votes.A; $('#vB').textContent=votes.B; $('#vC').textContent=votes.C; $('#vD').textContent=votes.D;
+  const tot=votes.A+votes.B+votes.C+votes.D;
+  const pct = k=> tot? Math.round(100*votes[k]/tot):0;
+  $('#vPct').textContent=`${pct('A')} % · ${pct('B')} % · ${pct('C')} % · ${pct('D')} %`;
+  save('votes',votes);
+}
+function vote(k){ votes[k]++; renderVotes() }
+function resetVotes(){ votes={A:0,B:0,C:0,D:0}; renderVotes() }
+votes = load('votes',votes); renderVotes();
+
+/* ---------- Name Picker ---------- */
+let drawn=new Set();
+function parseRoster(){ return ($('#roster').value||'').split('\n').map(s=>s.trim()).filter(Boolean) }
+function pickName(){
+  const list=parseRoster().filter(n=>!drawn.has(n));
+  if(list.length===0){ $('#picked').textContent='Alle wurden bereits gezogen'; return; }
+  const name=list[Math.floor(Math.random()*list.length)];
+  drawn.add(name); $('#picked').textContent=name; renderPicked()
+  save('drawn',[...drawn]);
+}
+function renderPicked(){
+  $('#pickedList').innerHTML=[...drawn].map(n=>`• ${n}`).join('\n')
+}
+function resetDraw(){ drawn.clear(); renderPicked(); $('#picked').textContent='—'; save('drawn',[]) }
+function loadSampleRoster(){
+  $('#roster').value=`Leonie
+Alisa
+Lucas
+Olga
+Maxim
+Julian
+Paul
+Lukas
+Sophia
+Raihana
+Erika
+Dejan`; 
+}
+$('#roster').value = load('roster',''); $('#roster').addEventListener('input',()=>save('roster',$('#roster').value));
+drawn = new Set(load('drawn',[])); renderPicked();
+
+/* ---------- Notes (Autosave) ---------- */
+const saveIndicator = ()=>{ const dot=$('#saveDot'); dot.style.opacity=1; setTimeout(()=>dot.style.opacity=.35,400) };
+$('#notes').value = load('notes','');
+$('#notes').addEventListener('input',()=>{ save('notes',$('#notes').value); saveIndicator() });
+function clearNotes(){ if(confirm('Tafel-Notizen löschen?')){ $('#notes').value=''; save('notes','') } }
+function exportNotes(){
+  const blob = new Blob([$('#notes').value],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tafel-notizen.txt'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ---------- Cases ---------- */
+const CASES = [
+  {t:'Arbeitszeit', d:'Die Geschäftsleitung will die Pausen verkürzen, um Kundenspitzen besser abzudecken. Welche Rechte hat der Betriebsrat? (§87 BetrVG)'},
+  {t:'Versetzung', d:'Eine Mitarbeiterin soll dauerhaft in eine andere Abteilung wechseln. Welche Beteiligung ist nötig? (§99 BetrVG)'},
+  {t:'Kündigung', d:'Ein Azubi erhält eine fristlose Kündigung nach einem Streit. Welche Rolle spielt der Betriebsrat? (§102 BetrVG)'},
+  {t:'Technik', d:'Ein neues Tool zur Leistungsmessung wird eingeführt. Was ist zu beachten? (§87 BetrVG, technische Einrichtungen)'},
+  {t:'Betriebsänderung', d:'Eine Teilstilllegung steht an. Welche Verfahren sind einzuhalten? (§111 BetrVG)'},
+  {t:'JAV', d:'Schultermine kollidieren mit Betriebsabläufen. Wie bringt die JAV Anliegen ein? (§60, §67 BetrVG)'},
+];
+function newCase(){
+  const c = CASES[Math.floor(Math.random()*CASES.length)];
+  $('#caseOut').innerHTML = `<div class="tag">${c.t}</div><p style="margin:.4rem 0 0">${c.d}</p>`;
+}
+
+/* ---------- Checklist persist ---------- */
+function persistChecklist(cb){
+  const idx=[...cb.parentElement.parentElement.querySelectorAll('input[type=checkbox]')].indexOf(cb);
+  const st=load('javChecklist',[false,false,false,false,false,false]); st[idx]=cb.checked; save('javChecklist',st)
+}
+(function initChecklist(){
+  const st=load('javChecklist',[false,false,false,false,false,false]);
+  document.querySelectorAll('input[type=checkbox]').forEach((c,i)=>c.checked=!!st[i]);
+})();
+
+/* ---------- Laws ---------- */
+function openLaw(paragraph){
+  $('#lawTitle').textContent = paragraph;
+  $('#lawText').textContent = LAWS[paragraph] || 'Kein Text vorhanden.';
+  $('#lawSearch').value='';
+  $('#lawDialog').showModal();
+}
+function closeLaw(){ $('#lawDialog').close() }
+function filterLawText(){
+  const q=$('#lawSearch').value.trim().toLowerCase();
+  const base=$('#lawTitle').textContent;
+  const text=LAWS[base] || '';
+  if(!q){ $('#lawText').textContent=text; return }
+  const rx=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+  $('#lawText').innerHTML = text.replace(rx,'<mark>$1</mark>');
+}
+function openLawLibrary(){
+  const list=$('#lawList'); list.innerHTML='';
+  Object.keys(LAWS).forEach(key=>{
+    const d=document.createElement('div'); d.className='law-item'; d.innerHTML=`<b>${key}</b><div class="muted">${LAWS[key]}</div>`;
+    d.onclick=()=>{ closeLibrary(); openLaw(key) };
+    list.appendChild(d);
+  });
+  $('#libraryDialog').showModal();
+}
+function closeLibrary(){ $('#libraryDialog').close() }
+
+/* ---------- Moderation helpers ---------- */
+let frozen=false;
+function toggleFreeze(){ frozen=!frozen; $('#freeze').style.display=frozen?'block':'none' }
+function playChime(){
+  // small beep (A5) using WebAudio
+  const a=new (window.AudioContext||window.webkitAudioContext)();
+  const o=a.createOscillator(), g=a.createGain();
+  o.connect(g).connect(a.destination); o.type='sine'; o.frequency.value=880; g.gain.value=.0001; o.start();
+  const now=a.currentTime; g.gain.exponentialRampToValueAtTime(.2, now+.02); g.gain.exponentialRampToValueAtTime(.0001, now+.35); o.stop(now+.4);
+}
+function toggleFullscreen(){ if(!document.fullscreenElement){ document.documentElement.requestFullscreen() } else { document.exitFullscreen() } }
+function toggleDarkMode(){
+  // Preference hint via meta; actual scheme follows OS. Here we add a simple class toggle for force:
+  document.documentElement.classList.toggle('force-dark');
+  if(document.documentElement.classList.contains('force-dark')){
+    document.documentElement.style.colorScheme='dark'
+  }else{
+    document.documentElement.style.colorScheme='light'
+  }
+}
+
+/* ---------- Command Palette ---------- */
+function openCommand(){ $('#cmdDialog').showModal(); $('#cmdInput').focus() }
+function closeCommand(){ $('#cmdDialog').close() }
+function cmdKey(e){
+  if(e.key==='Enter'){
+    const v=$('#cmdInput').value.trim().toLowerCase();
+    if(/^§?\d+/.test(v)){ // § jump
+      const p = (v.startsWith('§')?v:'§'+v).toUpperCase().replace(/\s+/g,' ')+' BetrVG';
+      if(LAWS[p]){ closeCommand(); openLaw(p) ; return }
+    }
+    const tm = v.match(/timer\s*(\d+)/); if(tm){ closeCommand(); startCountdown(parseInt(tm[1],10)); return }
+    if(v.includes('ziehen')){ closeCommand(); pickName(); return }
+    if(v.includes('freeze')){ closeCommand(); toggleFreeze(); return }
+    if(v.includes('vollbild')||v==='v'){ closeCommand(); toggleFullscreen(); return }
+    if(v.includes('bibliothek')){ closeCommand(); openLawLibrary(); return }
+    if(v.includes('fall')||v.includes('case')){ closeCommand(); newCase(); return }
+    if(v.includes('dark')){ closeCommand(); toggleDarkMode(); return }
+    playChime(); // fallback ping
+  }
+}
+
+/* ---------- Keyboard shortcuts ---------- */
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openCommand() }
+  if(e.key.toLowerCase()==='f'){ toggleFreeze() }
+  if(e.key.toLowerCase()==='t'){ startCustomCountdown() }
+  if(e.key.toLowerCase()==='v'){ toggleFullscreen() }
+});
+
+/* ---------- Restore stored values on load ---------- */
+window.addEventListener('load',()=>{
+  // nothing extra
+});
+
+</script>
+</body>
+</html>

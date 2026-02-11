@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathe-Quiz: Brüche und Dezimalzahlen</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-correct: #10b981;
+            --color-incorrect: #ef4444;
+        }
+        
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 0.2em;
+        }
+        
+        .fraction-numerator {
+            border-bottom: 1px solid currentColor;
+            padding: 0 0.3em 0.1em 0.3em;
+        }
+        
+        .fraction-denominator {
+            padding: 0.1em 0.3em 0 0.3em;
+        }
+        
+        .answer-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .answer-btn:hover:not(:disabled) {
+            transform: translateX(4px);
+        }
+        
+        .correct-answer {
+            background-color: var(--color-correct) !important;
+            color: white !important;
+            border-color: var(--color-correct) !important;
+        }
+        
+        .incorrect-answer {
+            background-color: var(--color-incorrect) !important;
+            color: white !important;
+            border-color: var(--color-incorrect) !important;
+        }
+        
+        .disabled-btn {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-center text-indigo-700 mb-2">📐 Mathe-Quiz</h1>
+            <p class="text-center text-gray-600">Brüche und Dezimalzahlen</p>
+            <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm font-semibold text-gray-700">
+                    Frage <span id="current-question">0</span> von <span id="total-questions">20</span>
+                </div>
+                <div class="text-sm font-semibold text-indigo-600">
+                    Richtig: <span id="score">0</span>
+                </div>
+            </div>
+            <div class="mt-2 bg-gray-200 rounded-full h-2">
+                <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 id="question-text" class="text-xl font-semibold text-gray-800 mb-6"></h2>
+            <div id="answers-container" class="space-y-3"></div>
+            <div id="feedback" class="mt-6 p-4 rounded-lg hidden"></div>
+            <button id="next-btn" class="mt-6 w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors hidden">
+                Weiter zur nächsten Frage →
+            </button>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results-container" class="bg-white rounded-lg shadow-lg p-8 hidden">
+            <h2 class="text-3xl font-bold text-center text-indigo-700 mb-6">🎉 Quiz abgeschlossen!</h2>
+            <div class="text-center mb-6">
+                <div class="text-6xl font-bold text-indigo-600 mb-2">
+                    <span id="final-score">0</span> / <span id="final-total">20</span>
+                </div>
+                <div class="text-2xl text-gray-700 mb-4">
+                    <span id="percentage">0</span>%
+                </div>
+                <div id="grade-message" class="text-xl font-semibold"></div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Zusammenfassung</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">Richtige Antworten:</span>
+                        <span class="font-bold text-green-600"><span id="correct-count">0</span></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">Falsche Antworten:</span>
+                        <span class="font-bold text-red-600"><span id="incorrect-count">0</span></span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t-2 border-gray-200">
+                        <span class="text-gray-700 font-semibold">Gesamtpunktzahl:</span>
+                        <span class="font-bold text-indigo-600"><span id="result-score">0</span> / <span id="result-total">20</span></span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="mt-6 w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                🔄 Quiz neu starten
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: 'Schreibe <span class="fraction"><span class="fraction-numerator">17</span><span class="fraction-denominator">50</span></span> als Dezimalzahl.',
+                answers: ['0,35', '0,34', '0,17', '0,32'],
+                correct: 1
+            },
+            {
+                question: 'Schreibe 4 % als Dezimalzahl.',
+                answers: ['0,4', '0,04', '0,004', '4,0'],
+                correct: 1
+            },
+            {
+                question: 'Bringe <span class="fraction"><span class="fraction-numerator">3</span><span class="fraction-denominator">4</span></span> auf den Nenner 36.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">21</span><span class="fraction-denominator">36</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">24</span><span class="fraction-denominator">36</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">27</span><span class="fraction-denominator">36</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">30</span><span class="fraction-denominator">36</span></span>'
+                ],
+                correct: 2
+            },
+            {
+                question: 'Bringe <span class="fraction"><span class="fraction-numerator">8</span><span class="fraction-denominator">9</span></span> auf den Nenner 36.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">28</span><span class="fraction-denominator">36</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">32</span><span class="fraction-denominator">36</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">24</span><span class="fraction-denominator">36</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">20</span><span class="fraction-denominator">36</span></span>'
+                ],
+                correct: 1
+            },
+            {
+                question: 'Bestimme das kgV von 36 und 84.',
+                answers: ['126', '168', '252', '504'],
+                correct: 2
+            },
+            {
+                question: 'Schreibe 13,04 als vollständig gekürzten Bruch.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">1304</span><span class="fraction-denominator">100</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">326</span><span class="fraction-denominator">25</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">652</span><span class="fraction-denominator">50</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">163</span><span class="fraction-denominator">10</span></span>'
+                ],
+                correct: 1
+            },
+            {
+                question: 'Schreibe 7 % als vollständig gekürzten Bruch.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">7</span><span class="fraction-denominator">10</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">7</span><span class="fraction-denominator">100</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">7</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">70</span><span class="fraction-denominator">100</span></span>'
+                ],
+                correct: 1
+            },
+            {
+                question: 'Berechne <span class="fraction"><span class="fraction-numerator">5</span><span class="fraction-denominator">12</span></span> von 36 km.',
+                answers: ['12 km', '15 km', '18 km', '24 km'],
+                correct: 1
+            },
+            {
+                question: 'Berechne <span class="fraction"><span class="fraction-numerator">3</span><span class="fraction-denominator">4</span></span> von 440 ha.',
+                answers: ['110 ha', '220 ha', '330 ha', '360 ha'],
+                correct: 2
+            },
+            {
+                question: 'Gib den Anteil 18 m von 45 m in gekürzter Bruchform an.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">3</span><span class="fraction-denominator">5</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">2</span><span class="fraction-denominator">5</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">4</span><span class="fraction-denominator">5</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">5</span><span class="fraction-denominator">9</span></span>'
+                ],
+                correct: 1
+            },
+            {
+                question: 'Gib den Anteil 3 a von 5,1 ha in gekürzter Bruchform an.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">3</span><span class="fraction-denominator">51</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">3</span><span class="fraction-denominator">510</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">170</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">17</span><span class="fraction-denominator">100</span></span>'
+                ],
+                correct: 2
+            },
+            {
+                question: 'Gib den Anteil 20 min von 7 h in gekürzter Bruchform an.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">14</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">21</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">20</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">7</span></span>'
+                ],
+                correct: 1
+            },
+            {
+                question: 'Gib den Anteil 3,2 cm von 8 m in gekürzter Bruchform an.',
+                answers: [
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">25</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">250</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">1</span><span class="fraction-denominator">125</span></span>',
+                    '<span class="fraction"><span class="fraction-numerator">2</span><span class="fraction-denominator">25</span></span>'
+                ],
+                correct: 1
+            },
+            {
+                question: 'Kürze <span class="fraction"><span class="fraction-numerator">22</span><span class="fraction-denominator">16</span></span> vollständig. Welche Dezimalzahl ergibt sich?',
+                answers: ['1,25', '1,5', '1,375', '1,275'],
+                correct: 2
+            },
+            {
+                question: 'Kürze <span class="fraction"><span class="fraction-numerator">−18</span><span class="fraction-denominator">144</span></span> vollständig. Welche Dezimalzahl ergibt sich?',
+                answers: ['−0,12', '−0,125', '−0,15', '−0,2'],
+                correct: 1
+            },
+            {
+                question: 'Kürze <span class="fraction"><span class="fraction-numerator">11</span><span class="fraction-denominator">33</span></span> vollständig. Welche Dezimalzahl ergibt sich?',
+                answers: ['0,333…', '0,3', '0,34', '0,35'],
+                correct: 0
+            },
+            {
+                question: 'Kürze <span class="fraction"><span class="fraction-numerator">−119</span><span class="fraction-denominator">85</span></span> vollständig. Welche Dezimalzahl ergibt sich?',
+                answers: ['−1,19', '−1,4', '−1,7', '−0,85'],
+                correct: 1
+            },
+            {
+                question: 'Kürze <span class="fraction"><span class="fraction-numerator">143</span><span class="fraction-denominator">52</span></span> vollständig. Welche Dezimalzahl ergibt sich?',
+                answers: ['2,6', '2,75', '2,8', '2,5'],
+                correct: 1
+            },
+            {
+                question: 'Runde 12,09023 auf Hundertstel.',
+                answers: ['12,08', '12,09', '12,10', '12,00'],
+                correct: 1
+            },
+            {
+                question: 'Runde 12,09023 auf eine Dezimalstelle.',
+                answers: ['12,0', '12,1', '12,2', '12,09'],
+                correct: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-container');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const scoreSpan = document.getElementById('score');
+        const progressBar = document.getElementById('progress-bar');
+
+        function loadQuestion() {
+            answered = false;
+            feedback.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            
+            const question = questions[currentQuestionIndex];
+            questionText.innerHTML = question.question;
+            answersContainer.innerHTML = '';
+            
+            currentQuestionSpan.textContent = currentQuestionIndex + 1;
+            document.getElementById('total-questions').textContent = questions.length;
+            
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = progress + '%';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn w-full text-left p-4 border-2 border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors';
+                button.innerHTML = `<span class="font-semibold text-indigo-600">${String.fromCharCode(97 + index)})</span> ${answer}`;
+                button.onclick = () => checkAnswer(index, button);
+                answersContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedIndex, selectedButton) {
+            if (answered) return;
+            answered = true;
+            
+            const question = questions[currentQuestionIndex];
+            const allButtons = answersContainer.querySelectorAll('button');
+            
+            allButtons.forEach((btn, index) => {
+                btn.disabled = true;
+                btn.classList.add('disabled-btn');
+                if (index === question.correct) {
+                    btn.classList.add('correct-answer');
+                }
+            });
+            
+            if (selectedIndex === question.correct) {
+                score++;
+                scoreSpan.textContent = score;
+                selectedButton.classList.add('correct-answer');
+                feedback.className = 'mt-6 p-4 rounded-lg bg-green-50 border-2 border-green-500';
+                feedback.innerHTML = '<div class="flex items-center"><span class="text-3xl mr-3">✓</span><div><span class="font-bold text-green-700 text-lg">Richtig!</span><p class="text-green-600 mt-1">Sehr gut gemacht! 🎉</p></div></div>';
+            } else {
+                selectedButton.classList.add('incorrect-answer');
+                feedback.className = 'mt-6 p-4 rounded-lg bg-red-50 border-2 border-red-500';
+                feedback.innerHTML = `<div class="flex items-center"><span class="text-3xl mr-3">✗</span><div><span class="font-bold text-red-700 text-lg">Leider falsch.</span><p class="text-red-600 mt-1">Die richtige Antwort ist ${String.fromCharCode(97 + question.correct)}).</p></div></div>`;
+            }
+            
+            feedback.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+
+        nextBtn.onclick = () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            const incorrectCount = questions.length - score;
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-total').textContent = questions.length;
+            document.getElementById('percentage').textContent = percentage;
+            document.getElementById('correct-count').textContent = score;
+            document.getElementById('incorrect-count').textContent = incorrectCount;
+            document.getElementById('result-score').textContent = score;
+            document.getElementById('result-total').textContent = questions.length;
+            
+            const gradeMessage = document.getElementById('grade-message');
+            if (percentage >= 90) {
+                gradeMessage.textContent = '🌟 Ausgezeichnet! Note: 1';
+                gradeMessage.className = 'text-xl font-semibold text-green-600';
+            } else if (percentage >= 80) {
+                gradeMessage.textContent = '👍 Sehr gut! Note: 2';
+                gradeMessage.className = 'text-xl font-semibold text-green-500';
+            } else if (percentage >= 70) {
+                gradeMessage.textContent = '✓ Gut! Note: 3';
+                gradeMessage.className = 'text-xl font-semibold text-blue-600';
+            } else if (percentage >= 60) {
+                gradeMessage.textContent = '○ Befriedigend. Note: 4';
+                gradeMessage.className = 'text-xl font-semibold text-yellow-600';
+            } else if (percentage >= 50) {
+                gradeMessage.textContent = '△ Ausreichend. Note: 5';
+                gradeMessage.className = 'text-xl font-semibold text-orange-600';
+            } else {
+                gradeMessage.textContent = '✗ Nicht bestanden. Note: 6';
+                gradeMessage.className = 'text-xl font-semibold text-red-600';
+            }
+        }
+
+        // Start the quiz
+        loadQuestion();
+    </script>
+</body>
+</html>

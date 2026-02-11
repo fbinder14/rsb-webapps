@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnowPro Lern-App: Zeitanteilige Abschreibung</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        .step-locked { opacity: 0.5; pointer-events: none; filter: blur(1px); }
+        .input-correct { border-color: #10b981 !important; background-color: #ecfdf5; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+    <div class="max-w-3xl mx-auto py-10 px-4">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-blue-900 mb-2">SnowPro <span class="text-blue-500 underline decoration-sky-400">Accounting Lab</span></h1>
+            <p class="text-slate-600 font-medium">Modellunternehmen: SnowPro, Bad Reichenhall | CEO: Max Winter</p>
+            <div class="mt-4 inline-block bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wide">
+                Thema: Zeitanteilige Abschreibung (9. Jahrgangsstufe)
+            </div>
+        </header>
+
+        <div id="task-card" class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-slate-200">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">i</span>
+                Anlagedaten des Belegs
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-100">
+                <div>
+                    <p class="text-xs uppercase font-bold text-slate-500 mb-1">Anlagegegenstand</p>
+                    <p id="asset-name" class="text-lg font-semibold text-slate-800">-</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase font-bold text-slate-500 mb-1">Anschaffungskosten (netto)</p>
+                    <p id="asset-cost" class="text-xl font-bold text-blue-700">-</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase font-bold text-slate-500 mb-1">Anschaffungsdatum</p>
+                    <p id="asset-date" class="text-lg font-semibold text-slate-800">-</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase font-bold text-slate-500 mb-1">Nutzungsdauer</p>
+                    <p id="asset-life" class="text-lg font-semibold text-slate-800">-</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div id="step-1" class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 transition-all">
+                <label class="block text-sm font-bold text-slate-700 mb-2">1. Berechne die lineare Jahres-AfA:</label>
+                <div class="flex gap-4">
+                    <div class="relative flex-grow">
+                        <input type="number" id="input-annual" step="0.01" class="w-full border-2 border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-colors" placeholder="z. B. 1200,00">
+                        <span class="absolute right-4 top-3 text-slate-400">€</span>
+                    </div>
+                    <button onclick="checkStep(1)" id="btn-1" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-transform active:scale-95">Check</button>
+                </div>
+            </div>
+
+            <div id="step-2" class="bg-white rounded-xl shadow-md p-6 border-l-4 border-slate-300 step-locked">
+                <label class="block text-sm font-bold text-slate-700 mb-2">2. Wie viele Monate wird im Anschaffungsjahr abgeschrieben?</label>
+                <div class="flex gap-4">
+                    <input type="number" id="input-months" class="flex-grow border-2 border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500" placeholder="Anzahl Monate">
+                    <button onclick="checkStep(2)" id="btn-2" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg">Check</button>
+                </div>
+            </div>
+
+            <div id="step-3" class="bg-white rounded-xl shadow-md p-6 border-l-4 border-slate-300 step-locked">
+                <label class="block text-sm font-bold text-slate-700 mb-2">3. Berechne die Monats-AfA:</label>
+                <div class="flex gap-4">
+                    <div class="relative flex-grow">
+                        <input type="number" id="input-monthly" step="0.01" class="w-full border-2 border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500" placeholder="0,00">
+                        <span class="absolute right-4 top-3 text-slate-400">€</span>
+                    </div>
+                    <button onclick="checkStep(3)" id="btn-3" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg">Check</button>
+                </div>
+            </div>
+
+            <div id="step-4" class="bg-white rounded-xl shadow-md p-6 border-l-4 border-slate-300 step-locked">
+                <label class="block text-sm font-bold text-slate-700 mb-2">4. Abschreibungsbetrag für das 1. Jahr (Zeitanteilig):</label>
+                <div class="flex gap-4">
+                    <div class="relative flex-grow">
+                        <input type="number" id="input-final" step="0.01" class="w-full border-2 border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500" placeholder="0,00">
+                        <span class="absolute right-4 top-3 text-slate-400">€</span>
+                    </div>
+                    <button onclick="checkStep(4)" id="btn-4" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg">Check</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="success-area" class="hidden mt-10 text-center p-8 bg-green-100 border-2 border-green-200 rounded-2xl animate-bounce">
+            <h2 class="text-3xl font-black text-green-700 mb-2">Perfekt gerechnet! ❄️</h2>
+            <p class="text-green-800 text-lg">Zeit für diese Aufgabe: <span id="timer-result" class="font-bold">-</span> Sekunden.</p>
+            <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-lg">Nächste Aufgabe</button>
+        </div>
+    </div>
+
+    <script>
+        let data = {
+            cost: 0, life: 0, date: "",
+            annualAfa: 0, monthlyAfa: 0,
+            firstYearAfa: 0, calcMonths: 0
+        };
+
+        let startTime;
+
+        // Hilfsfunktion: Formatiert Zahlen für die Anzeige (Tausendertrennzeichen)
+        function formatNumber(num) {
+            return num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function initTask() {
+            startTime = performance.now();
+            
+            const assets = ["Pistenbully PB 600", "Industrie-Nähmaschine (Skisäcke)", "Skischuh-Spritzmaschine", "Lagerregal-System", "Lieferwagen Bad Reichenhall"];
+            const assetName = assets[Math.floor(Math.random() * assets.length)];
+            
+            // Saubere Rechenwerte generieren
+            const monthlyOptions = [100, 150, 200, 250, 400, 500, 750, 1000];
+            data.monthlyAfa = monthlyOptions[Math.floor(Math.random() * monthlyOptions.length)];
+            data.annualAfa = data.monthlyAfa * 12;
+            
+            const lives = [5, 8, 10];
+            data.life = lives[Math.floor(Math.random() * lives.length)];
+            data.cost = data.annualAfa * data.life;
+            
+            // Kaufdatum generieren (Tag ist für die AfA-Monate in Bayern egal)
+            const purchaseMonth = Math.floor(Math.random() * 12) + 1;
+            const randomDay = Math.floor(Math.random() * 28) + 1;
+            data.date = `${String(randomDay).padStart(2, '0')}.${String(purchaseMonth).padStart(2, '0')}.2025`;
+            
+            // Logik: Kauf im Monat X bedeutet (13 - X) Monate Abschreibung
+            data.calcMonths = 13 - purchaseMonth;
+            data.firstYearAfa = data.monthlyAfa * data.calcMonths;
+
+            // UI befüllen
+            document.getElementById('asset-name').innerText = assetName;
+            document.getElementById('asset-cost').innerText = formatNumber(data.cost) + " €";
+            document.getElementById('asset-date').innerText = data.date;
+            document.getElementById('asset-life').innerText = data.life + " Jahre";
+        }
+
+        function checkStep(step) {
+            let userVal = parseFloat(document.getElementById(`input-${getStepId(step)}`).value.replace(',', '.'));
+            let correctVal = 0;
+
+            switch(step) {
+                case 1: correctVal = data.annualAfa; break;
+                case 2: correctVal = data.calcMonths; break;
+                case 3: correctVal = data.monthlyAfa; break;
+                case 4: correctVal = data.firstYearAfa; break;
+            }
+
+            if (Math.abs(userVal - correctVal) < 0.01) {
+                markSuccess(step);
+            } else {
+                markError(step);
+            }
+        }
+
+        function getStepId(s) {
+            return s === 1 ? 'annual' : s === 2 ? 'months' : s === 3 ? 'monthly' : 'final';
+        }
+
+        function markSuccess(step) {
+            const div = document.getElementById(`step-${step}`);
+            const input = div.querySelector('input');
+            const btn = document.getElementById(`btn-${step}`);
+
+            div.classList.replace('border-blue-500', 'border-green-500');
+            div.classList.replace('border-slate-300', 'border-green-500');
+            div.classList.add('bg-green-50');
+            input.classList.add('input-correct');
+            input.disabled = true;
+            btn.classList.add('hidden');
+
+            if (step < 4) {
+                const next = document.getElementById(`step-${step + 1}`);
+                next.classList.remove('step-locked');
+                next.classList.add('border-blue-500');
+                next.querySelector('input').focus();
+            } else {
+                const duration = ((performance.now() - startTime) / 1000).toFixed(1);
+                document.getElementById('timer-result').innerText = duration.replace('.', ',');
+                document.getElementById('success-area').classList.remove('hidden');
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#1e40af', '#60a5fa'] });
+            }
+        }
+
+        function markError(step) {
+            const input = document.getElementById(`step-${step}`).querySelector('input');
+            input.classList.add('border-red-500', 'animate-shake');
+            setTimeout(() => input.classList.remove('border-red-500', 'animate-shake'), 500);
+        }
+
+        initTask();
+    </script>
+</body>
+</html>

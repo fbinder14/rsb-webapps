@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bewusst handeln – „Limited Offer“ • WR 9</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tap-highlight { outline: 3px solid rgba(59,130,246,.9); outline-offset: 2px; border-radius: .75rem; }
+    .pulse { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%{opacity:1} 50%{opacity:.4} 100%{opacity:1} }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <main class="max-w-md mx-auto p-4">
+    <header class="mb-4">
+      <h1 class="text-2xl font-bold tracking-tight">Bewusst handeln – „Limited Offer“</h1>
+      <p class="text-sm text-slate-600">Aufgabe für WR 9 (Realschule Bayern)</p>
+    </header>
+
+    <section class="mb-4 bg-white rounded-2xl shadow p-4">
+      <h2 class="font-semibold mb-2">Auftrag</h2>
+      <p class="text-sm leading-relaxed">
+        Finde <span class="font-semibold">3 Nudging-Tricks</span> in der Werbekarte unten
+        (z. B. „nur heute“, Countdown, „X Personen schauen gerade…“).
+        Tipp: Tippe die verdächtigen Stellen an, um sie zu markieren.
+      </p>
+      <div class="mt-3 text-xs text-slate-600">
+        Gefunden: <span id="foundCount" class="font-semibold">0</span> / 3
+      </div>
+    </section>
+
+    <section aria-label="Werbekarte" class="mb-4">
+      <div id="adCard" class="relative bg-white rounded-3xl shadow-lg overflow-hidden ring-1 ring-slate-100">
+        <div class="bg-gradient-to-r from-amber-400 to-rose-500 text-white px-4 py-2 flex items-center justify-between">
+          <span id="nudge-today" data-nudge="Nur heute" class="text-xs font-semibold uppercase tracking-wide rounded-lg px-2 py-1 bg-black/20 select-none">
+            Nur heute
+          </span>
+          <div class="text-xs flex items-center gap-2">
+            <span class="hidden sm:inline">Deal endet in</span>
+            <span id="timer" data-nudge="Countdown" class="font-mono bg-black/20 px-2 py-1 rounded-md select-none">15:00</span>
+          </div>
+        </div>
+
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-3">
+            <img src="https://seminarlehrer.com/playground/freepik__candid-photography-with-natural-textures-and-highl__58517.png"
+                 alt="Noise-Canceling Kopfhörer"
+                 class="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+            <div>
+              <h3 class="font-semibold leading-tight">Noise-Canceling Kopfhörer Pro</h3>
+              <p class="text-xs text-slate-500">Kabellos • 36 h Akku • Schnellladung</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 rounded-2xl p-3 flex items-end justify-between">
+            <div>
+              <div class="text-xs text-slate-500 line-through">UVP 129,99 €</div>
+              <div class="text-2xl font-bold tracking-tight">79,99 €</div>
+              <div id="nudge-bestseller" data-nudge="Sozialer Beweis (Bestseller)" class="text-[11px] text-green-700 bg-green-50 rounded-md inline-block px-2 py-0.5 mt-1 select-none">
+                Bestseller der Woche
+              </div>
+            </div>
+            <div class="text-right">
+              <div id="nudge-viewers" data-nudge="X Personen schauen gerade" class="text-[11px] text-rose-700 bg-rose-50 rounded-md inline-block px-2 py-0.5 select-none">
+                27 Personen schauen gerade …
+              </div>
+              <div id="nudge-scarcity" data-nudge="Knappheit (nur wenige Stück)" class="text-[11px] text-amber-700 bg-amber-50 rounded-md inline-block px-2 py-0.5 mt-1 select-none">
+                Nur 3 Stück auf Lager
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-slate-500">Aktion: Nur kurze Zeit</span>
+              <span id="progressLabel" class="text-rose-600">84 % vergeben</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div id="progressBar" class="h-full w-[84%] bg-rose-500"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div id="nudge-coupon" data-nudge="Scheinrabatt / Gutschein-Druck" class="text-[11px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md select-none">
+              Code: <span class="font-mono">SAVE10</span>
+            </div>
+            <div id="nudge-fineprint" data-nudge="Kleingedrucktes / Bedingungen" class="text-[11px] text-slate-500 select-none">
+              *gilt ab 79,00 € Bestellwert
+            </div>
+          </div>
+
+          <button id="nudge-cta" data-nudge="Zeitdruck-CTA" class="w-full py-3 text-white font-semibold rounded-xl bg-sky-600 active:scale-[.99] transition">
+            Jetzt sichern – nur heute
+          </button>
+
+          <p class="text-[11px] text-slate-500 text-center">
+            Schon <span class="font-semibold">142</span> verkauft • Kostenlose Rücksendung ausgeschlossen bei Nutzung des Gutscheins
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-3 text-sm">
+        <div id="feedback" class="hidden bg-emerald-50 text-emerald-800 rounded-xl p-3">
+          Stark! Du hast 3 Nudging-Tricks markiert. Jetzt siehst du, wie man sich davor schützen kann.
+        </div>
+      </div>
+    </section>
+
+    <!-- Ergebnisabschnitt: zunächst ausgeblendet -->
+    <section id="resultSection" class="hidden mb-4 bg-white rounded-2xl shadow p-4">
+      <h2 class="font-semibold mb-2">Ergebnis: Wie schützt man sich?</h2>
+      <p class="text-sm mb-3">Wähle mindestens drei konkrete Strategien. Du kannst eigene ergänzen.</p>
+
+      <div class="grid grid-cols-1 gap-2">
+        <label class="flex items-center gap-3">
+          <input type="checkbox" class="w-5 h-5 rounded border-slate-300" checked>
+          <span class="text-sm">Wartezeit von 24 h, bevor ich kaufe</span>
+        </label>
+        <label class="flex items-center gap-3">
+          <input type="checkbox" class="w-5 h-5 rounded border-slate-300" checked>
+          <span class="text-sm">Festes Monats-Budget (kein Spontankauf außerhalb)</span>
+        </label>
+        <label class="flex items-center gap-3">
+          <input type="checkbox" class="w-5 h-5 rounded border-slate-300" checked>
+          <span class="text-sm">Artikel erst auf den Merkzettel, nach 2 Tagen erneut prüfen</span>
+        </label>
+        <label class="flex items-center gap-3">
+          <input type="checkbox" class="w-5 h-5 rounded border-slate-300">
+          <span class="text-sm">Preisverlauf prüfen (Vergleichsportal)</span>
+        </label>
+        <label class="flex items-center gap-3">
+          <input type="checkbox" class="w-5 h-5 rounded border-slate-300">
+          <span class="text-sm">Kein Kauf, wenn nur Vorkasse angeboten wird</span>
+        </label>
+      </div>
+
+      <div class="mt-3">
+        <label class="block text-sm mb-1">Eigene Idee</label>
+        <input id="ownIdea" type="text" placeholder="z. B. nur in der offiziellen App bestellen"
+               class="w-full rounded-xl border border-slate-300 px-3 py-2">
+      </div>
+
+      <div class="mt-3 flex items-center gap-2">
+        <button id="saveResult" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold">Notiz speichern</button>
+        <button id="reset" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">Zurücksetzen</button>
+      </div>
+
+      <div id="saved" class="hidden mt-3 text-sm bg-emerald-50 text-emerald-800 rounded-xl p-3">
+        Deine Auswahl wurde gespeichert (lokal auf diesem Gerät).
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    const nudgeIds = [
+      'nudge-today', 'timer', 'nudge-viewers', 'nudge-scarcity',
+      'nudge-bestseller', 'nudge-coupon', 'nudge-fineprint', 'nudge-cta'
+    ];
+    const marked = new Set();
+
+    function updateFound() {
+      $('#foundCount').textContent = Math.min(marked.size, 3);
+      if (marked.size >= 3) {
+        $('#feedback').classList.remove('hidden');
+        $('#resultSection').classList.remove('hidden');
+      } else {
+        $('#feedback').classList.add('hidden');
+        $('#resultSection').classList.add('hidden');
+      }
+    }
+
+    nudgeIds.forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('click', () => {
+        el.classList.toggle('tap-highlight');
+        el.classList.contains('tap-highlight') ? marked.add(id) : marked.delete(id);
+        updateFound();
+      }, {passive: true});
+    });
+
+    let remaining = 15 * 60;
+    const timerEl = $('#timer');
+    const timerInt = setInterval(() => {
+      remaining = Math.max(remaining - 1, 0);
+      const m = String(Math.floor(remaining / 60)).padStart(2,'0');
+      const s = String(remaining % 60).padStart(2,'0');
+      timerEl.textContent = `${m}:${s}`;
+      if (remaining === 0) { clearInterval(timerInt); timerEl.classList.add('pulse'); }
+    }, 1000);
+
+    const viewersEl = $('#nudge-viewers');
+    setInterval(() => {
+      const n = 18 + Math.floor(Math.random() * 25);
+      viewersEl.textContent = `${n} Personen schauen gerade …`;
+    }, 3000);
+
+    const progressBar = $('#progressBar');
+    const progressLabel = $('#progressLabel');
+    let fill = 84;
+    setInterval(() => {
+      fill = Math.max(fill - (Math.random() < .5 ? 0 : 1), 12);
+      progressBar.style.width = `${fill}%`;
+      progressLabel.textContent = `${fill} % vergeben`;
+    }, 2500);
+
+    function saveChoices() {
+      const checks = $$('input[type="checkbox"]');
+      const selected = checks.map((c, i) => ({i, checked: c.checked}));
+      const own = $('#ownIdea').value.trim();
+      const data = {selected, own, ts: Date.now()};
+      localStorage.setItem('limited-offer-ergebnis', JSON.stringify(data));
+      $('#saved').classList.remove('hidden');
+      setTimeout(() => $('#saved').classList.add('hidden'), 1800);
+    }
+
+    function loadChoices() {
+      const raw = localStorage.getItem('limited-offer-ergebnis');
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        const checks = $$('input[type="checkbox"]');
+        data.selected?.forEach(obj => {
+          if (checks[obj.i]) checks[obj.i].checked = !!obj.checked;
+        });
+        if (data.own) $('#ownIdea').value = data.own;
+      } catch(e){}
+    }
+
+    function resetAll() {
+      nudgeIds.forEach(id => document.getElementById(id).classList.remove('tap-highlight'));
+      marked.clear();
+      updateFound();
+      $$('input[type="checkbox"]').forEach((c,idx) => c.checked = idx < 3);
+      $('#ownIdea').value = '';
+      localStorage.removeItem('limited-offer-ergebnis');
+    }
+
+    $('#saveResult').addEventListener('click', saveChoices);
+    $('#reset').addEventListener('click', resetAll);
+    loadChoices();
+
+    nudgeIds.forEach(id => {
+      const el = document.getElementById(id);
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnowPro Quiz - Versicherungen buchen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .booking-font { font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-10 border border-slate-200">
+        <div class="mb-10 text-center">
+            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Accounting Practice</span>
+            <h1 class="text-4xl font-extrabold text-slate-900 mt-3">SnowPro Training</h1>
+            <p class="text-slate-500 mt-2 text-lg">Prüfung der Gebäudebrandversicherung (Max Winter)</p>
+            
+            <div class="w-full bg-slate-200 h-3 rounded-full mt-8 overflow-hidden">
+                <div id="progress-bar" class="bg-blue-600 h-full transition-all duration-700 ease-out" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="question-box">
+            <h2 id="question-text" class="text-2xl font-bold text-slate-800 mb-8 leading-snug">Lade Frage...</h2>
+            <div id="options-container" class="grid gap-4">
+                </div>
+        </div>
+
+        <div id="result-box" class="hidden text-center py-10">
+            <div class="mb-6">
+                <svg class="mx-auto h-20 w-20 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-900 mb-4">Quiz abgeschlossen!</h2>
+            <p id="final-score" class="text-xl text-slate-600 mb-10"></p>
+            <button onclick="location.reload()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-10 rounded-xl transition-all transform hover:scale-105 shadow-xl">
+                Neustart
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Warum ist auf der Rechnung von Max Winter kein Umsatzsteuerbetrag ausgewiesen?",
+                options: [
+                    "Weil die Versicherung einen Fehler beim Drucken gemacht hat.",
+                    "Weil Versicherungsleistungen gesetzlich umsatzsteuerfrei sind.",
+                    "Weil SnowPro als Sportartikelhersteller keine Vorsteuer zahlen muss."
+                ],
+                correct: 1
+            },
+            {
+                question: "Welche Steuer ist im Bruttobetrag von 1.860,00 € bereits enthalten?",
+                options: [
+                    "Die Versicherungsteuer.",
+                    "Die Umsatzsteuer (19 %).",
+                    "Die Gewerbesteuer."
+                ],
+                correct: 0
+            },
+            {
+                question: "Kann SnowPro bei dieser Rechnung einen Vorsteuerabzug geltend machen?",
+                options: [
+                    "Ja, pauschal 19 % aus dem Gesamtbetrag.",
+                    "Nein, da keine Umsatzsteuer auf der Rechnung ausgewiesen ist.",
+                    "Ja, Lisa kann das Konto 2600 VORST manuell bebuchen."
+                ],
+                correct: 1
+            },
+            {
+                question: "Wähle den korrekten Buchungssatz für den Rechnungserhalt:",
+                options: [
+                    "6900 VBEI  1.563,03 €\n2600 VORST   296,97 €  an  4400 VE  1.860,00 €",
+                    "6900 VBEI  1.860,00 €  an  4400 VE  1.860,00 €",
+                    "4400 VE    1.860,00 €  an  6900 VBEI  1.860,00 €"
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+
+        function updateUI() {
+            const q = questions[currentIndex];
+            document.getElementById('question-text').innerText = q.question;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            document.getElementById('progress-bar').style.width = `${(currentIndex / questions.length) * 100}%`;
+
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                // Check if it's a booking entry to apply monospace font
+                if (opt.includes('an')) {
+                    btn.className = "w-full text-left p-5 border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all booking-font whitespace-pre text-sm sm:text-base overflow-x-auto";
+                } else {
+                    btn.className = "w-full text-left p-5 border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all text-slate-700 font-medium";
+                }
+                btn.innerText = opt;
+                btn.onclick = () => handleSelect(i);
+                container.appendChild(btn);
+            });
+        }
+
+        function handleSelect(i) {
+            if (i === questions[currentIndex].correct) score++;
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                updateUI();
+            } else {
+                document.getElementById('question-box').classList.add('hidden');
+                document.getElementById('result-box').classList.remove('hidden');
+                document.getElementById('progress-bar').style.width = '100%';
+                document.getElementById('final-score').innerText = `Du hast ${score} von ${questions.length} Fragen korrekt beantwortet.`;
+            }
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>

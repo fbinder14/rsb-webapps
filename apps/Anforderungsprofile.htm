@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+		<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+    <meta charset="UTF-8">
+    <title>Berufsfelder und Anforderungen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        header, main {
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1, h2, h3 {
+            text-align: center;
+        }
+        #requirements, #fields {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .requirement {
+            padding: 10px;
+            margin: 5px;
+            background-color: #f0f0f0;
+            cursor: move;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .field {
+            flex: 1 1 300px;
+            min-width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 10px;
+            padding: 10px;
+        }
+        .field h3 {
+            text-align: center;
+        }
+        .dropzone {
+            min-height: 100px;
+            background-color: #e8e8e8;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+        }
+        button {
+            display: block;
+            margin: 30px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #feedback {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+            #requirements, #fields {
+                flex-direction: column;
+                align-items: center;
+            }
+            .field {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Berufsfelder und Anforderungen</h1>
+    </header>
+    <main>
+        <p>Ordne die Anforderungen den passenden Berufsfeldern zu, indem du sie per Drag and Drop verschiebst.</p>
+
+        <div id="requirements" class="dropzone">
+            <h2>Anforderungen</h2>
+            <div class="requirement" draggable="true" id="req1">Medizinische Kenntnisse</div>
+            <div class="requirement" draggable="true" id="req2">Empathie und Kommunikationsfähigkeit</div>
+            <div class="requirement" draggable="true" id="req3">Schichtarbeitstauglichkeit</div>
+            <div class="requirement" draggable="true" id="req4">Programmierkenntnisse</div>
+            <div class="requirement" draggable="true" id="req5">Analytisches Denken</div>
+            <div class="requirement" draggable="true" id="req6">Bereitschaft zum lebenslangen Lernen</div>
+            <div class="requirement" draggable="true" id="req7">Technisches Verständnis</div>
+            <div class="requirement" draggable="true" id="req8">Handwerkliches Geschick</div>
+            <div class="requirement" draggable="true" id="req9">Sicherheitsbewusstsein</div>
+            <div class="requirement" draggable="true" id="req10">Pädagogische Ausbildung</div>
+            <div class="requirement" draggable="true" id="req11">Geduld und Durchsetzungsvermögen</div>
+            <div class="requirement" draggable="true" id="req12">Kommunikationsstärke</div>
+        </div>
+
+        <div id="fields">
+            <h2>Berufsfelder</h2>
+            <div class="field" id="field1">
+                <h3>Gesundheitswesen<br>(z. B. Krankenschwester/Krankenpfleger)</h3>
+                <div class="dropzone"></div>
+            </div>
+            <div class="field" id="field2">
+                <h3>Informationstechnologie<br>(z. B. Softwareentwickler/in)</h3>
+                <div class="dropzone"></div>
+            </div>
+            <div class="field" id="field3">
+                <h3>Handwerk<br>(z. B. Elektriker/in)</h3>
+                <div class="dropzone"></div>
+            </div>
+            <div class="field" id="field4">
+                <h3>Pädagogik<br>(z. B. Lehrer/in)</h3>
+                <div class="dropzone"></div>
+            </div>
+        </div>
+
+        <button id="checkButton">Überprüfen</button>
+        <div id="feedback"></div>
+    </main>
+    <script>
+        // Drag and Drop Funktionalität
+        const requirements = document.querySelectorAll('.requirement');
+        requirements.forEach(req => {
+            req.addEventListener('dragstart', dragStart);
+        });
+
+        function dragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.id);
+        }
+
+        const dropzones = document.querySelectorAll('.dropzone');
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', dragOver);
+            zone.addEventListener('drop', drop);
+        });
+
+        function dragOver(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const id = event.dataTransfer.getData('text/plain');
+            const draggableElement = document.getElementById(id);
+            const dropzone = event.target;
+
+            // Überprüfen, ob das Ziel eine Dropzone ist
+            if (dropzone.classList.contains('dropzone')) {
+                dropzone.appendChild(draggableElement);
+            }
+        }
+
+        // Überprüfungsfunktion
+        const checkButton = document.getElementById('checkButton');
+        checkButton.addEventListener('click', checkAnswers);
+
+        function checkAnswers() {
+            // Hintergrundfarben zurücksetzen
+            requirements.forEach(req => {
+                req.style.backgroundColor = '';
+            });
+
+            const feedback = document.getElementById('feedback');
+            let correctCount = 0;
+            let total = 12; // Gesamtzahl der Anforderungen
+
+            const correctAssignments = {
+                'req1': 'field1',
+                'req2': 'field1',
+                'req3': 'field1',
+                'req4': 'field2',
+                'req5': 'field2',
+                'req6': 'field2',
+                'req7': 'field3',
+                'req8': 'field3',
+                'req9': 'field3',
+                'req10': 'field4',
+                'req11': 'field4',
+                'req12': 'field4',
+            };
+
+            // Überprüfung jeder Anforderung
+            for (let reqId in correctAssignments) {
+                const correctFieldId = correctAssignments[reqId];
+                const reqElement = document.getElementById(reqId);
+                let parentFieldId;
+
+                // Überprüfen, wo sich die Anforderung befindet
+                if (reqElement.parentElement.classList.contains('dropzone')) {
+                    // Erhalte die ID des Berufsfelds
+                    parentFieldId = reqElement.parentElement.parentElement.id;
+                } else if (reqElement.parentElement.id === 'requirements') {
+                    // Anforderung ist noch im Startbereich
+                    parentFieldId = 'requirements';
+                } else {
+                    parentFieldId = '';
+                }
+
+                if (parentFieldId === correctFieldId) {
+                    correctCount++;
+                    // Visuelles Feedback für richtige Zuordnungen
+                    reqElement.style.backgroundColor = 'lightgreen';
+                } else {
+                    // Visuelles Feedback für falsche Zuordnungen
+                    reqElement.style.backgroundColor = 'lightcoral';
+                }
+            }
+
+            // Ausgabe des Feedbacks
+            feedback.innerHTML = `Du hast ${correctCount} von ${total} Anforderungen richtig zugeordnet.`;
+        }
+    </script>
+</body>
+</html>

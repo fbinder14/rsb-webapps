@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Snow Card Tirol 2025/2026 – Skigebiete Karte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha512-sA+e2at3bQ8nJQWb8i4N9m0S2iU4M5l9s7Y2pKcJ6jXv3qf1bXvG7bqC8hU1sG6H6GZ8h1mE0DkL7Z1G3oU5xg=="
+    crossorigin=""
+  />
+  <!-- MarkerCluster CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    crossorigin=""
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    crossorigin=""
+  />
+
+  <style>
+    :root{
+      --bg: #0f172a;           /* slate-900 */
+      --panel: #111827ee;      /* almost-black with alpha */
+      --accent: #22d3ee;       /* cyan-400 */
+      --accent-2: #60a5fa;     /* blue-400 */
+      --text: #e5e7eb;         /* gray-200 */
+      --muted: #9ca3af;        /* gray-400 */
+      --chip: #1f2937;         /* gray-800 */
+      --chip-border: #374151;  /* gray-700 */
+      --btn: #0ea5e9;          /* sky-500 */
+      --btn-hover: #0284c7;    /* sky-600 */
+      --card: #0b1220;         /* deep panel */
+      --shadow: 0 8px 24px rgba(0,0,0,0.35);
+      --radius: 14px;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 800px at 70% -20%, #112031 0%, var(--bg) 45%, #0b1020 100%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    #app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+    }
+
+    header.appbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px clamp(12px, 3vw, 24px);
+      position: relative;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #0b1324 0%, #0b162a 100%);
+      border: 1px solid #1f2a44;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .brand .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent), var(--accent-2));
+      box-shadow: 0 0 14px rgba(34,211,238,0.55);
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(16px, 2vw, 20px);
+      letter-spacing: 0.3px;
+      font-weight: 650;
+      color: #e6f7ff;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: linear-gradient(180deg, var(--chip), #121826);
+      border: 1px solid var(--chip-border);
+      color: var(--text);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .chip input[type="text"] {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      outline: none;
+      min-width: min(38vw, 360px);
+      font-size: 15px;
+    }
+    .chip small { color: var(--muted); }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--btn), var(--accent));
+      color: white;
+      padding: 10px 14px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(14,165,233,.35);
+      transition: transform .06s ease, filter .2s ease, box-shadow .2s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { filter: brightness(1.06); box-shadow: 0 8px 22px rgba(2,132,199,.45); }
+    .btn:active { transform: translateY(1px); }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: linear-gradient(180deg, var(--chip), #111827);
+      border: 1px solid var(--chip-border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      color: var(--muted);
+    }
+    .legend .swatch {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fde68a, #f59e0b);
+      box-shadow: 0 0 8px rgba(245,158,11,.5);
+    }
+
+    #map {
+      height: calc(100vh - 88px);
+      margin: 0 clamp(12px, 3vw, 24px) clamp(12px, 3vw, 24px);
+      border-radius: var(--radius);
+      box-shadow: 0 16px 38px rgba(0,0,0,.45);
+      overflow: hidden;
+      border: 1px solid #1f2a44;
+      background: #0b1220;
+    }
+
+    /* Leaflet theming (dark controls) */
+    .leaflet-control-zoom a,
+    .leaflet-control a {
+      background: #0e1628cc;
+      color: #e5e7eb;
+      border: 1px solid #24314d;
+      backdrop-filter: blur(6px);
+    }
+    .leaflet-control-zoom a:hover,
+    .leaflet-control a:hover {
+      background: #12203bcc;
+    }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+      background: linear-gradient(180deg, #0c1322, #0b1220);
+      color: var(--text);
+      border: 1px solid #1f2a44;
+      box-shadow: var(--shadow);
+    }
+    .leaflet-container a { color: #86e0ff; }
+
+    /* Cluster colors */
+    .marker-cluster-small {
+      background: rgba(34,211,238,0.18);
+    }
+    .marker-cluster-small div {
+      background: radial-gradient(circle at 30% 30%, #22d3ee, #60a5fa);
+      color: #001524;
+      font-weight: 800;
+      text-shadow: none;
+    }
+    .marker-cluster-medium {
+      background: rgba(96,165,250,0.18);
+    }
+    .marker-cluster-medium div {
+      background: radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6);
+      color: #001524;
+      font-weight: 800;
+    }
+    .marker-cluster-large {
+      background: rgba(59,130,246,0.18);
+    }
+    .marker-cluster-large div {
+      background: radial-gradient(circle at 30% 30%, #3b82f6, #2563eb);
+      color: #fefefe;
+      font-weight: 800;
+    }
+
+    /* Popup content */
+    .popup-card {
+      display: grid;
+      gap: 8px;
+    }
+    .popup-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #eaf6ff;
+      letter-spacing: .2px;
+    }
+    .popup-meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0f1a2dcc;
+      border: 1px solid #1f2a44;
+      color: #bfe8ff;
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .tag .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b);
+      box-shadow: 0 0 6px rgba(245,158,11,.6);
+    }
+
+    /* Floating count badge */
+    .count-badge {
+      position: absolute;
+      left: calc(12px + 3vw);
+      top: 72px;
+      z-index: 3000;
+      background: linear-gradient(180deg, #0e172acc, #0c1322cc);
+      border: 1px solid #1f2a44;
+      color: #dbeafe;
+      padding: 8px 12px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+
+    @media (max-width: 640px) {
+      .chip input[type="text"] { min-width: 52vw; }
+      #map { height: calc(100vh - 112px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="appbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <h1>Snow Card Tirol 2025/26 – Skigebiete</h1>
+      </div>
+
+      <div class="toolbar">
+        <div class="chip" title="Suche nach Namen, z.B. 'Zillertal' oder 'SkiWelt'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21 21l-4.2-4.2M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input id="search" type="text" placeholder="Skigebiet oder Region suchen…" />
+        </div>
+
+        <button id="fitAll" class="btn" title="Auf alle Skigebiete zoomen">Alle anzeigen</button>
+
+        <div class="legend" title="Marker-Cluster Hinweis">
+          <span class="swatch"></span>
+          <span>Marker werden in Gruppen zusammengefasst</span>
+        </div>
+      </div>
+    </header>
+
+    <div id="map"></div>
+    <div class="count-badge">
+      <span id="countCurrent">0</span> von <span id="countTotal">0</span> Skigebieten sichtbar
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha512-nmmJ3Q0Q2w0m5h1cD1uXc2z3y8y3gkKX9m8f1kDqQ1r0wI6JqzI5tLq5qkD0i4o8mxtW2v3Z2mQ0o3l2qVb9Vg=="
+    crossorigin=""
+  ></script>
+  <!-- MarkerCluster JS -->
+  <script
+    src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+    crossorigin=""
+  ></script>
+
+  <script>
+    // --- Daten: Snow Card Tirol 2025/2026 ---
+    const data = [
+      { "name": "Sölden", "coords": "46.9579, 11.0444" },
+      { "name": "Fügen - Spieljoch", "coords": "47.3225, 11.8534" },
+      { "name": "Hochfügen", "coords": "47.2679, 11.7840" },
+      { "name": "Hochzillertal", "coords": "47.2637, 11.8358" },
+      { "name": "Mittersill - Paß Thurn - Kitzbühel", "coords": "47.3722, 12.4460" },
+      { "name": "Kössen", "coords": "47.6548, 12.4204" },
+      { "name": "Alpbachtal - Ski Juwel Alpbachtal Wildschönau", "coords": "47.3950, 11.8925" },
+      { "name": "Neunerköpfle - Tannheim", "coords": "47.4906, 10.5168" },
+      { "name": "Füssener Jöchle - Grän/Tannheimer Tal", "coords": "47.5046, 10.5618" },
+      { "name": "Kühtai", "coords": "47.2139, 11.0129" },
+      { "name": "Nesselwängle im Tannheimer Tal", "coords": "47.4925, 10.6273" },
+      { "name": "Schattwald - Zöblen im Tannheimertal", "coords": "47.5015, 10.4558" },
+      { "name": "Hopfgarten-Itter-Kelchsau - SkiWelt", "coords": "47.4518, 12.1227" },
+      { "name": "Söll - SkiWelt", "coords": "47.5117, 12.1994" },
+      { "name": "Kitzbühel", "coords": "47.4326, 12.3914" },
+      { "name": "Rangger Köpfl", "coords": "47.2489, 11.2077" },
+      { "name": "Jöchelspitze - Lechtal", "coords": "47.2555, 10.3819" },
+      { "name": "Stubaital 11er Lifte Neustift", "coords": "47.1129, 11.3067" },
+      { "name": "Bichllifte Prägraten", "coords": "47.0088, 12.3490" },
+      { "name": "Wildschönau - Ski Juwel Alpbachtal Wildschönau", "coords": "47.4083, 12.0479" },
+      { "name": "Niederthai", "coords": "47.1289, 10.9268" },
+      { "name": "Königsleiten - Zillertal Arena", "coords": "47.2465, 12.1212" },
+      { "name": "Hüttegglift Weerberg", "coords": "47.3169, 11.6426" },
+      { "name": "Skilifte Lärchenhof", "coords": "47.5672, 12.4393" },
+      { "name": "Vögelsberg Aktivpark", "coords": "47.3593, 11.6901" },
+      { "name": "Spieljochbahn Fügen", "coords": "47.3225, 11.8534" },
+      { "name": "Amberglift Walchsee", "coords": "47.6536, 12.3203" },
+      { "name": "Bergbahnen Pillersee - Buchensteinwand - St. Ulrich", "coords": "47.5215, 12.5950" },
+      { "name": "Bergeralm", "coords": "47.0449, 11.4512" },
+      { "name": "Bergwelt Hahnenkamm", "coords": "47.4068, 10.7252" },
+      { "name": "Berwang", "coords": "47.4068, 10.7167" },
+      { "name": "Brixen im Thale - SkiWelt", "coords": "47.4471, 12.2469" },
+      { "name": "Dorfberg Kartitsch", "coords": "46.7406, 12.4766" },
+      { "name": "Eggalmbahnen", "coords": "47.1508, 11.7596" },
+      { "name": "Ehrwalder Alm", "coords": "47.3918, 10.9469" },
+      { "name": "Ehrwalder Wettersteinbahnen", "coords": "47.4084, 10.9400" },
+      { "name": "Elferbahnen Neustift", "coords": "47.1047, 11.3079" },
+      { "name": "Ellmau-Going - SkiWelt", "coords": "47.5139, 12.3142" },
+      { "name": "Finkenberger Almbahnen", "coords": "47.1500, 11.8032" },
+      { "name": "Fiss-Ladis", "coords": "47.0588, 10.6165" },
+      { "name": "Gerlos - Zillertal Arena", "coords": "47.2251, 12.0561" },
+      { "name": "Gerlosstein - Zillertal Arena", "coords": "47.2136, 11.8818" },
+      { "name": "Glungezer", "coords": "47.2163, 11.5198" },
+      { "name": "Großglockner Resort Kals-Matrei", "coords": "46.9991, 12.5684" },
+      { "name": "Gschwandtkopflifte", "coords": "47.3276, 11.1882" },
+      { "name": "Hintertuxer Gletscher", "coords": "47.0728, 11.6616" },
+      { "name": "Hochalmlifte Christlum - Achenkirch", "coords": "47.4983, 11.7046" },
+      { "name": "Hochkrimml - Zillertal Arena", "coords": "47.2401, 12.1651" },
+      { "name": "Hochoetz - Oetz", "coords": "47.2133, 10.9311" },
+      { "name": "Hochzeiger - Jerzens", "coords": "47.1659, 10.7748" },
+      { "name": "Hochzeiger - Pitztal", "coords": "47.1659, 10.7748" },
+      { "name": "Hochzillertal-Kaltenbach", "coords": "47.2637, 11.8358" },
+      { "name": "Hopfgarten - Itter - SkiWelt", "coords": "47.4518, 12.1227" },
+      { "name": "Imst", "coords": "47.2254, 10.7180" },
+      { "name": "Ischgl - Silvretta Arena", "coords": "46.9928, 10.2913" },
+      { "name": "Kappl", "coords": "47.0642, 10.3784" },
+      { "name": "Kaunertaler Gletscher", "coords": "46.8663, 10.7185" },
+      { "name": "Kellerjochbahn Schwaz-Pill", "coords": "47.3218, 11.7411" },
+      { "name": "Landeck - Zams - Fliess (Venet)", "coords": "47.1421, 10.5721" },
+      { "name": "Lermoos-Grubigstein", "coords": "47.4030, 10.8747" },
+      { "name": "Lienz Zettersfeld Hochstein", "coords": "46.8398, 12.8027" },
+      { "name": "Mayrhofen", "coords": "47.1643, 11.8619" },
+      { "name": "Muttereralm", "coords": "47.2061, 11.3167" },
+      { "name": "Nauders", "coords": "46.8723, 10.5067" },
+      { "name": "Neukirchen - Bramberg - Wildkogel", "coords": "47.2507, 12.3325" },
+      { "name": "Obergurgl-Hochgurgl", "coords": "46.8775, 11.0408" },
+      { "name": "Obertilliacher Bergbahnen", "coords": "46.6922, 12.5732" },
+      { "name": "Patscherkofel", "coords": "47.2083, 11.4573" },
+      { "name": "Pitztaler Gletscher - Rifflsee", "coords": "46.9737, 10.8764" },
+      { "name": "Rastkogelbahnen", "coords": "47.1732, 11.7695" },
+      { "name": "Rosshütte Seefeld", "coords": "47.3461, 11.1947" },
+      { "name": "Schattwald - Zöblen", "coords": "47.5015, 10.4558" },
+      { "name": "Scheffau - SkiWelt", "coords": "47.5212, 12.2517" },
+      { "name": "Schlick 2000", "coords": "47.1367, 11.3118" },
+      { "name": "Schneeberglifte Thiersee", "coords": "47.5898, 12.1180" },
+      { "name": "Schwannerlifte Weerberg", "coords": "47.3113, 11.6885" },
+      { "name": "See i. Paznauntal", "coords": "47.0749, 10.4836" },
+      { "name": "Serfaus", "coords": "47.0385, 10.5971" },
+      { "name": "Serlesbahnen Mieders", "coords": "47.1667, 11.3619" },
+      { "name": "Skilifte Kirchdorf", "coords": "47.5613, 12.4245" },
+      { "name": "Skilifte Knittel", "coords": "47.3469, 10.7241" },
+      { "name": "Skizentrum Sillian/Hochpustertal", "coords": "46.7469, 12.4374" },
+      { "name": "Skizentrum St. Jakob", "coords": "46.9985, 12.3499" },
+      { "name": "St. Johann in Tirol", "coords": "47.5272, 12.4345" },
+      { "name": "Steinplatte-Waidring", "coords": "47.5776, 12.5793" },
+      { "name": "Stubaier Gletscher", "coords": "46.9971, 11.1358" },
+      { "name": "Tiroler Zugspitzbahn", "coords": "47.4105, 10.9705" },
+      { "name": "Tirolina - Aktivberg Thiersee", "coords": "47.6011, 12.0992" },
+      { "name": "Venter Seilbahnen", "coords": "46.8604, 10.9152" },
+      { "name": "Westendorf - SkiWelt", "coords": "47.4300, 12.2162" },
+      { "name": "Zell am Ziller - Zillertal Arena", "coords": "47.2287, 11.8862" }
+    ];
+
+    // Parse coords helper
+    function parseCoords(s) {
+      const [lat, lng] = s.split(",").map(v => parseFloat(v.trim()));
+      return [lat, lng];
+    }
+
+    // Map init
+    const map = L.map('map', {
+      scrollWheelZoom: true,
+      zoomControl: true
+    });
+
+    // OSM tiles (standard) – with correct attribution
+    const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> Mitwirkende'
+    });
+
+    // Optional: OSM Humanitarian (as alternative base)
+    const osmHot = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 20,
+      subdomains: 'abc',
+      attribution:
+        '&copy; OpenStreetMap Mitwirkende, Tiles courtesy of Humanitarian OpenStreetMap Team'
+    });
+
+    osm.addTo(map);
+
+    // Control to switch base layers
+    L.control.layers(
+      { "OSM Standard": osm, "OSM Humanitarian": osmHot },
+      {},
+      { position: 'topleft' }
+    ).addTo(map);
+
+    // Marker cluster group
+    const clusters = L.markerClusterGroup({
+      disableClusteringAtZoom: 13,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      maxClusterRadius: 60
+    });
+
+    // Build markers
+    const markers = [];
+    data.forEach((item, idx) => {
+      const [lat, lng] = parseCoords(item.coords);
+      const m = L.marker([lat, lng], {
+        title: item.name
+      });
+
+      const popupHtml = `
+        <div class="popup-card">
+          <div class="popup-title">${item.name}</div>
+          <div class="popup-meta">Lat: ${lat.toFixed(4)} · Lng: ${lng.toFixed(4)}</div>
+          <div class="tag"><span class="dot"></span><span>Snow Card Tirol 25/26</span></div>
+        </div>
+      `;
+      m.bindPopup(popupHtml, { maxWidth: 320 });
+      m.__name = item.name.toLowerCase();
+      markers.push(m);
+    });
+
+    const markerLayer = L.layerGroup(markers);
+    clusters.addLayer(markerLayer);
+    map.addLayer(clusters);
+
+    // Fit to bounds of all markers
+    function fitAll() {
+      const group = new L.featureGroup(markers);
+      const b = group.getBounds();
+      if (b.isValid()) {
+        map.fitBounds(b.pad(0.08));
+      } else {
+        map.setView([47.2, 11.4], 8); // Fallback: Tirol
+      }
+    }
+    fitAll();
+
+    // Search/filter
+    const input = document.getElementById('search');
+    const countCurrent = document.getElementById('countCurrent');
+    const countTotal = document.getElementById('countTotal');
+    countTotal.textContent = String(markers.length);
+
+    function applyFilter() {
+      const q = input.value.trim().toLowerCase();
+      clusters.clearLayers();
+
+      if (!q) {
+        // show all
+        const lg = L.layerGroup(markers);
+        clusters.addLayer(lg);
+        updateVisibleCount();
+        return;
+      }
+      const filtered = markers.filter(m => m.__name.includes(q));
+      const lg = L.layerGroup(filtered);
+      clusters.addLayer(lg);
+      updateVisibleCount();
+
+      // Auto-fit to filtered results
+      if (filtered.length > 0) {
+        const g = new L.featureGroup(filtered);
+        map.fitBounds(g.getBounds().pad(0.12));
+      }
+    }
+
+    function updateVisibleCount() {
+      // Approximate visible markers by counting currently added child markers
+      let visible = 0;
+      clusters.eachLayer(layer => {
+        if (layer instanceof L.Marker && !(layer.getAllChildMarkers)) {
+          visible += 1;
+        }
+      });
+      // If the cluster is not expanded at current zoom, count markers in layerGroup instead
+      if (visible === 0) {
+        // count from underlying layer group
+        let tmp = 0;
+        clusters.eachLayer(layer => {
+          if (layer instanceof L.LayerGroup) {
+            layer.eachLayer(inner => { if (inner instanceof L.Marker) tmp += 1; });
+          }
+        });
+        visible = tmp;
+      }
+      countCurrent.textContent = String(visible);
+    }
+
+    input.addEventListener('input', () => {
+      applyFilter();
+    });
+
+    document.getElementById('fitAll').addEventListener('click', () => {
+      input.value = '';
+      applyFilter();
+      fitAll();
+    });
+
+    // Update counts on map move/zoom to reflect visibility
+    map.on('moveend zoomend animationend', updateVisibleCount);
+    // Initial count
+    updateVisibleCount();
+
+    // Keyboard UX: Enter focuses map
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        map.getContainer().focus({ preventScroll: true });
+      }
+    });
+  </script>
+</body>
+</html>

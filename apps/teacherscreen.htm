@@ -1,0 +1,686 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · Realschule Bobingen</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    // ─── CONFIG ───
+    // Proxy on same server (fixes CORS). Falls back to direct URL.
+    const ICAL_PROXY = "ical-proxy.php";
+    const ICAL_DIRECT = "https://login.schulmanager-online.de/ical/schedules/ZqttjU7L9VaCDnrbjv4R";
+    const SCHOOL_NAME = "Realschule Bobingen";
+    const STORAGE_KEY_PREFIX = "rs-bob-dash-v4";
+    const GAP = 20;        // spacing between widgets
+    const HEADER_H = 52;   // header height
+    const COL_W = 280;     // widget column width
+
+    // ─── Bavarian School Holidays 2025/26 ───
+    const FERIEN = [
+      { name: "Herbstferien", start: "2025-10-27", end: "2025-10-31" },
+      { name: "Weihnachtsferien", start: "2025-12-22", end: "2026-01-05" },
+      { name: "Winterferien", start: "2026-02-16", end: "2026-02-20" },
+      { name: "Osterferien", start: "2026-04-02", end: "2026-04-17" },
+      { name: "Pfingstferien", start: "2026-05-26", end: "2026-06-05" },
+      { name: "Sommerferien", start: "2026-07-30", end: "2026-09-14" },
+    ];
+
+    const STUNDEN = [
+      { name: "1. Stunde", start: "07:40", end: "08:25" },
+      { name: "2. Stunde", start: "08:25", end: "09:10" },
+      { name: "3. Stunde", start: "09:10", end: "09:55" },
+      { name: "Pause", start: "09:55", end: "10:20" },
+      { name: "4. Stunde", start: "10:20", end: "11:05" },
+      { name: "5. Stunde", start: "11:05", end: "11:50" },
+      { name: "6. Stunde", start: "11:50", end: "12:35" },
+      { name: "Mittagspause", start: "12:35", end: "13:20" },
+      { name: "7. Stunde", start: "13:20", end: "14:05" },
+      { name: "8. Stunde", start: "14:05", end: "14:50" },
+      { name: "9. Stunde", start: "14:50", end: "15:30" },
+    ];
+
+    const SCHULJAHR_START = new Date(2025, 8, 9);
+    const SCHULJAHR_ENDE = new Date(2026, 6, 29);
+    const MONATE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+    const WOCHENTAGE = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+
+    // ─── Auto-grid: computes symmetrical positions based on viewport ───
+    function computeGridPositions(mode) {
+      const vw = window.innerWidth || 1400;
+      const vh = window.innerHeight || 900;
+      const cols = Math.max(2, Math.min(4, Math.floor((vw - GAP) / (COL_W + GAP))));
+      const totalW = cols * COL_W + (cols - 1) * GAP;
+      const startX = Math.floor((vw - totalW) / 2);
+      const startY = HEADER_H + GAP;
+
+      // Widget order per mode (column-major layout)
+      const lehrerOrder = [
+        // Col 1           Col 2              Col 3              Col 4
+        "clock",          "date",            "timetable",       "ferienkal",
+        "stundenuhr",     "ferienCd",        null,              null,
+        "countdown",      "schultage",       null,              null,
+      ];
+      const schuelerOrder = [
+        "clock",          "date",            "ferienkal",
+        "stundenuhr",     "ferienCd",        null,
+        "countdown",      "schultage",       null,
+      ];
+
+      const order = mode === "lehrer" ? lehrerOrder : schuelerOrder;
+      const mCols = mode === "lehrer" ? Math.min(cols, 4) : Math.min(cols, 3);
+      const positions = {};
+      const colHeights = new Array(mCols).fill(startY);
+      const ROW_H = [190, 210, 230]; // approximate widget heights
+
+      let idx = 0;
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < mCols; col++) {
+          if (idx >= order.length) break;
+          const id = order[idx];
+          idx++;
+          if (!id) { colHeights[col] += ROW_H[row] + GAP; continue; }
+          positions[id] = {
+            x: startX + col * (COL_W + GAP),
+            y: colHeights[col],
+          };
+          colHeights[col] += ROW_H[row] + GAP;
+        }
+      }
+
+      return positions;
+    }
+
+    // ─── Mode defaults (computed on load) ───
+    function getDefaults(mode) {
+      return {
+        positions: computeGridPositions(mode),
+        visibility: mode === "lehrer"
+          ? { clock:true, stundenuhr:true, date:true, countdown:true, timetable:true, ferienCd:true, schultage:true, ferienkal:true }
+          : { clock:true, stundenuhr:true, date:true, countdown:true, timetable:false, ferienCd:true, schultage:true, ferienkal:true },
+      };
+    }
+
+    const WIDGET_META = {
+      clock:      { label: "Uhrzeit",           icon: "⏰" },
+      stundenuhr: { label: "Stundenuhr",         icon: "🔔" },
+      date:       { label: "Datum & Woche",      icon: "📅" },
+      countdown:  { label: "Countdown",          icon: "⏱️" },
+      timetable:  { label: "Stundenplan",        icon: "📚", lehrerOnly: true },
+      ferienCd:   { label: "Ferien-Countdown",   icon: "🏖️" },
+      schultage:  { label: "Schuljahr",          icon: "📊" },
+      ferienkal:  { label: "Ferienkalender",     icon: "🗓️" },
+    };
+
+    // ─── Utilities ───
+    function fmtISO(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+    function pad(n) { return n < 10 ? "0"+n : ""+n; }
+    function toMin(s) { const [h,m]=s.split(":").map(Number); return h*60+m; }
+
+    function isSchultag(d) {
+      const day=d.getDay();
+      if (day===0||day===6) return false;
+      const s=fmtISO(d);
+      for (const f of FERIEN) if (s>=f.start&&s<=f.end) return false;
+      return true;
+    }
+
+    function getNextFerien(today) {
+      const s=fmtISO(today);
+      for (const f of FERIEN) { if (s<=f.end) return s>=f.start?{...f,isNow:true}:{...f,isNow:false}; }
+      return null;
+    }
+
+    function countSchultage(from, to) {
+      let c=0; const d=new Date(from);
+      while(d<to){if(isSchultag(d))c++;d.setDate(d.getDate()+1);}
+      return c;
+    }
+
+    function getKW(date) {
+      const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+      d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+      const y=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      return Math.ceil(((d-y)/86400000+1)/7);
+    }
+
+    function getSchulwoche(today) {
+      if (today<SCHULJAHR_START) return null;
+      return Math.floor((today-SCHULJAHR_START)/(7*86400000))+1;
+    }
+
+    function getCurrentPeriod(now) {
+      const m=now.getHours()*60+now.getMinutes();
+      for (const p of STUNDEN) if (m>=toMin(p.start)&&m<toMin(p.end)) return p;
+      return null;
+    }
+
+    // ─── iCal Parser ───
+    function parseICal(text) {
+      const evts=[];
+      const blocks=text.split("BEGIN:VEVENT");
+      for (let i=1;i<blocks.length;i++){
+        const b=blocks[i];
+        const get=(k)=>{const m=b.match(new RegExp(`^${k}[;:](.*)$`,"m"));return m?m[1].replace(/\r/g,"").trim():"";};
+        const summary=get("SUMMARY"),dtstart=get("DTSTART"),dtend=get("DTEND"),location=get("LOCATION");
+        if(summary&&dtstart) evts.push({summary,dtstart,dtend,location});
+      }
+      return evts;
+    }
+
+    function parseICalDate(str) {
+      if(!str) return null;
+      const c=str.replace(/.*:/,"").replace(/[TZ]/g," ").trim();
+      if(c.length>=15) return new Date(+c.slice(0,4),+c.slice(4,6)-1,+c.slice(6,8),+c.slice(9,11),+c.slice(11,13));
+      if(c.length>=8) return new Date(+c.slice(0,4),+c.slice(4,6)-1,+c.slice(6,8));
+      return null;
+    }
+
+    // ─── iCal Fetch with proxy fallback ───
+    async function fetchICal() {
+      // Try proxy first (same origin = no CORS)
+      try {
+        const r = await fetch(ICAL_PROXY);
+        if (r.ok) {
+          const text = await r.text();
+          if (text.includes("BEGIN:VCALENDAR")) return text;
+        }
+      } catch {}
+      // Fallback: direct URL (works if CORS allows or same origin)
+      const r2 = await fetch(ICAL_DIRECT);
+      if (!r2.ok) throw new Error("Kalender nicht erreichbar");
+      return r2.text();
+    }
+
+    // ─── Persistence ───
+    function storageKey(mode) { return `${STORAGE_KEY_PREFIX}-${mode}`; }
+    function loadSettings(mode) { try { const r=localStorage.getItem(storageKey(mode)); if(r) return JSON.parse(r); } catch{} return null; }
+    function saveSettings(mode,p,v) { try { localStorage.setItem(storageKey(mode),JSON.stringify({positions:p,visibility:v})); } catch{} }
+    function loadMode() { try { return localStorage.getItem(`${STORAGE_KEY_PREFIX}-mode`)||"lehrer"; } catch{ return "lehrer"; } }
+    function saveMode(m) { try { localStorage.setItem(`${STORAGE_KEY_PREFIX}-mode`,m); } catch{} }
+
+    // ─── Drag Hook ───
+    function useDraggable(id, positions, setPositions, mode) {
+      const [isDragging,setD]=useState(false);
+      const off=useRef({x:0,y:0});
+      const defaults=getDefaults(mode);
+      const pos=positions[id]||defaults.positions[id]||{x:30,y:60};
+      const onMouseDown=useCallback((e)=>{
+        if(e.target.closest("[data-no-drag]"))return;
+        e.preventDefault();setD(true);
+        off.current={x:e.clientX-pos.x,y:e.clientY-pos.y};
+      },[pos]);
+      useEffect(()=>{
+        if(!isDragging)return;
+        const mv=(e)=>setPositions(p=>({...p,[id]:{x:e.clientX-off.current.x,y:e.clientY-off.current.y}}));
+        const up=()=>setD(false);
+        window.addEventListener("mousemove",mv);window.addEventListener("mouseup",up);
+        return()=>{window.removeEventListener("mousemove",mv);window.removeEventListener("mouseup",up);};
+      },[isDragging,id,setPositions]);
+      return {pos,onMouseDown,isDragging};
+    }
+
+    // ─── Widget Shell ───
+    function W({title,icon,children,id,color="#0ea5e9",minWidth=COL_W,positions,setPositions,mode}) {
+      const{pos,onMouseDown,isDragging}=useDraggable(id,positions,setPositions,mode);
+      return (
+        <div onMouseDown={onMouseDown} style={{
+          position:"absolute",left:pos.x,top:pos.y,zIndex:isDragging?999:10,
+          cursor:isDragging?"grabbing":"grab",width:minWidth,
+          fontFamily:"'DM Sans',sans-serif",userSelect:"none",
+          transition:isDragging?"none":"box-shadow 0.2s",
+        }}>
+          <div style={{
+            background:"rgba(15,23,42,0.88)",backdropFilter:"blur(24px)",
+            border:`1px solid ${isDragging?color+"55":"rgba(255,255,255,0.07)"}`,
+            borderRadius:16,
+            boxShadow:isDragging?`0 25px 60px rgba(0,0,0,0.5), 0 0 0 2px ${color}33`:"0 8px 32px rgba(0,0,0,0.25)",
+            overflow:"hidden",
+          }}>
+            <div style={{display:"flex",alignItems:"center",gap:8,padding:"12px 16px 8px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+              <span style={{fontSize:14}}>{icon}</span>
+              <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color,fontFamily:"'JetBrains Mono',monospace"}}>{title}</span>
+              <div style={{flex:1}} />
+              <div style={{width:6,height:6,borderRadius:"50%",background:color,opacity:0.5}} />
+            </div>
+            <div style={{padding:"12px 16px 16px"}}>{children}</div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Clock ───
+    function ClockW(p) {
+      const[now,setN]=useState(new Date());
+      useEffect(()=>{const t=setInterval(()=>setN(new Date()),1000);return()=>clearInterval(t);},[]);
+      return (
+        <W title="Uhrzeit" icon="⏰" id="clock" color="#818cf8" {...p}>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:48,fontWeight:800,color:"#f1f5f9",lineHeight:1}}>
+              {pad(now.getHours())}<span style={{color:"#818cf8",animation:"blink 1s step-end infinite"}}>:</span>{pad(now.getMinutes())}
+              <span style={{fontSize:24,color:"#475569",marginLeft:2}}>{pad(now.getSeconds())}</span>
+            </div>
+            <div style={{marginTop:6,fontSize:13,color:"#94a3b8"}}>{WOCHENTAGE[now.getDay()]}</div>
+          </div>
+        </W>
+      );
+    }
+
+    // ─── Stundenuhr ───
+    function StundenuhrW(p) {
+      const[now,setN]=useState(new Date());
+      useEffect(()=>{const t=setInterval(()=>setN(new Date()),1000);return()=>clearInterval(t);},[]);
+      const period=getCurrentPeriod(now);
+      const isWE=now.getDay()===0||now.getDay()===6;
+
+      if(isWE||!period) return (
+        <W title="Stundenuhr" icon="🔔" id="stundenuhr" color="#64748b" {...p}>
+          <div style={{textAlign:"center",padding:"8px 0"}}>
+            <div style={{fontSize:14,color:"#64748b"}}>{isWE?"🎉 Wochenende":"Kein Unterricht gerade"}</div>
+            <div style={{fontSize:12,color:"#475569",marginTop:4}}>
+              {now.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+            </div>
+          </div>
+        </W>
+      );
+
+      const endM=toMin(period.end),startM=toMin(period.start);
+      const totalSec=(endM-startM)*60;
+      const nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+      const remainSec=Math.max(0,endM*60-nowSec);
+      const m=Math.floor(remainSec/60),s=remainSec%60;
+      const progress=totalSec>0?((totalSec-remainSec)/totalSec)*100:0;
+      const isPause=period.name.toLowerCase().includes("pause");
+      const isRed=remainSec<60,isYellow=remainSec<180&&!isRed;
+      const col=isRed?"#ef4444":isYellow?"#f59e0b":isPause?"#06b6d4":"#10b981";
+      const R=48,C=2*Math.PI*R;
+
+      return (
+        <W title="Stundenuhr" icon="🔔" id="stundenuhr" color={col} {...p}>
+          <div style={{textAlign:"center"}}>
+            <div style={{position:"relative",width:116,height:116,margin:"0 auto"}}>
+              <svg width="116" height="116" viewBox="0 0 116 116">
+                <circle cx="58" cy="58" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
+                <circle cx="58" cy="58" r={R} fill="none" stroke={col} strokeWidth="7" strokeLinecap="round"
+                  strokeDasharray={C} strokeDashoffset={C*(1-progress/100)}
+                  transform="rotate(-90 58 58)" style={{transition:"stroke-dashoffset 1s linear, stroke 0.3s"}} />
+              </svg>
+              <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:28,fontWeight:800,color:"#f1f5f9",lineHeight:1}}>
+                  {pad(m)}:{pad(s)}
+                </div>
+              </div>
+            </div>
+            <div style={{marginTop:8,fontSize:13,fontWeight:600,color:col}}>
+              {isPause?`☕ ${period.name}`:period.name}
+            </div>
+            <div style={{fontSize:10,color:"#475569",marginTop:2}}>{period.start} – {period.end} Uhr</div>
+            {isRed&&<div style={{marginTop:6,fontSize:11,fontWeight:700,color:"#ef4444",animation:"pulse 1s infinite"}}>⚠️ Weniger als 1 Minute!</div>}
+            {isYellow&&!isRed&&<div style={{marginTop:6,fontSize:10,color:"#f59e0b"}}>⏳ Weniger als 3 Minuten</div>}
+          </div>
+        </W>
+      );
+    }
+
+    // ─── Date ───
+    function DateW(p) {
+      const now=new Date();
+      return (
+        <W title="Datum & Woche" icon="📅" id="date" color="#f59e0b" {...p}>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:36,fontWeight:800,color:"#f1f5f9",lineHeight:1}}>{now.getDate()}</div>
+            <div style={{fontSize:14,color:"#f59e0b",fontWeight:600,marginTop:4}}>{MONATE[now.getMonth()]} {now.getFullYear()}</div>
+            <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:10}}>
+              {[`KW ${getKW(now)}`,getSchulwoche(now)?`SW ${getSchulwoche(now)}`:null].filter(Boolean).map(t=>(
+                <div key={t} style={{background:"rgba(245,158,11,0.12)",padding:"4px 10px",borderRadius:8,fontSize:10,color:"#fbbf24",fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{t}</div>
+              ))}
+            </div>
+          </div>
+        </W>
+      );
+    }
+
+    // ─── Countdown ───
+    function CountdownW(p) {
+      const[remaining,setR]=useState(null);
+      const[target,setT]=useState(45*60);
+      const[running,setRun]=useState(false);
+      const[inputMin,setI]=useState("45");
+
+      useEffect(()=>{
+        if(!running||remaining===null||remaining<=0){if(remaining===0)setRun(false);return;}
+        const t=setInterval(()=>setR(r=>Math.max(0,r-1)),1000);return()=>clearInterval(t);
+      },[running,remaining]);
+
+      const start=()=>{const m=parseInt(inputMin)||45;setT(m*60);setR(m*60);setRun(true);};
+      const display=remaining!==null?remaining:(parseInt(inputMin||"45"))*60;
+      const dm=Math.floor(display/60),ds=display%60;
+      const progress=remaining!==null&&target>0?(1-remaining/target)*100:0;
+      const isLow=remaining!==null&&remaining<120&&remaining>0;
+      const isDone=remaining===0;
+      const c=isDone?"#ef4444":isLow?"#f59e0b":"#10b981";
+
+      return (
+        <W title="Countdown" icon="⏱️" id="countdown" color={c} {...p}>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:44,fontWeight:800,color:isDone?"#ef4444":isLow?"#fbbf24":"#f1f5f9",lineHeight:1,transition:"color 0.3s"}}>
+              {pad(dm)}:{pad(ds)}
+            </div>
+            {remaining!==null&&(
+              <div style={{marginTop:10,height:4,background:"rgba(255,255,255,0.07)",borderRadius:2,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${progress}%`,background:c,borderRadius:2,transition:"width 1s linear"}} />
+              </div>
+            )}
+            {isDone&&<div style={{marginTop:6,fontSize:12,color:"#ef4444",fontWeight:700}}>⏰ Zeit abgelaufen!</div>}
+            <div style={{display:"flex",gap:8,justifyContent:"center",marginTop:10}}>
+              {remaining===null?(
+                <>
+                  <input data-no-drag="true" type="number" value={inputMin} onChange={e=>setI(e.target.value)}
+                    style={{width:50,padding:"5px 6px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.05)",color:"#f1f5f9",fontSize:13,fontFamily:"'JetBrains Mono',monospace",textAlign:"center",outline:"none"}} min="1" max="120" />
+                  <span style={{color:"#64748b",fontSize:11,alignSelf:"center"}}>min</span>
+                  <button data-no-drag="true" onClick={start} style={{padding:"5px 14px",borderRadius:8,border:"none",background:"#10b981",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer"}}>▶ Start</button>
+                </>
+              ):(
+                <>
+                  <button data-no-drag="true" onClick={()=>setRun(!running)} style={{padding:"5px 12px",borderRadius:8,border:"none",background:running?"#f59e0b":"#10b981",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer"}}>{running?"⏸ Pause":"▶ Weiter"}</button>
+                  <button data-no-drag="true" onClick={()=>{setRun(false);setR(null);}} style={{padding:"5px 12px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"#94a3b8",fontSize:11,fontWeight:600,cursor:"pointer"}}>↺ Reset</button>
+                </>
+              )}
+            </div>
+            {remaining===null&&(
+              <div style={{display:"flex",gap:4,justifyContent:"center",marginTop:6}}>
+                {[5,10,15,20,45].map(m=>(
+                  <button key={m} data-no-drag="true" onClick={()=>setI(String(m))} style={{
+                    padding:"2px 8px",borderRadius:6,
+                    border:`1px solid ${inputMin===String(m)?"#10b98133":"rgba(255,255,255,0.06)"}`,
+                    background:inputMin===String(m)?"rgba(16,185,129,0.15)":"transparent",
+                    color:inputMin===String(m)?"#10b981":"#64748b",
+                    fontSize:9,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",
+                  }}>{m}m</button>
+                ))}
+              </div>
+            )}
+          </div>
+        </W>
+      );
+    }
+
+    // ─── Timetable (iCal via proxy) ───
+    function TimetableW(p) {
+      const[events,setE]=useState([]);
+      const[loading,setL]=useState(true);
+      const[error,setErr]=useState(null);
+
+      useEffect(()=>{
+        setL(true);
+        fetchICal()
+          .then(t=>{setE(parseICal(t));setL(false);})
+          .catch(e=>{setErr(e.message);setL(false);});
+      },[]);
+
+      const now=new Date();
+      const todayStr=fmtISO(now);
+      const todayEvents=useMemo(()=>
+        events.map(ev=>({...ev,startDate:parseICalDate(ev.dtstart),endDate:parseICalDate(ev.dtend)}))
+          .filter(ev=>ev.startDate&&fmtISO(ev.startDate)===todayStr)
+          .sort((a,b)=>a.startDate-b.startDate)
+      ,[events,todayStr]);
+
+      const fc=(n)=>{const l=n.toLowerCase();if(l.includes("bwr"))return"#818cf8";if(l.includes("wr")||l.includes("wirtschaft"))return"#f59e0b";if(l.includes("seminar"))return"#ec4899";if(l.includes("it"))return"#06b6d4";return"#94a3b8";};
+
+      return (
+        <W title="Mein Stundenplan" icon="📚" id="timetable" color="#818cf8" {...p}>
+          {loading?(
+            <div style={{textAlign:"center",color:"#64748b",fontSize:13,padding:10}}><span style={{animation:"pulse 1.5s infinite"}}>Lade Stundenplan…</span></div>
+          ):error?(
+            <div style={{textAlign:"center",padding:10}}>
+              <div style={{color:"#ef4444",fontSize:12}}>⚠️ {error}</div>
+              <div style={{fontSize:9,color:"#475569",marginTop:4}}>Tipp: ical-proxy.php neben index.html hochladen</div>
+            </div>
+          ):todayEvents.length===0?(
+            <div style={{textAlign:"center",color:"#64748b",fontSize:13,padding:10}}>🎉 Kein Unterricht heute</div>
+          ):(
+            <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:340,overflowY:"auto"}} data-no-drag="true">
+              {todayEvents.map((ev,i)=>{
+                const s=ev.startDate,e=ev.endDate;
+                const isActive=s&&e&&now>=s&&now<e;
+                const isPast=e&&now>=e;
+                const col=fc(ev.summary);
+                return (
+                  <div key={i} style={{
+                    display:"flex",alignItems:"center",gap:8,padding:"6px 8px",borderRadius:8,
+                    background:isActive?`${col}18`:"rgba(255,255,255,0.02)",
+                    border:isActive?`1px solid ${col}33`:"1px solid transparent",
+                    opacity:isPast?0.35:1,transition:"all 0.3s",
+                  }}>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:isActive?"#c7d2fe":"#475569",minWidth:72}}>
+                      {s?`${pad(s.getHours())}:${pad(s.getMinutes())}`:""} – {e?`${pad(e.getHours())}:${pad(e.getMinutes())}`:""}
+                    </div>
+                    <div style={{padding:"2px 6px",borderRadius:5,background:`${col}22`,color:col,fontSize:11,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:140}}>
+                      {ev.summary}
+                    </div>
+                    {ev.location&&<div style={{fontSize:9,color:"#475569",marginLeft:"auto"}}>{ev.location}</div>}
+                    {isActive&&<div style={{width:5,height:5,borderRadius:"50%",background:col,boxShadow:`0 0 8px ${col}`,animation:"pulse 2s infinite",flexShrink:0}} />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </W>
+      );
+    }
+
+    // ─── Ferien Countdown ───
+    function FerienCdW(p) {
+      const now=new Date(),ferien=getNextFerien(now);
+      if(!ferien) return (<W title="Ferien-Countdown" icon="🏖️" id="ferienCd" color="#10b981" {...p}><div style={{textAlign:"center",color:"#64748b",fontSize:13}}>Keine Ferien mehr</div></W>);
+      const tage=ferien.isNow?Math.ceil((new Date(ferien.end+"T23:59:59")-now)/86400000):countSchultage(now,new Date(ferien.start+"T00:00:00"));
+      return (
+        <W title="Ferien-Countdown" icon="🏖️" id="ferienCd" color="#10b981" {...p}>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:10,color:"#64748b"}}>{ferien.isNow?"🎉 Aktuell:":"Nächste:"}</div>
+            <div style={{fontSize:15,fontWeight:700,color:"#10b981",marginTop:2}}>{ferien.name}</div>
+            <div style={{marginTop:8}}>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:36,fontWeight:800,color:"#f1f5f9",lineHeight:1}}>{tage}</span>
+              <span style={{fontSize:12,color:"#64748b",marginLeft:4}}>{ferien.isNow?"Tage":"Schultage"}</span>
+            </div>
+            {!ferien.isNow&&<div style={{fontSize:9,color:"#475569",marginTop:4}}>ab {new Date(ferien.start).toLocaleDateString("de-DE",{day:"numeric",month:"long"})}</div>}
+          </div>
+        </W>
+      );
+    }
+
+    // ─── Schultage ───
+    function SchultageW(p) {
+      const now=new Date();
+      const rem=countSchultage(now,SCHULJAHR_ENDE),total=countSchultage(SCHULJAHR_START,SCHULJAHR_ENDE);
+      const done=total-rem,pct=Math.round((done/total)*100);
+      const r=35,C=2*Math.PI*r;
+      return (
+        <W title="Schuljahr Fortschritt" icon="📊" id="schultage" color="#06b6d4" {...p}>
+          <div style={{textAlign:"center"}}>
+            <div style={{display:"flex",justifyContent:"center",alignItems:"baseline",gap:6}}>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:34,fontWeight:800,color:"#f1f5f9",lineHeight:1}}>{rem}</span>
+              <span style={{fontSize:11,color:"#64748b"}}>Schultage übrig</span>
+            </div>
+            <div style={{position:"relative",width:80,height:80,margin:"10px auto 0"}}>
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+                <circle cx="40" cy="40" r={r} fill="none" stroke="#06b6d4" strokeWidth="5" strokeLinecap="round"
+                  strokeDasharray={`${(pct/100)*C} ${C}`} transform="rotate(-90 40 40)" />
+              </svg>
+              <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontFamily:"'JetBrains Mono',monospace",fontSize:14,fontWeight:800,color:"#06b6d4"}}>{pct}%</div>
+            </div>
+            <div style={{fontSize:9,color:"#475569",marginTop:4}}>{done}/{total} absolviert</div>
+          </div>
+        </W>
+      );
+    }
+
+    // ─── Ferienkalender ───
+    function FerienkalW(p) {
+      const todayStr=fmtISO(new Date());
+      return (
+        <W title="Ferienkalender Bayern" icon="🗓️" id="ferienkal" color="#a78bfa" {...p}>
+          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+            {FERIEN.map((f,i)=>{
+              const isNow=todayStr>=f.start&&todayStr<=f.end,isPast=todayStr>f.end;
+              return (
+                <div key={i} style={{
+                  display:"flex",alignItems:"center",justifyContent:"space-between",
+                  padding:"5px 8px",borderRadius:7,
+                  background:isNow?"rgba(167,139,250,0.12)":"rgba(255,255,255,0.02)",
+                  border:isNow?"1px solid rgba(167,139,250,0.25)":"1px solid transparent",
+                  opacity:isPast?0.3:1,
+                }}>
+                  <span style={{fontSize:11,fontWeight:600,color:isNow?"#c4b5fd":"#cbd5e1"}}>{isNow&&"🎉 "}{f.name}</span>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#64748b"}}>
+                    {new Date(f.start+"T00:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})} – {new Date(f.end+"T00:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"2-digit"})}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{marginTop:6,fontSize:8,color:"#475569",textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>Schuljahr 2025/26 · Bayern</div>
+        </W>
+      );
+    }
+
+    // ─── Mode Toggle ───
+    function ModeToggle({mode,setMode}) {
+      const isL=mode==="lehrer";
+      return (
+        <div data-no-drag="true" style={{display:"flex",alignItems:"center",background:"rgba(255,255,255,0.04)",borderRadius:10,padding:3,border:"1px solid rgba(255,255,255,0.08)"}}>
+          <button data-no-drag="true" onClick={()=>setMode("schueler")} style={{padding:"5px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"'DM Sans',sans-serif",transition:"all 0.25s",background:!isL?"rgba(16,185,129,0.2)":"transparent",color:!isL?"#10b981":"#475569"}}>🎒 Schüler</button>
+          <button data-no-drag="true" onClick={()=>setMode("lehrer")} style={{padding:"5px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"'DM Sans',sans-serif",transition:"all 0.25s",background:isL?"rgba(129,140,248,0.2)":"transparent",color:isL?"#818cf8":"#475569"}}>🍎 Lehrer</button>
+        </div>
+      );
+    }
+
+    // ─── Settings Panel ───
+    function Settings({vis,setVis,onReset,onClose,mode}) {
+      const available=Object.keys(WIDGET_META).filter(id=>!(mode==="schueler"&&WIDGET_META[id].lehrerOnly));
+      return (
+        <div style={{position:"fixed",top:0,right:0,width:280,height:"100vh",background:"rgba(10,15,30,0.96)",backdropFilter:"blur(20px)",borderLeft:"1px solid rgba(255,255,255,0.08)",zIndex:9999,padding:"24px 20px",fontFamily:"'DM Sans',sans-serif",overflowY:"auto",boxShadow:"-8px 0 40px rgba(0,0,0,0.4)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+            <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"#818cf8",fontFamily:"'JetBrains Mono',monospace"}}>Einstellungen</span>
+            <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)",border:"none",color:"#94a3b8",width:28,height:28,borderRadius:8,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+          </div>
+          <div style={{padding:"8px 12px",borderRadius:10,marginBottom:16,background:mode==="lehrer"?"rgba(129,140,248,0.1)":"rgba(16,185,129,0.1)",border:`1px solid ${mode==="lehrer"?"rgba(129,140,248,0.2)":"rgba(16,185,129,0.2)"}`}}>
+            <div style={{fontSize:11,fontWeight:600,color:mode==="lehrer"?"#818cf8":"#10b981"}}>{mode==="lehrer"?"🍎 Lehrer-Modus":"🎒 Schüler-Modus"}</div>
+            <div style={{fontSize:9,color:"#475569",marginTop:2}}>{mode==="lehrer"?"Alle Widgets inkl. Stundenplan":"Schüler-relevante Widgets"}</div>
+          </div>
+          <div style={{fontSize:10,color:"#475569",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.1em",fontWeight:600}}>Widgets</div>
+          {available.map(id=>(
+            <div key={id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,0.04)",cursor:"pointer"}} onClick={()=>setVis(v=>({...v,[id]:!v[id]}))}>
+              <div style={{width:36,height:20,borderRadius:10,background:vis[id]?"#818cf8":"rgba(255,255,255,0.1)",position:"relative",transition:"background 0.2s",flexShrink:0}}>
+                <div style={{position:"absolute",top:2,left:vis[id]?18:2,width:16,height:16,borderRadius:8,background:"#fff",transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}} />
+              </div>
+              <span style={{fontSize:13,color:"#cbd5e1"}}>{WIDGET_META[id].icon} {WIDGET_META[id].label}</span>
+            </div>
+          ))}
+          <button onClick={onReset} style={{marginTop:24,width:"100%",padding:"10px 0",borderRadius:10,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(239,68,68,0.1)",color:"#f87171",fontSize:12,fontWeight:600,cursor:"pointer"}}>↺ Layout zurücksetzen</button>
+          <div style={{marginTop:12,fontSize:9,color:"#334155",textAlign:"center"}}>Einstellungen werden pro Modus gespeichert</div>
+        </div>
+      );
+    }
+
+    // ─── Main ───
+    function Dashboard() {
+      const initMode = loadMode();
+      const [mode,setModeState] = useState(initMode);
+      const initDefaults = getDefaults(initMode);
+      const [positions,setPos] = useState(()=>{
+        const s=loadSettings(initMode);
+        return s?.positions||{...initDefaults.positions};
+      });
+      const [visibility,setVis] = useState(()=>{
+        const s=loadSettings(initMode);
+        return s?.visibility||{...initDefaults.visibility};
+      });
+      const [settingsOpen,setSO] = useState(false);
+
+      const setMode = useCallback((newMode)=>{
+        saveSettings(mode,positions,visibility);
+        const s=loadSettings(newMode);
+        const d=getDefaults(newMode);
+        setPos(s?.positions||{...d.positions});
+        setVis(s?.visibility||{...d.visibility});
+        setModeState(newMode);
+        saveMode(newMode);
+      },[mode,positions,visibility]);
+
+      useEffect(()=>{saveSettings(mode,positions,visibility);},[positions,visibility,mode]);
+
+      const reset=()=>{
+        const d=getDefaults(mode);
+        setPos({...d.positions});
+        setVis({...d.visibility});
+        try{localStorage.removeItem(storageKey(mode));}catch{}
+      };
+
+      const wp = {positions,setPositions:setPos,mode};
+      const show = (id)=>{ if(mode==="schueler"&&WIDGET_META[id].lehrerOnly) return false; return visibility[id]; };
+      const modeColor = mode==="lehrer"?"#818cf8":"#10b981";
+      const modeLabel = mode==="lehrer"?"Lehrer-Dashboard":"Schüler-Dashboard";
+
+      return (
+        <div style={{position:"relative",width:"100%",height:"100vh",minHeight:800,background:"linear-gradient(145deg,#080d1a 0%,#0f172a 40%,#121a2e 100%)",overflow:"auto",fontFamily:"'DM Sans',sans-serif"}}>
+          <div style={{position:"fixed",inset:0,backgroundImage:"radial-gradient(rgba(255,255,255,0.025) 1px,transparent 1px)",backgroundSize:"30px 30px",pointerEvents:"none"}} />
+          <div style={{position:"fixed",top:-200,right:-200,width:600,height:600,background:`radial-gradient(circle,${modeColor}12,transparent 70%)`,pointerEvents:"none",transition:"background 0.5s"}} />
+          <div style={{position:"fixed",bottom:-150,left:-150,width:500,height:500,background:"radial-gradient(circle,rgba(16,185,129,0.05),transparent 70%)",pointerEvents:"none"}} />
+
+          {/* Header */}
+          <div style={{position:"fixed",top:0,left:0,right:settingsOpen?280:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px",background:"linear-gradient(180deg,rgba(8,13,26,0.97) 60%,transparent 100%)",transition:"right 0.3s"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:modeColor,boxShadow:`0 0 10px ${modeColor}`,transition:"all 0.3s"}} />
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,letterSpacing:"0.06em",color:"#e2e8f0"}}>{SCHOOL_NAME}</span>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#334155",marginLeft:2}}>· {modeLabel}</span>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <ModeToggle mode={mode} setMode={setMode} />
+              <button data-no-drag="true" onClick={()=>setSO(!settingsOpen)} style={{background:settingsOpen?"rgba(129,140,248,0.15)":"rgba(255,255,255,0.05)",border:settingsOpen?"1px solid rgba(129,140,248,0.3)":"1px solid rgba(255,255,255,0.08)",color:settingsOpen?"#818cf8":"#64748b",padding:"6px 14px",borderRadius:8,cursor:"pointer",fontSize:11,fontWeight:600,display:"flex",alignItems:"center",gap:6,transition:"all 0.2s"}}>⚙️</button>
+            </div>
+          </div>
+
+          {settingsOpen&&<Settings vis={visibility} setVis={setVis} onReset={reset} onClose={()=>setSO(false)} mode={mode} />}
+
+          <div style={{paddingTop:HEADER_H}}>
+            {show("clock")&&<ClockW {...wp} />}
+            {show("stundenuhr")&&<StundenuhrW {...wp} />}
+            {show("date")&&<DateW {...wp} />}
+            {show("countdown")&&<CountdownW {...wp} />}
+            {show("timetable")&&<TimetableW {...wp} />}
+            {show("ferienCd")&&<FerienCdW {...wp} />}
+            {show("schultage")&&<SchultageW {...wp} />}
+            {show("ferienkal")&&<FerienkalW {...wp} />}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Dashboard />);
+  </script>
+</body>
+</html>

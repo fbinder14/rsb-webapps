@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Treasure Chest</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<style>
+    .container {
+        text-align: center;
+        padding-top: 50px;
+    }
+    .chest {
+        width: 300px;
+        height: auto;
+        margin-bottom: 20px;
+    }
+    .code-input {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 24px;
+        text-align: center;
+    }
+    .message {
+        margin-top: 20px;
+        font-size: 24px;
+        color: green;
+        display: none;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <img src="treasure-chest-closed.jpg" class="chest" id="chestImage">
+    <input type="text" class="form-control code-input" id="codeInput" placeholder="Enter 4-digit code" maxlength="4">
+    <div class="message" id="message">Hallo, Louisa!</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#codeInput').on('input', function(){
+            var code = $(this).val();
+            if(code === '5592'){
+                $('#chestImage').attr('src', 'treasure-chest-open.jpg');
+                $('#message').show();
+            }
+        });
+    });
+</script>
+</body>
+</html>

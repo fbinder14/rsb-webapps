@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalenderwochen Übersicht</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background: #fff;
+    }
+
+    th, td {
+      padding: 10px 15px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background: #007BFF;
+      color: #fff;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f9f9f9;
+    }
+
+    tr:nth-child(odd) td {
+      background-color: #ffffff;
+    }
+
+    tr.current td {
+      background-color: #ffeb3b !important;
+      font-weight: bold;
+    }
+
+    @media screen and (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+
+      tr {
+        margin: 0 0 1rem 0;
+      }
+
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+      }
+
+      td:before {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+      }
+
+      td:nth-of-type(1):before { content: "Kalenderwoche"; }
+      td:nth-of-type(2):before { content: "Startdatum (Mo)"; }
+      td:nth-of-type(3):before { content: "Enddatum (So)"; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Kalenderwochen Übersicht</h1>
+  <table id="kwTable">
+    <thead>
+      <tr>
+        <th>Kalenderwoche</th>
+        <th>Startdatum (Mo)</th>
+        <th>Enddatum (So)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const schoolHolidays = {
+      "schoolHolidays": [
+        {
+          "schoolYear": "2024/2025",
+          "holidays": [
+            {"name": "Sommerferien 2024", "startDate": "2024-07-29", "endDate": "2024-09-10"},
+            {"name": "Allerheiligen 2024", "startDate": "2024-10-28", "endDate": "2024-10-31"},
+            {"name": "Weihnachtsferien 2024/2025", "startDate": "2024-12-23", "endDate": "2025-01-03"},
+            {"name": "Frühjahrsferien 2025", "startDate": "2025-03-03", "endDate": "2025-03-07"},
+            {"name": "Osterferien 2025", "startDate": "2025-04-14", "endDate": "2025-04-25"},
+            {"name": "Pfingstferien 2025", "startDate": "2025-06-10", "endDate": "2025-06-20"}
+          ]
+        },
+        {
+          "schoolYear": "2025/2026",
+          "holidays": [
+            {"name": "Sommerferien 2025", "startDate": "2025-08-01", "endDate": "2025-09-15"},
+            {"name": "Allerheiligen 2025", "startDate": "2025-11-03", "endDate": "2025-11-07"},
+            {"name": "Weihnachtsferien 2025/2026", "startDate": "2025-12-22", "endDate": "2026-01-05"},
+            {"name": "Frühjahrsferien 2026", "startDate": "2026-02-16", "endDate": "2026-02-20"},
+            {"name": "Osterferien 2026", "startDate": "2026-03-30", "endDate": "2026-04-10"},
+            {"name": "Pfingstferien 2026", "startDate": "2026-05-26", "endDate": "2026-06-05"}
+          ]
+        },
+        {
+          "schoolYear": "2026/2027",
+          "holidays": [
+            {"name": "Sommerferien 2026", "startDate": "2026-08-03", "endDate": "2026-09-14"},
+            {"name": "Allerheiligen 2026", "startDate": "2026-11-02", "endDate": "2026-11-06"},
+            {"name": "Weihnachtsferien 2026/2027", "startDate": "2026-12-24", "endDate": "2027-01-08"},
+            {"name": "Frühjahrsferien 2027", "startDate": "2027-02-08", "endDate": "2027-02-12"},
+            {"name": "Osterferien 2027", "startDate": "2027-03-22", "endDate": "2027-04-02"},
+            {"name": "Pfingstferien 2027", "startDate": "2027-05-18", "endDate": "2027-05-28"}
+          ]
+        },
+        {
+          "schoolYear": "2027/2028",
+          "holidays": [
+            {"name": "Sommerferien 2027", "startDate": "2027-08-02", "endDate": "2027-09-13"},
+            {"name": "Allerheiligen 2027", "startDate": "2027-11-02", "endDate": "2027-11-05"},
+            {"name": "Weihnachtsferien 2027/2028", "startDate": "2027-12-24", "endDate": "2028-01-07"},
+            {"name": "Frühjahrsferien 2028", "startDate": "2028-02-28", "endDate": "2028-03-03"},
+            {"name": "Osterferien 2028", "startDate": "2028-04-10", "endDate": "2028-04-21"},
+            {"name": "Pfingstferien 2028", "startDate": "2028-06-06", "endDate": "2028-06-16"}
+          ]
+        },
+        {
+          "schoolYear": "2028/2029",
+          "holidays": [
+            {"name": "Sommerferien 2028", "startDate": "2028-07-31", "endDate": "2028-09-11"},
+            {"name": "Allerheiligen 2028", "startDate": "2028-10-30", "endDate": "2028-11-03"},
+            {"name": "Weihnachtsferien 2028/2029", "startDate": "2028-12-23", "endDate": "2029-01-05"},
+            {"name": "Frühjahrsferien 2029", "startDate": "2029-02-12", "endDate": "2029-02-16"},
+            {"name": "Osterferien 2029", "startDate": "2029-03-26", "endDate": "2029-04-06"},
+            {"name": "Pfingstferien 2029", "startDate": "2029-05-22", "endDate": "2029-06-01"}
+          ]
+        },
+        {
+          "schoolYear": "2029/2030",
+          "holidays": [
+            {"name": "Sommerferien 2029", "startDate": "2029-07-30", "endDate": "2029-09-10"},
+            {"name": "Allerheiligen 2029", "startDate": "2029-10-29", "endDate": "2029-11-02"},
+            {"name": "Weihnachtsferien 2029/2030", "startDate": "2029-12-24", "endDate": "2030-01-04"},
+            {"name": "Frühjahrsferien 2030", "startDate": "2030-03-04", "endDate": "2030-03-08"},
+            {"name": "Osterferien 2030", "startDate": "2030-04-15", "endDate": "2030-04-26"},
+            {"name": "Pfingstferien 2030", "startDate": "2030-06-11", "endDate": "2030-06-21"}
+          ]
+        }
+      ]
+    };
+
+    function formatDate(date) {
+      const d = date.getDate().toString().padStart(2, '0');
+      const m = (date.getMonth() + 1).toString().padStart(2, '0');
+      const y = date.getFullYear();
+      return `${d}.${m}.${y}`;
+    }
+
+    // Returns ISO weekday number (1 = Montag, ... 7 = Sonntag)
+    function getISODay(date) {
+      const day = date.getDay();
+      return day === 0 ? 7 : day;
+    }
+
+    // Get the Monday of week 1 based on the ISO standard.
+    function getMondayOfWeek1(year) {
+      const jan4 = new Date(year, 0, 4);
+      const dayOfWeek = getISODay(jan4);
+      const monday = new Date(jan4);
+      monday.setDate(jan4.getDate() - (dayOfWeek - 1));
+      return monday;
+    }
+
+    // Revised getISOWeek function using a standard algorithm.
+    function getISOWeek(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      d.setHours(12, 0, 0, 0); // Ensure no DST issues
+      // Thursday in current week decides the year.
+      d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+      const week1 = new Date(d.getFullYear(), 0, 4);
+      // Adjust to Thursday of week1.
+      const dayDiff = ((week1.getDay() + 6) % 7) - 3;
+      week1.setDate(week1.getDate() - dayDiff);
+      const diff = d - week1;
+      return 1 + Math.floor(diff / (7 * 86400000));
+    }
+
+    function getTotalWeeks(year) {
+      const dec28 = new Date(year, 11, 28);
+      return getISOWeek(dec28);
+    }
+
+    function populateTable() {
+      const tbody = document.querySelector('#kwTable tbody');
+      const today = new Date();
+      const currentISOWeek = getISOWeek(today);
+      const year = today.getFullYear();
+      const totalWeeks = getTotalWeeks(year);
+      const mondayOfWeek1 = getMondayOfWeek1(year);
+
+      tbody.innerHTML = "";
+
+      for (let week = 1; week <= totalWeeks; week++) {
+        const monday = new Date(mondayOfWeek1);
+        monday.setDate(monday.getDate() + (week - 1) * 7);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        const tr = document.createElement('tr');
+        if (week === currentISOWeek) {
+          tr.classList.add('current');
+        }
+
+        const tdWeek = document.createElement('td');
+        tdWeek.textContent = week;
+
+        const tdMonday = document.createElement('td');
+        tdMonday.textContent = formatDate(monday);
+
+        const tdSunday = document.createElement('td');
+        tdSunday.textContent = formatDate(sunday);
+
+        tr.appendChild(tdWeek);
+        tr.appendChild(tdMonday);
+        tr.appendChild(tdSunday);
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", populateTable);
+  </script>
+</body>
+</html>
+```

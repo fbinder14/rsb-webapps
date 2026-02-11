@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+		<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Geschwindigkeit zu Pace Konverter</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    body {
+      padding: 2em;
+    }
+    .result {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Geschwindigkeit zu Pace Konverter</h1>
+    <form id="speedConverter">
+      <div class="form-group">
+        <label for="speed">Geschwindigkeit (km/h):</label>
+        <input type="number" id="speed" class="form-control" step="any" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Umwandeln</button>
+    </form>
+    <div class="result alert alert-success mt-3">
+      <h2>Ergebnis: <span id="result">0</span> min/km</h2>
+    </div>
+	    <a href="http://seminarlehrer.com/playground/pacetokmh.htm">pace to km/h</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#speedConverter').on('submit', function(e) {
+        e.preventDefault();
+
+        var speed = parseFloat($('#speed').val().replace(',', '.'));
+
+        var pace = 60 / speed;
+
+        var minutes = Math.floor(pace);
+        var seconds = Math.round((pace % 1) * 60);
+
+        var paceFormatted = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+
+        $('#result').text(paceFormatted);
+        $('.result').fadeIn(500);
+      });
+    });
+  </script>
+</body>
+</html>

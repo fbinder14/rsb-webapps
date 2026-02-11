@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>10 Maßnahmen gegen Überschuldung – Finanzbildung für Jugendliche</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+      font-family: 'Nunito Sans', Arial, sans-serif;
+      color: #2c3e50;
+    }
+    .header {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      padding: 2rem 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 24px rgba(220,53,69,0.3);
+    }
+    .header h1 {
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .header p {
+      font-size: 1.05rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.95;
+    }
+    .assignment-box {
+      background: rgba(255,255,255,0.2);
+      border-left: 4px solid white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+    .assignment-box ul {
+      margin-bottom: 0;
+      padding-left: 1.2rem;
+    }
+    .assignment-box li {
+      margin-bottom: 0.5rem;
+    }
+    .accordion-item {
+      border: none;
+      margin-bottom: 1rem;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+    .accordion-item:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+    .accordion-button {
+      font-weight: 600;
+      font-size: 1.1rem;
+      background: white;
+      color: #dc3545;
+      border: none;
+      padding: 1.2rem 1.5rem;
+    }
+    .accordion-button:not(.collapsed) {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      box-shadow: none;
+    }
+    .accordion-button:focus {
+      box-shadow: 0 0 0 0.25rem rgba(220,53,69,0.25);
+    }
+    .accordion-button::after {
+      filter: brightness(0) saturate(100%) invert(27%) sepia(88%) saturate(2519%) hue-rotate(343deg) brightness(91%) contrast(86%);
+    }
+    .accordion-button:not(.collapsed)::after {
+      filter: brightness(0) invert(1);
+    }
+    .accordion-body {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      background: white;
+      padding: 1.5rem;
+      color: #495057;
+    }
+    .accordion-body strong {
+      color: #dc3545;
+      font-weight: 600;
+    }
+    footer {
+      margin-top: 3rem;
+      padding: 1.5rem;
+      text-align: center;
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      color: #6c757d;
+    }
+    .badge-info {
+      background: #17a2b8;
+      color: white;
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container my-4">
+
+  <div class="header">
+    <h1 class="h3">💰 10 Maßnahmen gegen Überschuldung</h1>
+    <p>
+      Mit diesen Tipps lernst du, clever und sicher mit Geld umzugehen. Alle Begriffe werden erklärt – verständlich für junge Leute formuliert, ohne kindisch zu wirken.
+    </p>
+    <div class="assignment-box">
+      <strong>📋 Arbeitsaufträge für den Unterricht:</strong>
+      <ul>
+        <li><strong>Arbeitsauftrag 1:</strong> Wähle zwei Maßnahmen aus und schreibe jeweils ein konkretes Beispiel aus deinem Alltag dazu auf.</li>
+        <li><strong>Arbeitsauftrag 2:</strong> Erkläre einem Mitschüler einen Fachbegriff aus einer Maßnahme mit deinen eigenen Worten.</li>
+        <li><strong>Arbeitsauftrag 3:</strong> Entscheide, welche der 10 Maßnahmen für dich persönlich am wichtigsten ist und begründe deine Auswahl in mindestens zwei Sätzen.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="accordion" id="massnahmenAccordion">
+    
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m1">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme1" aria-expanded="false" aria-controls="massnahme1">
+          1. Budget führen – Den Überblick behalten
+        </button>
+      </h2>
+      <div id="massnahme1" class="accordion-collapse collapse" aria-labelledby="m1" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Grundlage</span>
+          <p>Schreibe regelmäßig auf, wie viel Geld du bekommst und wofür du es ausgibst. Ein <strong>Budget</strong> ist dein persönlicher Plan für Einnahmen und Ausgaben. Nur wer weiß, wohin das Geld fließt, kann gezielt sparen und vermeidet böse Überraschungen am Monatsende. Nutze dafür einen Notizblock, eine Excel-Tabelle oder eine App auf dem Handy. Wichtig ist, dass du ehrlich zu dir selbst bist und auch kleine Ausgaben wie Snacks oder Busfahrten notierst. Nach ein paar Wochen erkennst du Muster: Wo gibst du vielleicht zu viel aus? Welche Ausgaben sind wirklich nötig?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m2">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme2" aria-expanded="false" aria-controls="massnahme2">
+          2. Fixkosten zuerst beachten
+        </button>
+      </h2>
+      <div id="massnahme2" class="accordion-collapse collapse" aria-labelledby="m2" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Prioritäten setzen</span>
+          <p>Bezahle zuerst die Dinge, die jeden Monat anfallen und die du nicht aufschieben kannst. <strong>Fixkosten</strong> sind Ausgaben, die regelmäßig gleich bleiben und immer bezahlt werden müssen – zum Beispiel dein Handyvertrag, die Busfahrkarte oder ein Fitness-Abo. Diese Kosten sollten immer Vorrang haben vor Freizeit, Shopping oder spontanen Wünschen. Plane dein restliches Geld erst dann ein, wenn du sicher bist, dass alle festen Verpflichtungen gedeckt sind. So vermeidest du, dass am Ende des Monats wichtige Rechnungen offen bleiben.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m3">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme3" aria-expanded="false" aria-controls="massnahme3">
+          3. Einen Notgroschen aufbauen
+        </button>
+      </h2>
+      <div id="massnahme3" class="accordion-collapse collapse" aria-labelledby="m3" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Absicherung</span>
+          <p>Spare regelmäßig kleine Beträge, bis du eine Reserve für Notfälle hast. Ein <strong>Notgroschen</strong> ist Geld, das du zur Seite legst und nur bei echten Notfällen benutzt – zum Beispiel für eine unerwartete Reparatur, einen kaputten Laptop oder eine dringende Anschaffung. Experten empfehlen, langfristig etwa zwei bis drei Monatsausgaben als Notgroschen zu haben. Für den Anfang reicht es, wenn du monatlich einen kleinen, festen Betrag beiseite legst. Lege dieses Geld am besten auf ein separates Konto oder Sparschwein, damit du nicht in Versuchung kommst, es für alltägliche Dinge auszugeben.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m4">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme4" aria-expanded="false" aria-controls="massnahme4">
+          4. Wünsche kritisch prüfen
+        </button>
+      </h2>
+      <div id="massnahme4" class="accordion-collapse collapse" aria-labelledby="m4" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Selbstkontrolle</span>
+          <p>Überlege vor jedem Kauf genau: Brauche ich das wirklich oder will ich es nur spontan haben? Lasse dich nicht von Werbung, Influencern oder aktuellen Trends zu Spontankäufen verleiten. Oft verliert man nach kurzer Zeit das Interesse an impulsiv gekauften Dingen. Eine gute Regel ist die 24-Stunden-Regel: Warte einen Tag, bevor du etwas Größeres kaufst. So gibst du deinem Kopf Zeit zu entscheiden, ob der Wunsch wirklich wichtig ist. Unterscheide zwischen „Must-have" (wirklich notwendig) und „Nice-to-have" (wäre schön, aber nicht dringend). Wer Wünsche kritisch hinterfragt, spart langfristig viel Geld.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m5">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme5" aria-expanded="false" aria-controls="massnahme5">
+          5. Ratenkauf und "Buy Now, Pay Later" meiden
+        </button>
+      </h2>
+      <div id="massnahme5" class="accordion-collapse collapse" aria-labelledby="m5" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Schuldenfalle</span>
+          <p>Bezahle Dinge lieber direkt statt sie später oder in Raten abzubezahlen. <strong>Ratenkauf</strong> oder <strong>„Buy Now, Pay Later"</strong> (BNPL) bedeutet, dass du etwas sofort kaufst und erst später oder in mehreren Teilbeträgen bezahlst. Das klingt bequem, kann aber schnell zur Schuldenfalle werden. Warum? Weil du leicht den Überblick verlierst, wenn mehrere Raten gleichzeitig laufen. Außerdem können hohe Gebühren und Zinsen anfallen, wenn du eine Rate verpasst. Die Verbraucherzentrale und die BaFin (Bundesanstalt für Finanzdienstleistungsaufsicht) warnen ausdrücklich vor diesen Bezahlmodellen, besonders für junge Menschen. Kaufe nur, was du dir auch sofort leisten kannst.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m6">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme6" aria-expanded="false" aria-controls="massnahme6">
+          6. Rechnungen sofort bezahlen
+        </button>
+      </h2>
+      <div id="massnahme6" class="accordion-collapse collapse" aria-labelledby="m6" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Fristen einhalten</span>
+          <p>Zahle alle Rechnungen pünktlich und innerhalb der angegebenen Frist, um Mahngebühren oder Inkassokosten zu vermeiden. Wenn du eine Rechnung nicht bezahlst, bekommst du zunächst eine Mahnung – das kostet bereits extra Geld. Reagierst du auch dann nicht, kann ein <strong>Inkasso-Unternehmen</strong> eingeschaltet werden. Das bedeutet, dass eine spezialisierte Firma das Geld für die unbezahlte Rechnung eintreibt – und das wird richtig teuer durch zusätzliche Gebühren. Außerdem kann eine unbezahlte Rechnung negative Einträge bei der Schufa verursachen, was später Probleme bei Verträgen oder Krediten macht. Wenn du eine Rechnung nicht bezahlen kannst, melde dich sofort beim Unternehmen und suche nach einer Lösung.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m7">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme7" aria-expanded="false" aria-controls="massnahme7">
+          7. Belege sammeln und Zahlungsarten kennen
+        </button>
+      </h2>
+      <div id="massnahme7" class="accordion-collapse collapse" aria-labelledby="m7" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Dokumentation</span>
+          <p>Hebe Quittungen und Belege immer gut auf, damit du im Streitfall einen Nachweis hast. Das kann bei Reklamationen, falschen Abbuchungen oder Garantiefällen wichtig werden. Du kannst Belege fotografieren und digital speichern oder sie in einem Ordner abheften. Lerne außerdem verschiedene <strong>Zahlungsarten</strong> kennen: Barzahlung, EC-Karte, Kreditkarte, Online-Überweisung, PayPal oder andere Payment-Apps. Jede Methode hat Vor- und Nachteile in Sachen Kosten, Praktikabilität, Sicherheit und Datenschutz. Achte besonders beim Online-Shopping darauf, dass die Webseite seriös ist und sichere Zahlungsmethoden anbietet. Vermeide unsichere oder dubiose Zahlungsanbieter.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m8">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme8" aria-expanded="false" aria-controls="massnahme8">
+          8. Online-Verträge nur mit Erlaubnis abschließen
+        </button>
+      </h2>
+      <div id="massnahme8" class="accordion-collapse collapse" aria-labelledby="m8" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Rechtlicher Schutz</span>
+          <p>Schließe Verträge im Internet nur nach Absprache mit deinen Eltern oder Erziehungsberechtigten ab. <strong>Minderjährige</strong> (also Personen unter 18 Jahren) dürfen rechtlich gesehen nur im Rahmen ihres Taschengelds einkaufen – das nennt man den „Taschengeldparagraphen". Größere Käufe oder Verträge brauchen die Zustimmung der Eltern, sonst sind sie ungültig. Vorsicht vor Abofallen, In-App-Käufen oder automatischen Verlängerungen bei kostenlosen Testphasen! Lies immer das Kleingedruckte, bevor du auf „Kaufen" oder „Abonnieren" klickst. Wenn du versehentlich etwas abgeschlossen hast, informiere sofort deine Eltern – oft gibt es ein Widerrufsrecht innerhalb von 14 Tagen.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m9">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme9" aria-expanded="false" aria-controls="massnahme9">
+          9. Frühzeitig Hilfe suchen
+        </button>
+      </h2>
+      <div id="massnahme9" class="accordion-collapse collapse" aria-labelledby="m9" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Unterstützung</span>
+          <p>Wenn Geldprobleme auftauchen, sprich offen und ehrlich mit deinen Eltern oder anderen vertrauten Erwachsenen darüber. Es ist keine Schande, Hilfe zu brauchen – im Gegenteil, es zeigt Verantwortungsbewusstsein, wenn du frühzeitig reagierst. Professionelle Hilfe bekommst du bei anerkannten <strong>Schuldnerberatungen</strong>, zum Beispiel bei der Verbraucherzentrale, bei kommunalen Beratungsstellen oder Wohlfahrtsverbänden wie Caritas oder Diakonie. Diese Beratungen sind seriös, oft kostenlos und unterliegen der Schweigepflicht. Vorsicht vor unseriösen Angeboten, die schnelle Lösungen gegen hohe Gebühren versprechen! Je früher du handelst, desto einfacher lassen sich Probleme lösen.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="m10">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#massnahme10" aria-expanded="false" aria-controls="massnahme10">
+          10. Eigene Sparziele setzen
+        </button>
+      </h2>
+      <div id="massnahme10" class="accordion-collapse collapse" aria-labelledby="m10" data-bs-parent="#massnahmenAccordion">
+        <div class="accordion-body">
+          <span class="badge-info">Motivation</span>
+          <p>Überlege dir konkret, wofür du Geld zurücklegen willst – zum Beispiel für ein neues Fahrrad, einen Ausflug mit Freunden, ein Konzert oder ein neues Smartphone. Setze dir feste, realistische <strong>Sparziele</strong> und überlege, wie viel du monatlich sparen musst, um dein Ziel zu erreichen. Das motiviert und macht das Sparen greifbarer. Spare regelmäßig, auch wenn es nur kleine Beträge sind. Kontrolliere gemeinsam mit deinem Budget oder Taschengeldplaner, wie nah du deinem Ziel schon bist. Feiere kleine Erfolge, wenn du Zwischenziele erreichst. Mit klaren Zielen vor Augen fällt es leichter, auf spontane Ausgaben zu verzichten und langfristig zu planen.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p class="mb-2"><strong>Bildungsseite nach Vorbild der Verbraucherzentrale</strong></p>
+    <p class="mb-0">© 2025 – Alle Informationen sind neutral, fachlich geprüft und altersgerecht aufbereitet. Diese Webseite dient ausschließlich Bildungszwecken im Schulunterricht.</p>
+  </footer>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

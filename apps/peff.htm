@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+	<title>Kreditkostenrechner</title>
+	<!-- Bootstrap CSS einbinden -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+	<div class="container mt-5">
+		<h1>Kreditkostenrechner</h1>
+		<form>
+			<div class="form-group">
+				<label for="laufzeit">Laufzeit in Tagen:</label>
+				<input type="number" class="form-control" id="laufzeit" name="laufzeit">
+			</div>
+
+			<div class="form-group">
+				<label for="kreditbetrag">Kreditbetrag in Euro:</label>
+				<input type="number" class="form-control" id="kreditbetrag" name="kreditbetrag">
+			</div>
+
+			<div class="form-group">
+				<label for="zinssatz">Zinssatz nominal p.a. in Prozent:</label>
+				<input type="number" class="form-control" id="zinssatz" name="zinssatz">
+			</div>
+
+			<div class="form-group">
+				<label for="disagio">Disagio in Prozent:</label>
+				<input type="number" class="form-control" id="disagio" name="disagio">
+			</div>
+
+			<button type="button" class="btn btn-primary" onclick="berechneVerzinsung()">Berechnen</button>
+		</form>
+
+		<h2>Kreditkosten</h2>
+		<div class="row">
+			<div class="col-md-4">
+				<p>Zinsaufwand:</p>
+				<p>Kreditbetrag:</p>
+				<p>Disagio:</p>
+				<hr>
+				<p>Auszahlungsbetrag:</p>
+			</div>
+			<div class="col-md-8">
+				<p id="zinsaufwand"></p>
+				<p id="kreditbetrag"></p>
+				<p id="disagio"></p>
+				<hr>
+				<p id="auszahlungsbetrag"></p>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- Bootstrap JavaScript einbinden -->
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+	<script>
+		function berechneVerzinsung() {
+			// Holen Sie sich die Eingabewerte aus dem Formular
+			var laufzeit = document.getElementById("laufzeit").value;
+			var kreditbetrag = document.getElementById("kreditbetrag").value;
+			var zinssatz = document.getElementById("zinssatz").value;
+			var disagio = document.getElementById("disagio").value;
+
+			// Berechnen Sie die effektive Verzinsung
+			var zinsaufwand = (kreditbetrag * zinssatz / 100) * laufzeit / 360;
+			var auszahlungsbetrag = kredit
+			
+			// Berechnen Sie die effektive Verzinsung
+			var zinsaufwand = (kreditbetrag * zinssatz / 100) * laufzeit / 360;
+			var auszahlungsbetrag = kreditbetrag - (kreditbetrag * disagio / 100);
+			var effektiveVerzinsung = (zinsaufwand / auszahlungsbetrag) * 100;
+
+			// Runden Sie das Ergebnis auf zwei Nachkommastellen
+			zinsaufwand = zinsaufwand.toFixed(2);
+			kreditbetrag = kreditbetrag.toFixed(2);
+			disagio = disagio.toFixed(2);
+			auszahlungsbetrag = auszahlungsbetrag.toFixed(2);
+			effektiveVerzinsung = effektiveVerzinsung.toFixed(2);
+
+			// Zeigen Sie das Ergebnis auf der Seite an
+			document.getElementById("zinsaufwand").innerHTML = zinsaufwand + " €";
+			document.getElementById("kreditbetrag").innerHTML = kreditbetrag + " €";
+			document.getElementById("disagio").innerHTML = disagio + " %";
+			document.getElementById("auszahlungsbetrag").innerHTML = auszahlungsbetrag + " €";
+
+			// Wenn der Zinssatz kleiner als 0 ist, zeigen Sie eine Fehlermeldung an
+			if (zinssatz < 0) {
+				alert("Der Zinssatz darf nicht kleiner als 0 sein.");
+			}
+		}
+	</script>
+</body>
+</html>

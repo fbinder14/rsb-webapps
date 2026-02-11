@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Beleg-Memory · BWR 7</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+    
+    /* Card flip animation */
+    .card-container {
+      perspective: 1000px;
+    }
+    
+    .card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+    
+    .card.matched {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+    
+    .card-front {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    
+    .card-back {
+      background: white;
+      transform: rotateY(180deg);
+      border: 2px solid #e2e8f0;
+    }
+    
+    /* Player indicator pulse */
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 currentColor;
+      }
+      100% {
+        box-shadow: 0 0 0 8px transparent;
+      }
+    }
+    
+    .active-player {
+      animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    /* Score animation */
+    @keyframes score-bump {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    
+    .score-bump {
+      animation: score-bump 0.4s ease;
+    }
+    
+    /* Confetti */
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #f0f;
+      animation: confetti-fall 3s linear forwards;
+    }
+    
+    @keyframes confetti-fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+  <div class="max-w-6xl mx-auto px-4 pb-12 pt-6">
+    
+    <!-- Header with Player Scores -->
+    <header class="mb-6">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="size-10 rounded-xl bg-indigo-600 text-white grid place-items-center shadow-lg">
+            <span class="font-bold text-lg">🎮</span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight">Beleg-Memory</h1>
+            <p class="text-sm text-slate-500">Finde die passenden Paare!</p>
+          </div>
+        </div>
+        <button id="btnRestart" class="px-4 py-2 rounded-lg bg-indigo-600 text-white shadow-md hover:bg-indigo-700 font-medium transition">
+          Neues Spiel
+        </button>
+      </div>
+      
+      <!-- Player Score Cards -->
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Player 1 -->
+        <div id="player1Card" class="rounded-2xl bg-white ring-2 ring-blue-500 shadow-lg p-5 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="size-10 rounded-full bg-blue-500 text-white grid place-items-center font-bold text-lg">
+                1
+              </div>
+              <span class="font-semibold text-lg">Spieler 1</span>
+            </div>
+            <div id="player1Turn" class="hidden size-3 rounded-full bg-blue-500"></div>
+          </div>
+          <div class="text-center mt-3">
+            <div class="text-4xl font-bold text-blue-600" id="player1Score">0</div>
+            <div class="text-sm text-slate-500 mt-1">Paare gefunden</div>
+          </div>
+        </div>
+        
+        <!-- Player 2 -->
+        <div id="player2Card" class="rounded-2xl bg-white ring-2 ring-transparent shadow-lg p-5 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="size-10 rounded-full bg-emerald-500 text-white grid place-items-center font-bold text-lg">
+                2
+              </div>
+              <span class="font-semibold text-lg">Spieler 2</span>
+            </div>
+            <div id="player2Turn" class="hidden size-3 rounded-full bg-emerald-500"></div>
+          </div>
+          <div class="text-center mt-3">
+            <div class="text-4xl font-bold text-emerald-600" id="player2Score">0</div>
+            <div class="text-sm text-slate-500 mt-1">Paare gefunden</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Turn Indicator -->
+      <div class="mt-4 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-md">
+          <span class="font-medium text-slate-700">Am Zug:</span>
+          <span id="currentPlayerText" class="font-bold text-blue-600">Spieler 1</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Game Board -->
+    <main>
+      <div id="gameBoard" class="grid grid-cols-4 gap-4">
+        <!-- Cards will be injected here -->
+      </div>
+    </main>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm grid place-items-center z-50">
+      <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-4 text-center">
+        <div class="text-6xl mb-4">🎉</div>
+        <h2 class="text-3xl font-bold mb-4">Spiel beendet!</h2>
+        <div id="winnerText" class="text-xl font-semibold mb-6 text-slate-700"></div>
+        <div class="flex gap-4 justify-center text-lg mb-6">
+          <div class="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 font-bold">
+            Spieler 1: <span id="finalScore1">0</span>
+          </div>
+          <div class="px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold">
+            Spieler 2: <span id="finalScore2">0</span>
+          </div>
+        </div>
+        <button onclick="location.reload()" class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">
+          Noch eine Runde!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Game Data ----
+    const CARD_PAIRS = [
+      {
+        term: "Gesamtbetrag",
+        definition: "Der gesamte zu zahlende Betrag inklusive aller Preisbestandteile."
+      },
+      {
+        term: "Datum",
+        definition: "Wann der Einkauf oder die Leistung stattgefunden hat."
+      },
+      {
+        term: "Verkäufer/Anschrift",
+        definition: "Wer verkauft hat und wo die Firma zu erreichen ist."
+      },
+      {
+        term: "Beleg-Nummer",
+        definition: "Eindeutige Nummer, um den Beleg später wiederzufinden."
+      },
+      {
+        term: "Mehrwertsteuer",
+        definition: "Ausgewiesene Umsatzsteuer; bei Rechnungen meist Pflichtangabe."
+      },
+      {
+        term: "Zahlungsart",
+        definition: "Wie bezahlt wurde, z. B. bar, mit Karte oder per Überweisung."
+      },
+      {
+        term: "Warenbeschreibung",
+        definition: "Bezeichnung der Ware oder Dienstleistung."
+      },
+      {
+        term: "Einzelpreise",
+        definition: "Preis der einzelnen Positionen zur Nachvollziehbarkeit."
+      }
+    ];
+
+    // ---- Game State ----
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let currentPlayer = 1;
+    let scores = { player1: 0, player2: 0 };
+    let canFlip = true;
+
+    // ---- DOM Elements ----
+    const gameBoard = document.getElementById('gameBoard');
+    const player1Card = document.getElementById('player1Card');
+    const player2Card = document.getElementById('player2Card');
+    const player1Score = document.getElementById('player1Score');
+    const player2Score = document.getElementById('player2Score');
+    const player1Turn = document.getElementById('player1Turn');
+    const player2Turn = document.getElementById('player2Turn');
+    const currentPlayerText = document.getElementById('currentPlayerText');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const btnRestart = document.getElementById('btnRestart');
+
+    // ---- Utility Functions ----
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function createCardElement(content, type, pairId, index) {
+      const container = document.createElement('div');
+      container.className = 'card-container h-40';
+      
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.pairId = pairId;
+      card.dataset.type = type;
+      card.dataset.index = index;
+      
+      const front = document.createElement('div');
+      front.className = 'card-face card-front';
+      front.textContent = '?';
+      
+      const back = document.createElement('div');
+      back.className = 'card-face card-back';
+      back.innerHTML = `<div class="text-sm md:text-base text-center font-medium text-slate-800 leading-snug">${content}</div>`;
+      
+      card.appendChild(front);
+      card.appendChild(back);
+      container.appendChild(card);
+      
+      card.addEventListener('click', () => handleCardClick(card, index));
+      
+      return container;
+    }
+
+    function initGame() {
+      gameBoard.innerHTML = '';
+      cards = [];
+      flippedCards = [];
+      matchedPairs = 0;
+      currentPlayer = 1;
+      scores = { player1: 0, player2: 0 };
+      canFlip = true;
+      
+      updateScoreDisplay();
+      updateTurnIndicator();
+      
+      // Create card pairs
+      const cardData = [];
+      CARD_PAIRS.forEach((pair, pairId) => {
+        cardData.push({ content: pair.term, type: 'term', pairId });
+        cardData.push({ content: pair.definition, type: 'definition', pairId });
+      });
+      
+      // Shuffle and create DOM elements
+      const shuffled = shuffle(cardData);
+      shuffled.forEach((data, index) => {
+        const cardEl = createCardElement(data.content, data.type, data.pairId, index);
+        gameBoard.appendChild(cardEl);
+        cards.push({
+          element: cardEl.querySelector('.card'),
+          pairId: data.pairId,
+          type: data.type,
+          matched: false
+        });
+      });
+    }
+
+    function handleCardClick(cardElement, index) {
+      if (!canFlip) return;
+      if (cardElement.classList.contains('flipped')) return;
+      if (cardElement.classList.contains('matched')) return;
+      if (flippedCards.length >= 2) return;
+      
+      // Flip card
+      cardElement.classList.add('flipped');
+      flippedCards.push({ element: cardElement, index, card: cards[index] });
+      
+      // Check for match when 2 cards are flipped
+      if (flippedCards.length === 2) {
+        canFlip = false;
+        setTimeout(checkMatch, 1000);
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      
+      if (card1.card.pairId === card2.card.pairId && card1.card.type !== card2.card.type) {
+        // Match found!
+        card1.element.classList.add('matched');
+        card2.element.classList.add('matched');
+        card1.card.matched = true;
+        card2.card.matched = true;
+        
+        matchedPairs++;
+        scores[`player${currentPlayer}`]++;
+        updateScoreDisplay();
+        
+        // Same player continues
+        flippedCards = [];
+        canFlip = true;
+        
+        // Check if game is over
+        if (matchedPairs === CARD_PAIRS.length) {
+          setTimeout(endGame, 500);
+        }
+      } else {
+        // No match - flip back
+        setTimeout(() => {
+          card1.element.classList.remove('flipped');
+          card2.element.classList.remove('flipped');
+          flippedCards = [];
+          
+          // Switch player
+          currentPlayer = currentPlayer === 1 ? 2 : 1;
+          updateTurnIndicator();
+          canFlip = true;
+        }, 500);
+      }
+    }
+
+    function updateScoreDisplay() {
+      player1Score.textContent = scores.player1;
+      player2Score.textContent = scores.player2;
+      
+      // Add bump animation
+      const scoreEl = currentPlayer === 1 ? player1Score : player2Score;
+      scoreEl.classList.add('score-bump');
+      setTimeout(() => scoreEl.classList.remove('score-bump'), 400);
+    }
+
+    function updateTurnIndicator() {
+      // Update card highlighting
+      if (currentPlayer === 1) {
+        player1Card.classList.remove('ring-transparent');
+        player1Card.classList.add('ring-blue-500', 'active-player');
+        player2Card.classList.remove('ring-emerald-500', 'active-player');
+        player2Card.classList.add('ring-transparent');
+        
+        player1Turn.classList.remove('hidden');
+        player2Turn.classList.add('hidden');
+        
+        currentPlayerText.textContent = 'Spieler 1';
+        currentPlayerText.className = 'font-bold text-blue-600';
+      } else {
+        player2Card.classList.remove('ring-transparent');
+        player2Card.classList.add('ring-emerald-500', 'active-player');
+        player1Card.classList.remove('ring-blue-500', 'active-player');
+        player1Card.classList.add('ring-transparent');
+        
+        player2Turn.classList.remove('hidden');
+        player1Turn.classList.add('hidden');
+        
+        currentPlayerText.textContent = 'Spieler 2';
+        currentPlayerText.className = 'font-bold text-emerald-600';
+      }
+    }
+
+    function endGame() {
+      const finalScore1 = document.getElementById('finalScore1');
+      const finalScore2 = document.getElementById('finalScore2');
+      const winnerText = document.getElementById('winnerText');
+      
+      finalScore1.textContent = scores.player1;
+      finalScore2.textContent = scores.player2;
+      
+      if (scores.player1 > scores.player2) {
+        winnerText.textContent = '🎊 Spieler 1 gewinnt! 🎊';
+        winnerText.className = 'text-xl font-semibold mb-6 text-blue-600';
+      } else if (scores.player2 > scores.player1) {
+        winnerText.textContent = '🎊 Spieler 2 gewinnt! 🎊';
+        winnerText.className = 'text-xl font-semibold mb-6 text-emerald-600';
+      } else {
+        winnerText.textContent = '🤝 Unentschieden! 🤝';
+        winnerText.className = 'text-xl font-semibold mb-6 text-slate-700';
+      }
+      
+      gameOverModal.classList.remove('hidden');
+    }
+
+    // ---- Event Listeners ----
+    btnRestart.addEventListener('click', () => {
+      gameOverModal.classList.add('hidden');
+      initGame();
+    });
+
+    // ---- Initialize Game ----
+    initGame();
+  </script>
+</body>
+</html>

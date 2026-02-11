@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive AfA-Tabelle AV (BMF)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+        
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 text-white">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">AfA-Tabelle AV – Nutzungsdauer</h1>
+            <p class="text-blue-100 text-lg opacity-90">
+                Allgemein verwendbare Anlagegüter – Betriebsgewöhnliche Nutzungsdauer (ND)
+            </p>
+            <p class="text-xs text-blue-200 mt-2">
+                Datenbasis: BMF-Schreiben IV D 2 - S 1551 - 188/00 (Stand 15.12.2000, gültig ab 2001)
+            </p>
+        </div>
+
+        <div class="p-6 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-sm">
+            <div class="relative w-full md:w-2/3">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <input type="text" id="searchInput" 
+                    class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out shadow-sm"
+                    placeholder="Suchen nach Begriff (z.B. 'PKW', 'Halle', 'Drucker')...">
+            </div>
+            <div class="text-sm text-gray-500 text-right w-full md:w-auto">
+                <span id="countDisplay" class="font-bold text-blue-700">0</span> Einträge gefunden
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-24">
+                            Nr.
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Anlagegut / Bezeichnung
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-32">
+                            ND (Jahre)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+            <p><strong>Hinweis:</strong> Dies ist eine Lesehilfe. Rechtlich bindend sind die offiziellen Veröffentlichungen des Bundesfinanzministeriums. Für digitale Wirtschaftsgüter (Computer, Software) gilt seit 2021 oft eine Nutzungsdauer von 1 Jahr (BMF-Schreiben vom 26.02.2021).</p>
+        </div>
+    </div>
+
+    <script>
+        // Vollständige Datenstruktur basierend auf der AfA-Tabelle AV
+        const afaDaten = [
+            // 1. Unbewegliches Anlagevermögen
+            { nr: "1.1", text: "Hallen in Leichtbauweise", jahre: 14 },
+            { nr: "1.2", text: "Tennishallen, Squashhallen, Reithallen u. ä.", jahre: 20 },
+            { nr: "1.3", text: "Traglufthallen", jahre: 10 },
+            { nr: "1.4", text: "Kühlhallen", jahre: 20 },
+            { nr: "1.5", text: "Baracken, Schuppen, Buden", jahre: 16 },
+            { nr: "1.6", text: "Baubuden (auf Baustellen)", jahre: 8 },
+            { nr: "1.7", text: "Bierzelte", jahre: 8 },
+            { nr: "1.8", text: "Pumpenhäuser, Trafostationshäuser, Schalthäuser", jahre: 20 },
+            { nr: "1.9.1", text: "Silobauten aus Beton", jahre: 33 },
+            { nr: "1.9.2", text: "Silobauten aus Stahl", jahre: 25 },
+            { nr: "1.9.3", text: "Silobauten aus Kunststoff", jahre: 17 },
+            { nr: "1.10.1", text: "Schornsteine aus Mauerwerk oder Beton", jahre: 33 },
+            { nr: "1.10.2", text: "Schornsteine aus Stahl", jahre: 10 },
+            { nr: "1.11", text: "Laderampen", jahre: 25 },
+
+            // 2. Grundstückseinrichtungen
+            { nr: "2.1.1", text: "Fahrbahnen, Parkplätze, Hofbefestigungen (Packlage)", jahre: 19 },
+            { nr: "2.1.2", text: "Fahrbahnen, Parkplätze (Kies, Schotter, Schlacke)", jahre: 9 },
+            { nr: "2.2.1", text: "Straßen- und Wegebrücken (Stahl/Beton)", jahre: 33 },
+            { nr: "2.2.2", text: "Straßen- und Wegebrücken (Holz)", jahre: 15 },
+            { nr: "2.3.1", text: "Umzäunungen aus Holz", jahre: 5 },
+            { nr: "2.3.2", text: "Umzäunungen (Draht, Metall, Mauerwerk)", jahre: 17 },
+            { nr: "2.4", text: "Außenbeleuchtung, Straßenbeleuchtung, Hofbeleuchtung", jahre: 19 },
+            { nr: "2.5", text: "Orientierungssysteme, Schilderbrücken", jahre: 10 },
+            { nr: "2.6", text: "Uferbefestigungen", jahre: 20 },
+            { nr: "2.7.1", text: "Brunnen", jahre: 20 },
+            { nr: "2.7.2.1", text: "Drainagen (Beton/Mauerwerk)", jahre: 33 },
+            { nr: "2.7.2.2", text: "Drainagen (Ton/Kunststoff)", jahre: 13 },
+            { nr: "2.7.3", text: "Kläranlagen mit Zu- und Ableitung", jahre: 20 },
+            { nr: "2.7.4", text: "Löschwasserteiche", jahre: 20 },
+            { nr: "2.7.5", text: "Wasserspeicher", jahre: 20 },
+            { nr: "2.8", text: "Grünanlagen", jahre: 15 },
+            { nr: "2.9", text: "Golfplätze", jahre: 20 },
+
+            // 3. Betriebsanlagen allgemeiner Art
+            { nr: "3.1.1", text: "Dampfkessel mit Zubehör (Dampferzeugung)", jahre: 15 },
+            { nr: "3.1.2", text: "Stromerzeugungsanlagen (Generatoren, Notstrom, Gleichrichter)", jahre: 19 },
+            { nr: "3.1.3", text: "Akkumulatoren (Säure/Lauge)", jahre: 10 },
+            { nr: "3.1.4", text: "Blockheizkraftwerke (Kraft-Wärme-Kopplung)", jahre: 10 },
+            { nr: "3.1.5", text: "Windkraftanlagen", jahre: 16 },
+            { nr: "3.1.6", text: "Photovoltaikanlagen", jahre: 20 },
+            { nr: "3.1.7", text: "Solaranlagen (thermisch)", jahre: 10 },
+            { nr: "3.1.8", text: "Kompressoren, Ventilatoren, Heißluft-/Kälteanlagen", jahre: 14 },
+            { nr: "3.1.9", text: "Kessel einschl. Druckkessel", jahre: 15 },
+            { nr: "3.1.10", text: "Wasseraufbereitungsanlagen", jahre: 12 },
+            { nr: "3.1.11", text: "Wasserenthärtungsanlagen", jahre: 12 },
+            { nr: "3.1.12", text: "Wasserreinigungsanlagen", jahre: 11 },
+            { nr: "3.1.13", text: "Druckluftanlagen", jahre: 12 },
+            { nr: "3.1.14", text: "Wärmetauscher", jahre: 15 },
+            { nr: "3.2", text: "Rückgewinnungsanlagen", jahre: 10 },
+            
+            // 3.3 Mess- und Regeltechnik
+            { nr: "3.3.1", text: "Mess- und Regeleinrichtungen (allgemein)", jahre: 18 },
+            { nr: "3.3.2", text: "Emissionsmessgeräte", jahre: 8 },
+            { nr: "3.3.3", text: "Materialprüfgeräte", jahre: 10 },
+            { nr: "3.3.4", text: "Ultraschallgeräte (technisch, nicht medizinisch)", jahre: 10 },
+            { nr: "3.3.5.1", text: "Vermessungsgeräte (elektronisch: Theodoliten etc.)", jahre: 8 },
+            { nr: "3.3.5.2", text: "Vermessungsgeräte (mechanisch)", jahre: 12 },
+
+            // 3.4 Transportanlagen
+            { nr: "3.4.1", text: "Förderbänder, Transportbänder, Rollenbahnen, Elevatoren", jahre: 14 },
+            { nr: "3.4.2.1", text: "Gleisanlagen (gesetzl. Vorschrift)", jahre: 33 },
+            { nr: "3.4.2.2", text: "Gleisanlagen (sonstige, werkseitig)", jahre: 15 },
+            { nr: "3.4.3.1", text: "Krananlagen (ortsfest / auf Schienen)", jahre: 21 },
+            { nr: "3.4.3.2", text: "Krananlagen (sonstige, mobil)", jahre: 14 },
+            { nr: "3.4.4.1", text: "Aufzüge, Hebebühnen, Hublifte (stationär)", jahre: 15 },
+            { nr: "3.4.4.2", text: "Aufzüge, Hebebühnen (mobil)", jahre: 11 },
+
+            // 3.10 Sonstige
+            { nr: "3.10.1", text: "Brückenwaagen", jahre: 20 },
+            { nr: "3.10.4", text: "Autowaschanlagen (Waschstraßen)", jahre: 10 },
+            { nr: "3.10.5", text: "Abzugsvorrichtungen, Entstaubungsanlagen", jahre: 14 },
+            { nr: "3.10.6", text: "Alarmanlagen, Überwachungsanlagen", jahre: 11 },
+            { nr: "3.10.7", text: "Sprinkleranlagen", jahre: 20 },
+
+            // 4. Fahrzeuge
+            { nr: "4.1", text: "Schienenfahrzeuge", jahre: 25 },
+            { nr: "4.2.1", text: "Personenkraftwagen (PKW) und Kombiwagen", jahre: 6 },
+            { nr: "4.2.2", text: "Motorräder, Motorroller, Fahrräder, E-Bikes", jahre: 7 },
+            { nr: "4.2.3", text: "Lastkraftwagen (LKW), Zugmaschinen, Sattelschlepper, Kipper", jahre: 9 },
+            { nr: "4.3", text: "Gabelstapler, Hubwagen, Flurförderzeuge", jahre: 8 },
+            { nr: "4.x", text: "Anhänger (LKW/PKW)", jahre: 11 }, // Häufiger Wert
+
+            // 5. Maschinen (Auszug AV)
+            { nr: "5.3.1", text: "Bohrmaschinen (stationär)", jahre: 16 },
+            { nr: "5.3.2", text: "Bohrmaschinen (mobil, Handbohrmaschinen)", jahre: 8 },
+            { nr: "5.4", text: "Bohrhämmer, Presslufthämmer", jahre: 7 },
+            { nr: "5.x", text: "Werkzeugmaschinen (allgemein)", jahre: 10 }, // Fallback Wert
+
+            // 6. Betriebs- und Geschäftsausstattung
+            { nr: "6.10", text: "Büromöbel (Tische, Stühle, Schränke)", jahre: 13 },
+            { nr: "6.12.1", text: "Computer, PC, Notebooks, Tablets (Hardware)", jahre: 3 },
+            { nr: "6.12.2", text: "Software (ERP, Standardsoftware)", jahre: 3 },
+            { nr: "6.13.1", text: "Telefonanlagen, Telefone, Mobiltelefone (Handys)", jahre: 5 },
+            { nr: "6.13.5", text: "Antennenmasten", jahre: 10 },
+            { nr: "6.14.1", text: "Adressiermaschinen, Kuvertiermaschinen", jahre: 8 },
+            { nr: "6.14.3.1", text: "Großrechner (Mainframes)", jahre: 7 },
+            { nr: "6.14.3.2", text: "Peripheriegeräte (Drucker, Scanner, Bildschirme)", jahre: 3 },
+            { nr: "6.14.4", text: "Foto-, Film-, Video-, Audiogeräte (TV, Beamer, Kameras)", jahre: 7 },
+            { nr: "6.14.5", text: "Beschallungsanlagen, Mikrofone, Lautsprecher", jahre: 9 },
+            { nr: "6.14.12", text: "Geldzählgeräte, Geldsortierer", jahre: 7 },
+            { nr: "6.14.13", text: "Aktenvernichter (Reißwölfe)", jahre: 8 },
+            { nr: "6.14.14", text: "Kartenleser (Chipkarten, EC)", jahre: 8 },
+            { nr: "6.16", text: "Fotokopiergeräte, Multifunktionsgeräte", jahre: 7 },
+            { nr: "6.19.4.2", text: "Teppiche (hochwertig)", jahre: 15 },
+            { nr: "6.19.5", text: "Kunstwerke (anerkannte Künstler)", jahre: 15 },
+            { nr: "6.19.6", text: "Waagen (Geschäftsausstattung)", jahre: 11 }
+        ];
+
+        // Render Funktion
+        const tableBody = document.getElementById('tableBody');
+        const countDisplay = document.getElementById('countDisplay');
+
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            countDisplay.textContent = data.length;
+
+            if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="3" class="px-6 py-4 text-center text-gray-500 italic">Keine Ergebnisse gefunden.</td>`;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-blue-50 transition-colors duration-150";
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.nr}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700">${item.text}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-semibold bg-gray-50">${item.jahre}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Suchfunktion
+        const searchInput = document.getElementById('searchInput');
+
+        function filterData(query) {
+            const lowerQuery = query.toLowerCase();
+            const filtered = afaDaten.filter(item => {
+                return item.text.toLowerCase().includes(lowerQuery) || 
+                       item.nr.toLowerCase().includes(lowerQuery) ||
+                       item.jahre.toString().includes(lowerQuery);
+            });
+            renderTable(filtered);
+        }
+
+        // Event Listener
+        searchInput.addEventListener('input', (e) => {
+            filterData(e.target.value);
+        });
+
+        // Initial Render
+        renderTable(afaDaten);
+
+        // Download JSON Feature (Optional console log for developer access)
+        console.log("AfA Daten geladen:", afaDaten);
+    </script>
+</body>
+</html>

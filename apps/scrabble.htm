@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrabble-Helfer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        #input-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        #letters {
+            font-size: 18px;
+            padding: 12px;
+            width: 250px;
+            text-transform: uppercase;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        #letters:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        #submit {
+            font-size: 18px;
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #submit:hover {
+            background-color: #2980b9;
+        }
+        #submit:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        #reset {
+            font-size: 18px;
+            padding: 12px 25px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #reset:hover {
+            background-color: #c0392b;
+        }
+        #status {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 25px;
+        }
+        .loading {
+            color: #3498db;
+            font-style: italic;
+        }
+        .error {
+            color: #e74c3c;
+            background-color: #fdf2f2;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        #results {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 50px;
+        }
+        .word-count {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+        }
+        .word {
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .word-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .word-definition {
+            color: #666;
+            line-height: 1.4;
+        }
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+        .char-counter {
+            font-size: 14px;
+            color: #666;
+            margin-left: 10px;
+        }
+        @media (max-width: 600px) {
+            #input-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            #letters {
+                width: 100%;
+                max-width: 300px;
+            }
+            #submit, #reset {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Scrabble-Helfer</h1>
+    <p class="subtitle">Gib deine Buchstaben ein und finde passende deutsche Wörter</p>
+    
+    <div id="input-container">
+        <input type="text" id="letters" placeholder="z.B. AEIOURT?" maxlength="15">
+        <span class="char-counter" id="charCounter">0/15</span>
+        <button id="submit">🔍 Suchen</button>
+        <button id="reset">🔄 Reset</button>
+    </div>
+    
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script>
+        // Dein API Key hier einfügen
+        const apiKey = 'DEIN-API-KEY-HIER-EINFUEGEN';
+
+        const lettersInput = document.getElementById('letters');
+        const submitButton = document.getElementById('submit');
+        const resetButton = document.getElementById('reset');
+        const resultsDiv = document.getElementById('results');
+        const statusDiv = document.getElementById('status');
+        const charCounter = document.getElementById('charCounter');
+
+        let currentRequest = null;
+
+        // Eingabe-Handler: Nur Buchstaben und ? erlauben, automatisch Großbuchstaben
+        lettersInput.addEventListener('input', function(e) {
+            // Nur A-Z und ? erlauben, Leerzeichen entfernen
+            let value = this.value.toUpperCase().replace(/[^A-Z?]/g, '');
+            
+            // Maximal 15 Zeichen
+            if (value.length > 15) {
+                value = value.substring(0, 15);
+            }
+            
+            this.value = value;
+            updateCharCounter();
+        });
+
+        // Zeichenzähler aktualisieren
+        function updateCharCounter() {
+            const count = lettersInput.value.length;
+            charCounter.textContent = `${count}/15`;
+            charCounter.style.color = count >= 15 ? '#e74c3c' : '#666';
+        }
+
+        // Enter-Taste für Suche
+        lettersInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && lettersInput.value.trim().length >= 2) {
+                searchWords();
+            }
+        });
+
+        // Suchen-Button
+        submitButton.addEventListener('click', searchWords);
+
+        // Reset-Button
+        resetButton.addEventListener('click', () => {
+            lettersInput.value = '';
+            resultsDiv.innerHTML = '';
+            statusDiv.innerHTML = '';
+            updateCharCounter();
+            lettersInput.focus();
+            
+            if (currentRequest) {
+                currentRequest.abort();
+                currentRequest = null;
+            }
+        });
+
+        async function searchWords() {
+            const letters = lettersInput.value.trim();
+            
+            if (letters.length < 2) {
+                statusDiv.innerHTML = '<div class="error">Bitte gib mindestens 2 Buchstaben ein.</div>';
+                return;
+            }
+
+            // Vorherige Anfrage abbrechen
+            if (currentRequest) {
+                currentRequest.abort();
+            }
+
+            const controller = new AbortController();
+            currentRequest = controller;
+
+            submitButton.disabled = true;
+            statusDiv.innerHTML = '<div class="loading">🔍 Suche nach Wörtern...</div>';
+            resultsDiv.innerHTML = '';
+
+            try {
+                console.log('Sende API-Anfrage für Buchstaben:', letters);
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `Du bist ein Experte für deutsche Scrabble-Wortlisten.
+                                
+WICHTIGE REGELN:
+1. Antworte AUSSCHLIESSLICH mit reinem JSON (keine Markdown-Codeblöcke!)
+2. Nur gültige deutsche Wörter verwenden
+3. Jeder Buchstabe darf nur so oft verwendet werden wie gegeben
+4. Der Joker "?" kann jeden Buchstaben ersetzen
+5. Mindestens 2 Buchstaben pro Wort
+6. Maximal 20 der besten Wörter zurückgeben
+
+Gib ein Array von Objekten zurück:
+- "word": das deutsche Wort
+- "definition": kurze Erklärung (max. 60 Zeichen)`
+                            },
+                            {
+                                role: 'user',
+                                content: `Verfügbare Buchstaben: "${letters}". Finde deutsche Wörter (2-${letters.length} Buchstaben). Jeder Buchstabe darf nur einmal verwendet werden, außer Joker "?".`
+                            }
+                        ],
+                        temperature: 0.2,
+                        max_tokens: 2000
+                    })
+                });
+
+                console.log('API Response Status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`API-Fehler ${response.status}: ${errorText.substring(0, 100)}`);
+                }
+
+                const data = await response.json();
+                console.log('API Response:', data);
+
+                let content = data.choices?.[0]?.message?.content || '';
+                content = content.trim();
+
+                console.log('Received content:', content);
+
+                // Code-Fences entfernen falls vorhanden
+                if (content.includes('```
+                    content = content
+                        .replace(/^```(?:json)?\s*/m, '')
+                        .replace(/\s*```
+                        .trim();
+                }
+
+                let words;
+                try {
+                    words = JSON.parse(content);
+                } catch (e) {
+                    console.error('JSON Parse Error:', e, 'Content:', content);
+                    throw new Error('Ungültiges JSON von der API erhalten. Bitte versuche es erneut.');
+                }
+
+                if (!Array.isArray(words)) {
+                    throw new Error('Unerwartetes Antwortformat von der API.');
+                }
+
+                displayResults(words, letters);
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return; // Anfrage wurde abgebrochen
+                }
+                
+                console.error('Search Error:', error);
+                statusDiv.innerHTML = `<div class="error">
+                    <strong>Fehler:</strong> ${error.message}
+                    <br><small>Bitte überprüfe deine Eingabe und versuche es erneut.</small>
+                </div>`;
+                resultsDiv.innerHTML = '';
+            } finally {
+                submitButton.disabled = false;
+                currentRequest = null;
+            }
+        }
+
+        function displayResults(words, searchLetters) {
+            statusDiv.innerHTML = '';
+            resultsDiv.innerHTML = '';
+
+            if (!words || words.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">Keine Wörter gefunden. Versuche andere Buchstaben!</div>';
+                return;
+            }
+
+            // Nach Länge (absteigend) dann alphabetisch sortieren
+            words.sort((a, b) => {
+                if (b.word.length !== a.word.length) {
+                    return b.word.length - a.word.length;
+                }
+                return a.word.localeCompare(b.word, 'de');
+            });
+
+            // Kopfzeile
+            const header = document.createElement('div');
+            header.className = 'word-count';
+            header.innerHTML = `${words.length} Wort${words.length !== 1 ? 'e' : ''} gefunden für: <strong>${searchLetters}</strong>`;
+            resultsDiv.appendChild(header);
+
+            // Wörter anzeigen
+            words.forEach(item => {
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'word';
+                
+                const title = document.createElement('div');
+                title.className = 'word-title';
+                title.textContent = item.word || 'Unbekanntes Wort';
+                
+                const definition = document.createElement('div');
+                definition.className = 'word-definition';
+                definition.textContent = item.definition || 'Keine Definition verfügbar';
+                
+                wordDiv.appendChild(title);
+                wordDiv.appendChild(definition);
+                resultsDiv.appendChild(wordDiv);
+            });
+        }
+
+        // Initial Setup
+        lettersInput.focus();
+        updateCharCounter();
+
+        // API Test Funktion (in Browser-Konsole verwendbar)
+        window.testAPI = async function() {
+            try {
+                const response = await fetch('https://api.openai.com/v1/models', {
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+                console.log('API Test Status:', response.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Verfügbare Modelle:', data.data.map(m => m.id).slice(0, 10));
+                } else {
+                    console.error('API Test Error:', await response.text());
+                }
+            } catch (err) {
+                console.error('API Test Failed:', err);
+            }
+        };
+    </script>
+</body>
+</html>

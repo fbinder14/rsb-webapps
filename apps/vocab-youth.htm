@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emma's Talent Show - Gap Fill Exercise</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            max-width: 900px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .card-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .card-body {
+            padding: 40px;
+            background: white;
+        }
+        
+        .text-content {
+            font-size: 1.15rem;
+            line-height: 2.2;
+            color: #333;
+            text-align: justify;
+        }
+        
+        .gap-input {
+            display: inline-block;
+            min-width: 120px;
+            padding: 4px 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: #f8f9ff;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s ease;
+            margin: 0 3px;
+        }
+        
+        .gap-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            background: #fff;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .gap-input.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            animation: correctPulse 0.5s ease;
+        }
+        
+        .gap-input.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+            animation: shake 0.5s ease;
+        }
+        
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .btn-check-answer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+        
+        .btn-check-answer:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn-reset {
+            background: #6c757d;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-reset:hover {
+            background: #5a6268;
+            transform: translateY(-3px);
+        }
+        
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+            z-index: 1000;
+            animation: slideInRight 0.5s ease;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .result-message {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .result-excellent {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        
+        .result-good {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #17a2b8;
+        }
+        
+        .result-needwork {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+        
+        .hint {
+            display: inline-block;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-left: 5px;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            animation: fadeIn 1s ease;
+        }
+        
+        .instruction-box {
+            background: #e7f3ff;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+        
+        .instruction-box i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-star"></i> Emma's Talent Show</h1>
+                <p class="mb-0">Fill in the Blanks Exercise</p>
+            </div>
+            <div class="card-body">
+                <div class="instruction-box">
+                    <i class="fas fa-info-circle fa-lg"></i>
+                    <strong>Instructions:</strong> Fill in the missing words in the text below. Read the hints in brackets to help you find the correct answer.
+                </div>
+                
+                <div class="text-content" id="textContent">
+                    <p>Emma was full of excitement. The school talent show was tonight, and she was ready to show everyone what she could do. When she arrived at the hall, she took a deep breath and looked around. The place was already full of students and teachers waiting for the show to begin.</p>
+                    
+                    <p>First, she saw the <input type="text" class="gap-input" data-answer="judge" id="gap1"> <span class="hint">(person who gives scores)</span> sitting at the front, smiling kindly at the nervous students. Then, her best friend Luke waved to her from the audience. "Don't stand too <input type="text" class="gap-input" data-answer="close" id="gap2"> <span class="hint">(near)</span> to the stage edge," he called out. Emma laughed.</p>
+                    
+                    <p>When it was her <input type="text" class="gap-input" data-answer="turn" id="gap3"> <span class="hint">(your time to do something)</span> to perform, her hands were shaking. "It's <input type="text" class="gap-input" data-answer="almost" id="gap4"> <span class="hint">(very soon)</span> time!" her teacher said, encouraging her. Emma walked onto the stage and took a deep breath. She started to sing a song about her <input type="text" class="gap-input" data-answer="youth" id="gap5"> <span class="hint">(time when you are young)</span> and dreams for the future. The audience listened quietly, and when she finished, they clapped loudly.</p>
+                    
+                    <p>The <input type="text" class="gap-input" data-answer="judges" id="gap6"> <span class="hint">(people who decide the winner)</span> gave her eight out of ten points. "That's a great <input type="text" class="gap-input" data-answer="point" id="gap7"> <span class="hint">(score, result)</span>!" Luke shouted. Emma smiled proudly.</p>
+                    
+                    <p>On her way home, however, she tripped and began to <input type="text" class="gap-input" data-answer="get" id="gap8"> <span class="hint">(mount, climb on)</span> her bike. "Oh no," she said, "I might <input type="text" class="gap-input" data-answer="fall off" id="gap9"> <span class="hint">(lose balance and drop)</span>!" But she managed to stop just in time. "<input type="text" class="gap-input" data-answer="What a shame!" id="gap10"> <span class="hint">(expression to show sympathy)</span>" said Luke, helping her get back up.</p>
+                    
+                    <p>When she got home, her little brother was trying to <input type="text" class="gap-input" data-answer="fix" id="gap11"> <span class="hint">(repair)</span> his broken toy car. "Can you help me?" he asked. Emma smiled. "Of course I can <input type="text" class="gap-input" data-answer="fix" id="gap12"> <span class="hint">(make it work again)</span> it for you."</p>
+                    
+                    <p>That night, Emma felt happy. She wasn't <input type="text" class="gap-input" data-answer="mad" id="gap13"> <span class="hint">(angry)</span> because she hadn't won. She knew she had done her best—and that was what really mattered. "I'll <input type="text" class="gap-input" data-answer="train" id="gap14"> <span class="hint">(practice hard)</span> even harder for next year," she thought as she turned off the light.</p>
+                </div>
+                
+                <div class="progress-container" id="progressContainer" style="display:none;">
+                    <h5>Progress:</h5>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" id="progressBar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+                
+                <div id="resultMessage"></div>
+                
+                <div class="text-center">
+                    <button class="btn btn-check-answer btn-primary" onclick="checkAnswers()">
+                        <i class="fas fa-check-circle"></i> Check Answers
+                    </button>
+                    <button class="btn btn-reset btn-secondary" onclick="resetExercise()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="score-display" id="scoreDisplay" style="display:none;">
+        <i class="fas fa-trophy"></i> Score: <span id="scoreValue">0</span>/14
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const totalGaps = 14;
+        
+        function normalizeAnswer(text) {
+            return text.trim().toLowerCase().replace(/[!?.]/g, '');
+        }
+        
+        function checkAnswers() {
+            let correctCount = 0;
+            const inputs = document.querySelectorAll('.gap-input');
+            
+            inputs.forEach((input, index) => {
+                const userAnswer = normalizeAnswer(input.value);
+                const correctAnswer = normalizeAnswer(input.dataset.answer);
+                
+                input.classList.remove('correct', 'incorrect');
+                
+                if (userAnswer === correctAnswer) {
+                    input.classList.add('correct');
+                    correctCount++;
+                } else if (userAnswer !== '') {
+                    input.classList.add('incorrect');
+                }
+            });
+            
+            // Update score display
+            document.getElementById('scoreDisplay').style.display = 'block';
+            document.getElementById('scoreValue').textContent = correctCount;
+            
+            // Update progress bar
+            const percentage = (correctCount / totalGaps) * 100;
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressBar').textContent = Math.round(percentage) + '%';
+            
+            // Show result message
+            const resultDiv = document.getElementById('resultMessage');
+            let message = '';
+            let className = '';
+            
+            if (correctCount === totalGaps) {
+                message = '<i class="fas fa-trophy"></i> Perfect! You got all answers correct! Excellent work!';
+                className = 'result-excellent';
+                confetti();
+            } else if (correctCount >= totalGaps * 0.7) {
+                message = '<i class="fas fa-smile"></i> Great job! You got ' + correctCount + ' out of ' + totalGaps + ' correct!';
+                className = 'result-good';
+            } else {
+                message = '<i class="fas fa-book"></i> Keep practicing! You got ' + correctCount + ' out of ' + totalGaps + ' correct. Try again!';
+                className = 'result-needwork';
+            }
+            
+            resultDiv.innerHTML = '<div class="result-message ' + className + '">' + message + '</div>';
+        }
+        
+        function resetExercise() {
+            const inputs = document.querySelectorAll('.gap-input');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('correct', 'incorrect');
+            });
+            
+            document.getElementById('scoreDisplay').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('resultMessage').innerHTML = '';
+        }
+        
+        function confetti() {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 2000 };
+            
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // Create simple confetti effect with colored divs
+                for (let i = 0; i < 5; i++) {
+                    const confettiEl = document.createElement('div');
+                    confettiEl.style.position = 'fixed';
+                    confettiEl.style.width = '10px';
+                    confettiEl.style.height = '10px';
+                    confettiEl.style.backgroundColor = ['#667eea', '#764ba2', '#f093fb', '#4facfe'][Math.floor(Math.random() * 4)];
+                    confettiEl.style.left = Math.random() * 100 + '%';
+                    confettiEl.style.top = '-10px';
+                    confettiEl.style.zIndex = '2000';
+                    confettiEl.style.borderRadius = '50%';
+                    document.body.appendChild(confettiEl);
+                    
+                    let pos = -10;
+                    const fallInterval = setInterval(() => {
+                        pos += 5;
+                        confettiEl.style.top = pos + 'px';
+                        if (pos > window.innerHeight) {
+                            clearInterval(fallInterval);
+                            document.body.removeChild(confettiEl);
+                        }
+                    }, 20);
+                }
+            }, 250);
+        }
+        
+        // Enable Enter key to check answers
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswers();
+            }
+        });
+        
+        // Add smooth scrolling
+        document.querySelectorAll('.gap-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+    </script>
+</body>
+</html>

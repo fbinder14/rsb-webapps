@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deutsche Gesetze - Schüler Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #635bff;
+            --secondary-color: #0a2540;
+            --light-gray: #f7f9fc;
+            --border-color: #e3e8ee;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--secondary-color);
+        }
+        
+        .navbar {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--secondary-color) !important;
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .law-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            min-height: 500px;
+        }
+        
+        .law-select {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+        }
+        
+        .paragraph-input {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 6px;
+            font-weight: 500;
+            padding: 12px 24px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5a52e8;
+            border-color: #5a52e8;
+        }
+        
+        .law-title {
+            color: var(--secondary-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .paragraph {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-left: 3px solid var(--primary-color);
+            background-color: #fafbfc;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .paragraph-number {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .paragraph-text {
+            line-height: 1.6;
+            color: var(--secondary-color);
+            white-space: pre-line;
+        }
+        
+        .paragraph-explanation {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .spinner-border {
+            color: var(--primary-color);
+        }
+        
+        .copy-link {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .copy-link:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        .api-key-input {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .ai-features {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .explain-btn {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        
+        .explain-btn:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .control-panel {
+                margin-bottom: 15px;
+            }
+            
+            .row.g-3 > * {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-balance-scale me-2"></i>
+                Deutsche Gesetze Portal
+            </a>
+            <span class="navbar-text small text-muted">
+                Powered by OpenAI GPT-4.1 nano
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="api-key-input" id="apiKeySection">
+            <h6><i class="fas fa-key me-2"></i>OpenAI API Konfiguration</h6>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <input type="password" class="form-control" id="apiKeyInput" 
+                           placeholder="Geben Sie Ihren OpenAI API Key ein...">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100" onclick="saveApiKey()">
+                        <i class="fas fa-save me-1"></i>Speichern
+                    </button>
+                </div>
+            </div>
+            <small class="text-muted mt-2 d-block">
+                Ihr API Key wird nur lokal gespeichert und nicht an externe Server gesendet.
+            </small>
+        </div>
+
+        <div class="ai-features" id="aiFeatures" style="display: none;">
+            <i class="fas fa-robot me-2"></i>
+            <strong>KI-Features aktiviert:</strong> Paragraphen-Erklärungen, Vereinfachungen und Beispiele verfügbar
+        </div>
+        
+        <div class="control-panel p-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="lawSelect" class="form-label fw-semibold">Gesetz auswählen</label>
+                    <select class="form-select law-select" id="lawSelect">
+                        <option value="">-- Gesetz wählen --</option>
+                        <option value="bgb">BGB - Bürgerliches Gesetzbuch</option>
+                        <option value="hgb">HGB - Handelsgesetzbuch</option>
+                        <option value="jarbschg">JArbSchG - Jugendarbeitsschutzgesetz</option>
+                        <option value="jgg">JGG - Jugendgerichtsgesetz</option>
+                        <option value="jschg">JSchG - Jugendschutzgesetz</option>
+                        <option value="stgb">StGB - Strafgesetzbuch</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="paragraphInput" class="form-label fw-semibold">Zu Paragraph springen</label>
+                    <input type="text" class="form-control paragraph-input" id="paragraphInput" 
+                           placeholder="z.B. 1, 242, 263">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" onclick="jumpToParagraph()" id="jumpBtn">
+                        <i class="fas fa-search me-1"></i>
+                        Springen
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary w-100" onclick="copyCurrentUrl()">
+                        <i class="fas fa-link me-1"></i>
+                        Link kopieren
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="law-content p-4">
+            <div id="lawTitle" class="law-title" style="display: none;">
+                <h2></h2>
+            </div>
+            <div id="loadingMessage" class="loading">
+                <i class="fas fa-book-open fa-2x mb-3 text-muted"></i>
+                <p>Konfigurieren Sie Ihren OpenAI API Key und wählen Sie ein Gesetz aus</p>
+            </div>
+            <div id="lawText" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // OpenAI API Konfiguration
+        let openaiApiKey = localStorage.getItem('openai_api_key') || '';
+        
+        // Mapping der Gesetze zu ihren Basistexten
+        const lawMapping = {
+            'bgb': { 
+                title: 'Bürgerliches Gesetzbuch (BGB)', 
+                baseTexts: {
+                    '1': 'Die Rechtsfähigkeit des Menschen beginnt mit der Vollendung der Geburt.',
+                    '2': 'Die Volljährigkeit tritt mit der Vollendung des 18. Lebensjahres ein.',
+                    '242': 'Der Schuldner ist verpflichtet, die Leistung so zu bewirken, wie Treu und Glauben mit Rücksicht auf die Verkehrssitte es erfordern.',
+                    '823': '(1) Wer vorsätzlich oder fahrlässig das Leben, den Körper, die Gesundheit, die Freiheit, das Eigentum oder ein sonstiges Recht eines anderen widerrechtlich verletzt, ist dem anderen zum Ersatz des daraus entstehenden Schadens verpflichtet. (2) Die gleiche Verpflichtung trifft denjenigen, welcher gegen ein den Schutz eines anderen bezweckendes Gesetz verstößt.'
+                }
+            },
+            'stgb': { 
+                title: 'Strafgesetzbuch (StGB)', 
+                baseTexts: {
+                    '1': 'Eine Tat kann nur bestraft werden, wenn die Strafbarkeit gesetzlich bestimmt war, bevor die Tat begangen wurde.',
+                    '242': '(1) Wer eine fremde bewegliche Sache einem anderen in der Absicht wegnimmt, die Sache sich oder einem Dritten rechtswidrig zuzueignen, wird mit Freiheitsstrafe bis zu fünf Jahren oder mit Geldstrafe bestraft. (2) Der Versuch ist strafbar.',
+                    '263': '(1) Wer in der Absicht, sich oder einem Dritten einen rechtswidrigen Vermögensvorteil zu verschaffen, das Vermögen eines anderen dadurch beschädigt, dass er durch Vorspiegelung falscher oder durch Entstellung oder Unterdrückung wahrer Tatsachen einen Irrtum erregt oder unterhält, wird mit Freiheitsstrafe bis zu fünf Jahren oder mit Geldstrafe bestraft. (2) Der Versuch ist strafbar.'
+                }
+            },
+            'hgb': {
+                title: 'Handelsgesetzbuch (HGB)',
+                baseTexts: {
+                    '1': 'Kaufmann im Sinne dieses Gesetzbuchs ist, wer ein Handelsgewerbe betreibt.',
+                    '238': '(1) Jeder Kaufmann ist verpflichtet, Bücher zu führen und in diesen seine Handelsgeschäfte und die Lage seines Vermögens nach den Grundsätzen ordnungsmäßiger Buchführung ersichtlich zu machen.'
+                }
+            },
+            'jarbschg': {
+                title: 'Jugendarbeitsschutzgesetz (JArbSchG)',
+                baseTexts: {
+                    '1': 'Dieses Gesetz gilt für die Beschäftigung von Personen, die noch nicht 18 Jahre alt sind.',
+                    '8': '(1) Jugendliche dürfen nicht mehr als acht Stunden täglich und nicht mehr als 40 Stunden wöchentlich beschäftigt werden.'
+                }
+            },
+            'jgg': {
+                title: 'Jugendgerichtsgesetz (JGG)',
+                baseTexts: {
+                    '1': '(1) Dieses Gesetz gilt, wenn ein Jugendlicher oder ein Heranwachsender eine Verfehlung begeht, die nach den allgemeinen Vorschriften mit Strafe bedroht ist.',
+                    '2': 'Jugendlicher ist, wer zur Zeit der Tat vierzehn, aber noch nicht achtzehn Jahre alt ist.'
+                }
+            },
+            'jschg': {
+                title: 'Jugendschutzgesetz (JSchG)',
+                baseTexts: {
+                    '1': '(1) Dieses Gesetz dient dem Schutz der Jugend in der Öffentlichkeit, in den Medien sowie im Bereich der Trägermedien.',
+                    '9': '(1) In Gaststätten, Verkaufsstellen oder sonst in der Öffentlichkeit dürfen alkoholische Getränke an Kinder und Jugendliche unter 16 Jahren nicht abgegeben werden.'
+                }
+            }
+        };
+
+        let currentLawData = null;
+        let currentLawCode = null;
+
+        // Prüfe beim Laden, ob API Key vorhanden ist
+        window.addEventListener('load', function() {
+            if (openaiApiKey) {
+                document.getElementById('apiKeyInput').value = openaiApiKey;
+                document.getElementById('apiKeySection').style.display = 'none';
+                document.getElementById('aiFeatures').style.display = 'block';
+                updateLoadingMessage();
+            }
+            
+            // URL-Parameter verarbeiten
+            const urlParams = new URLSearchParams(window.location.search);
+            const law = urlParams.get('law');
+            const paragraph = urlParams.get('paragraph');
+            
+            if (law) {
+                document.getElementById('lawSelect').value = law;
+                loadLaw(law).then(() => {
+                    if (paragraph) {
+                        document.getElementById('paragraphInput').value = paragraph;
+                        setTimeout(() => jumpToParagraph(), 500);
+                    }
+                });
+            }
+        });
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                alert('Bitte geben Sie einen gültigen API Key ein.');
+                return;
+            }
+            
+            if (!apiKey.startsWith('sk-')) {
+                alert('Der API Key sollte mit "sk-" beginnen.');
+                return;
+            }
+            
+            openaiApiKey = apiKey;
+            localStorage.setItem('openai_api_key', apiKey);
+            
+            document.getElementById('apiKeySection').style.display = 'none';
+            document.getElementById('aiFeatures').style.display = 'block';
+            updateLoadingMessage();
+        }
+
+        function updateLoadingMessage() {
+            if (openaiApiKey) {
+                document.getElementById('loadingMessage').innerHTML = `
+                    <i class="fas fa-book-open fa-2x mb-3 text-muted"></i>
+                    <p>Wählen Sie ein Gesetz aus, um zu beginnen</p>
+                `;
+            } else {
+                document.getElementById('loadingMessage').innerHTML = `
+                    <i class="fas fa-key fa-2x mb-3 text-muted"></i>
+                    <p>Konfigurieren Sie Ihren OpenAI API Key, um KI-Features zu nutzen</p>
+                `;
+            }
+        }
+
+        // OpenAI API Funktionen
+        async function callOpenAI(prompt, maxTokens = 300) {
+            if (!openaiApiKey) {
+                throw new Error('Kein OpenAI API Key konfiguriert');
+            }
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openaiApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini', // Günstiges Modell
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Du bist ein Experte für deutsches Recht und hilfst Schülern beim Verstehen von Gesetzestexten. Antworte auf Deutsch und erkläre komplexe Begriffe einfach.'
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        max_tokens: maxTokens,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API Fehler: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('OpenAI API Fehler:', error);
+                throw error;
+            }
+        }
+
+        async function explainParagraph(lawCode, paragraphNumber, paragraphText) {
+            const lawTitle = lawMapping[lawCode]?.title || 'Unbekanntes Gesetz';
+            
+            const prompt = `Erkläre den folgenden Paragraphen aus dem ${lawTitle} für Schüler in einfachen Worten:
+
+§ ${paragraphNumber}: ${paragraphText}
+
+Bitte erkläre:
+1. Was bedeutet dieser Paragraph in einfachen Worten?
+2. Gib ein praktisches Beispiel aus dem Alltag
+3. Warum ist dieser Paragraph wichtig?
+
+Halte die Erklärung kurz und verständlich für Schüler.`;
+
+            return await callOpenAI(prompt, 400);
+        }
+
+        function showLoading(message = 'Lädt...') {
+            const loadingDiv = document.getElementById('loadingMessage');
+            loadingDiv.innerHTML = `
+                <div class="spinner-border mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>${message}</p>
+            `;
+            loadingDiv.style.display = 'block';
+            document.getElementById('lawTitle').style.display = 'none';
+            document.getElementById('lawText').style.display = 'none';
+        }
+
+        function showError(message) {
+            const textDiv = document.getElementById('lawText');
+            textDiv.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${message}
+                </div>
+            `;
+            textDiv.style.display = 'block';
+            document.getElementById('loadingMessage').style.display = 'none';
+        }
+
+        async function loadLaw(lawCode) {
+            if (!lawCode) {
+                updateLoadingMessage();
+                document.getElementById('loadingMessage').style.display = 'block';
+                document.getElementById('lawTitle').style.display = 'none';
+                document.getElementById('lawText').style.display = 'none';
+                currentLawData = null;
+                currentLawCode = null;
+                return;
+            }
+
+            currentLawCode = lawCode;
+            
+            try {
+                const lawInfo = lawMapping[lawCode];
+                if (!lawInfo) {
+                    throw new Error('Unbekanntes Gesetz');
+                }
+
+                currentLawData = {
+                    title: lawInfo.title,
+                    paragraphs: lawInfo.baseTexts
+                };
+
+                displayLaw(currentLawData, lawCode);
+            } catch (error) {
+                console.error('Fehler beim Laden des Gesetzes:', error);
+                showError(`Fehler beim Laden des Gesetzestextes: ${error.message}`);
+            }
+        }
+
+        function displayLaw(lawData, lawCode) {
+            const titleDiv = document.getElementById('lawTitle');
+            const textDiv = document.getElementById('lawText');
+            const loadingDiv = document.getElementById('loadingMessage');
+
+            loadingDiv.style.display = 'none';
+
+            // Titel setzen
+            titleDiv.querySelector('h2').textContent = lawData.title;
+            titleDiv.style.display = 'block';
+
+            // Paragraphen anzeigen
+            let html = '';
+            if (lawData.paragraphs && Object.keys(lawData.paragraphs).length > 0) {
+                // Sortiere Paragraphen nach Nummer
+                const sortedParagraphs = Object.keys(lawData.paragraphs).sort((a, b) => parseInt(a) - parseInt(b));
+
+                sortedParagraphs.forEach(paragraphNumber => {
+                    const paragraphText = lawData.paragraphs[paragraphNumber];
+                    html += `
+                        <div class="paragraph" id="paragraph-${paragraphNumber}">
+                            <div class="paragraph-number">
+                                § ${paragraphNumber}
+                                <span class="copy-link" onclick="copyParagraphLink('${lawCode}', '${paragraphNumber}')">
+                                    <i class="fas fa-link"></i> Link kopieren
+                                </span>
+                                ${openaiApiKey ? `
+                                    <button class="btn explain-btn" onclick="explainParagraphAI('${lawCode}', '${paragraphNumber}')">
+                                        <i class="fas fa-lightbulb me-1"></i>Erklären
+                                    </button>
+                                ` : ''}
+                            </div>
+                            <div class="paragraph-text">${paragraphText}</div>
+                            <div id="explanation-${paragraphNumber}" class="paragraph-explanation" style="display: none;"></div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="alert alert-info">Keine Paragraphen verfügbar.</div>';
+            }
+
+            textDiv.innerHTML = html;
+            textDiv.style.display = 'block';
+        }
+
+        async function explainParagraphAI(lawCode, paragraphNumber) {
+            const explanationDiv = document.getElementById(`explanation-${paragraphNumber}`);
+            const paragraphText = currentLawData.paragraphs[paragraphNumber];
+            
+            if (!paragraphText) {
+                alert('Paragraph nicht gefunden.');
+                return;
+            }
+
+            // Zeige Loading
+            explanationDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    KI-Erklärung wird generiert...
+                </div>
+            `;
+            explanationDiv.style.display = 'block';
+
+            try {
+                const explanation = await explainParagraph(lawCode, paragraphNumber, paragraphText);
+                explanationDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong><i class="fas fa-robot me-2"></i>KI-Erklärung:</strong>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('explanation-${paragraphNumber}').style.display='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    ${explanation.replace(/\n/g, '<br>')}
+                `;
+            } catch (error) {
+                explanationDiv.innerHTML = `
+                    <div class="text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Fehler beim Generieren der Erklärung: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function jumpToParagraph() {
+            const lawCode = document.getElementById('lawSelect').value;
+            const paragraph = document.getElementById('paragraphInput').value.trim();
+            
+            if (!lawCode) {
+                alert('Bitte wählen Sie zuerst ein Gesetz aus.');
+                return;
+            }
+            
+            if (!paragraph) {
+                alert('Bitte geben Sie einen Paragraphen ein.');
+                return;
+            }
+            
+            const element = document.getElementById(`paragraph-${paragraph}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                element.style.backgroundColor = '#fff3cd';
+                setTimeout(() => {
+                    element.style.backgroundColor = '#fafbfc';
+                }, 2000);
+                updateUrl(lawCode, paragraph);
+            } else {
+                alert(`Paragraph ${paragraph} wurde nicht gefunden.`);
+            }
+        }
+
+        function copyParagraphLink(lawCode, paragraph) {
+            const url = `${window.location.origin}${window.location.pathname}?law=${lawCode}&paragraph=${paragraph}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const link = event.target.closest('.copy-link');
+                const originalText = link.innerHTML;
+                link.innerHTML = '<i class="fas fa-check"></i> Kopiert!';
+                setTimeout(() => {
+                    link.innerHTML = originalText;
+                }, 1500);
+            });
+        }
+
+        function copyCurrentUrl() {
+            const lawCode = document.getElementById('lawSelect').value;
+            if (!lawCode) {
+                alert('Bitte wählen Sie zuerst ein Gesetz aus.');
+                return;
+            }
+            
+            const url = `${window.location.origin}${window.location.pathname}?law=${lawCode}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = event.target.closest('button');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i> Kopiert!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 1500);
+            });
+        }
+
+        function updateUrl(lawCode, paragraph = null) {
+            const url = new URL(window.location);
+            if (lawCode) {
+                url.searchParams.set('law', lawCode);
+            } else {
+                url.searchParams.delete('law');
+            }
+            if (paragraph) {
+                url.searchParams.set('paragraph', paragraph);
+            } else {
+                url.searchParams.delete('paragraph');
+            }
+            window.history.pushState({}, '', url);
+        }
+
+        // Event Listeners
+        document.getElementById('lawSelect').addEventListener('change', function() {
+            loadLaw(this.value);
+            updateUrl(this.value);
+        });
+
+        document.getElementById('paragraphInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                jumpToParagraph();
+            }
+        });
+    </script>
+</body>
+</html>

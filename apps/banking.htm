@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bobinger KinderSparbank - Finanzen spielerisch entdecken</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .header { background-color: #ff8c00; color: white; text-align: center; padding: 10px; }
+        .footer { background-color: #f8f9fa; text-align: center; padding: 10px; color: #333; }
+        .btn-custom { background-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bobinger KinderSparbank</h1>
+        <p>Finanzen spielerisch entdecken</p>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card card-body">
+                    <h3 class="text-center mb-4">Login</h3>
+                    <form>
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Benutzername" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="Passwort" required>
+                        </div>
+                        <button type="submit" class="btn btn-custom btn-block">Einloggen</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="mt-5">Dein erstes Konto</h2>
+        <p>Willkommen in Bobingen! Hier bei der Bobinger KinderSparbank lernst du alles über Geld, Sparen und Wirtschaft - ganz einfach und super spannend!</p>
+        
+        <!-- Weitere Inhalte wie im vorherigen Beispiel -->
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2023 Bobinger KinderSparbank - Finanzen spielerisch entdecken</p>
+        <p id="date"></p>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        function showDate() {
+            var today = new Date();
+            var date = today.getDate()+'.'+(today.getMonth()+1)+'.'+today.getFullYear();
+            document.getElementById("date").innerHTML = date;
+        }
+        showDate();
+        setInterval(showDate, 1000 * 60 * 60 * 24); // Aktualisiert das Datum täglich
+    </script>
+</body>
+</html>

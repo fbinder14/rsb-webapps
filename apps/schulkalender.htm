@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Schulferien-Kalender Bayern</title>
+  <style>
+    /* Google Font Poppins */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    :root {
+      --color-bg: #f9fafb;
+      --color-text: #1f2937;
+      --color-primary: #4f46e5;
+      --color-primary-light: #e0e7ff;
+      --color-weekend: #f3f4f6;
+      --color-holiday: #fef3c7;
+      --color-today-border: #4f46e5;
+      --color-border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    #controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    #prevBtn, #nextBtn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--color-primary);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
+    }
+    #prevBtn:disabled, #nextBtn:disabled {
+      color: #a5b4fc;
+      cursor: default;
+    }
+    #monthLabel {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--color-primary);
+    }
+
+    #weekCount {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+
+    table.calendar {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    table.calendar thead th {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      padding: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      border: 1px solid var(--color-border);
+    }
+    table.calendar tbody td {
+      border: 1px solid var(--color-border);
+      height: 40px;
+      padding: 4px;
+      text-align: right;
+      vertical-align: middle;
+      position: relative;
+    }
+    table.calendar td.week-number {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      font-weight: 500;
+      text-align: center;
+      width: 50px;
+    }
+    table.calendar td.weekend { background: var(--color-weekend); }
+    table.calendar td.holiday { background: var(--color-holiday); }
+    table.calendar td.today {
+      border: 2px solid var(--color-today-border);
+    }
+
+    @media (max-width: 600px) {
+      table.calendar thead th,
+      table.calendar tbody td {
+        padding: 2px;
+        font-size: 12px;
+      }
+      table.calendar td.week-number { width: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button id="prevBtn" aria-label="Vorheriger Monat">‹</button>
+    <h2 id="monthLabel">Monat Jahr</h2>
+    <button id="nextBtn" aria-label="Nächster Monat">›</button>
+  </div>
+  <div id="weekCount">Lade...</div>
+  <div id="calendarContainer"></div>
+
+  <script>
+    // Grenzen
+    const today = new Date();
+    const lowerBound = new Date(today.getFullYear() - 1, today.getMonth(), 1);
+    const upperBound = new Date(2028, 11, 1);
+
+    // Aktuelle Ansicht (Monat des Monatsanfangs)
+    let viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Speichert alle Ferienintervalle
+    let holidays = [];
+
+    // ISO-KW
+    function getISOWeek(d) {
+      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNum = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    }
+
+    // Holt alle Bayerischen Ferien
+    async function loadHolidays() {
+      const res = await fetch('https://ferien-api.de/api/v1/holidays/BY');
+      const data = await res.json();
+      holidays = data.map(h => ({
+        start: new Date(h.start),
+        end:   new Date(h.end),
+        name:  h.name
+      }));
+    }
+
+    // Baut Wochenraster für einen Monat
+    function getMonthWeeks(year, month) {
+      const first = new Date(year, month, 1);
+      const last  = new Date(year, month + 1, 0);
+      const startOffset = (first.getDay() + 6) % 7;
+      const firstMon = new Date(first);
+      firstMon.setDate(first.getDate() - startOffset);
+      const endOffset = (last.getDay() + 6) % 7;
+      const lastMon = new Date(last);
+      lastMon.setDate(last.getDate() - endOffset);
+
+      const weeks = [];
+      let cur = new Date(firstMon);
+      while (cur <= lastMon) {
+        const wk = { weekNum: getISOWeek(cur), days: [] };
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(cur);
+          d.setDate(cur.getDate() + i);
+          wk.days.push(d.getMonth() === month ? d : null);
+        }
+        weeks.push(wk);
+        cur.setDate(cur.getDate() + 7);
+      }
+      return weeks;
+    }
+
+    // Rendert die View
+    function render() {
+      // Header
+      const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+      document.getElementById('monthLabel').textContent =
+        `${monthNames[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+
+      // Buttons aktiv/deaktiv
+      document.getElementById('prevBtn').disabled =
+        viewDate <= lowerBound;
+      document.getElementById('nextBtn').disabled =
+        viewDate >= upperBound;
+
+      // Tabelle bauen
+      const container = document.getElementById('calendarContainer');
+      container.innerHTML = '';
+      const table = document.createElement('table');
+      table.className = 'calendar';
+
+      // Head
+      const thead = table.createTHead();
+      const hr = thead.insertRow();
+      const thKW = document.createElement('th');
+      thKW.textContent = 'KW';
+      hr.appendChild(thKW);
+      ['Mo','Di','Mi','Do','Fr','Sa','So'].forEach(d => {
+        const th = document.createElement('th');
+        th.textContent = d;
+        hr.appendChild(th);
+      });
+
+      // Body
+      const tbody = table.createTBody();
+      const weeks = getMonthWeeks(viewDate.getFullYear(), viewDate.getMonth());
+      weeks.forEach(wk => {
+        const row = tbody.insertRow();
+        const cellKW = row.insertCell();
+        cellKW.className = 'week-number';
+        cellKW.textContent = String(wk.weekNum).padStart(2,'0');
+        wk.days.forEach(d => {
+          const cell = row.insertCell();
+          if (!d) return cell.classList.add('empty');
+          cell.textContent = d.getDate();
+          if (d.getDay() === 0 || d.getDay() === 6) cell.classList.add('weekend');
+          if (holidays.some(h => d >= h.start && d <= h.end)) cell.classList.add('holiday');
+          if (d.toDateString() === today.toDateString()) cell.classList.add('today');
+        });
+      });
+
+      container.appendChild(table);
+
+      // Wochen bis nächste Ferien
+      const nextH = holidays.filter(h=>h.start>today).sort((a,b)=>a.start-b.start)[0];
+      const wc = document.getElementById('weekCount');
+      if (nextH) {
+        let firstMon = new Date(today);
+        firstMon.setDate(today.getDate() + ((8 - today.getDay()) % 7));
+        let cnt = 0;
+        for (let d = new Date(firstMon); d < nextH.start; d.setDate(d.getDate()+7)) cnt++;
+        wc.textContent = `Noch ${cnt} Schulwoche(n) bis ${nextH.name} ab ${nextH.start.toLocaleDateString('de-DE')}.`;
+      } else {
+        wc.textContent = 'Keine weiteren Ferien-Daten verfügbar.';
+      }
+    }
+
+    // Navigation
+    function changeMonth(delta) {
+      const nd = new Date(viewDate);
+      nd.setMonth(nd.getMonth() + delta);
+      if (nd < lowerBound || nd > upperBound) return;
+      viewDate = nd;
+      render();
+    }
+
+    // Init
+    document.getElementById('prevBtn').addEventListener('click', ()=>changeMonth(-1));
+    document.getElementById('nextBtn').addEventListener('click', ()=>changeMonth(1));
+    loadHolidays().then(render);
+  </script>
+</body>
+</html>

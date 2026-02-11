@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tirol Freizeitattraktionen Karte</title>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    #map { width: 100%; height: 600px; }
+    /* Größere Emoji-Icons für Marker */
+    .emoji-icon { font-size: 1.5em; line-height: 1.5em; text-align: center; }
+  </style>
+</head>
+<body>
+
+<h1>Interaktive Karte – Freizeitattraktionen in Tirol</h1>
+<div id="map"></div>
+
+<script>
+  // Initialisiere Karte zentriert auf Tirol
+  var map = L.map('map').setView([47.26, 11.40], 9);
+
+  // OSM Tile-Layer hinzufügen
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>-Mitwirkende'
+  }).addTo(map);
+
+  // Define category icons using emojis
+  var skiIcon    = L.divIcon({ html: "⛷", className: 'emoji-icon' });
+  var hikeIcon   = L.divIcon({ html: "🚡", className: 'emoji-icon' });
+  var liftIcon   = L.divIcon({ html: "🚡", className: 'emoji-icon' });
+  var iceIcon    = L.divIcon({ html: "⛸", className: 'emoji-icon' });
+  var indoorIcon = L.divIcon({ html: "🏊", className: 'emoji-icon' });
+  var outdoorIcon= L.divIcon({ html: "🏖", className: 'emoji-icon' });
+
+  // Daten (aus dem JSON oben)
+  var data = {
+    "Skigebiete": [
+      { "name": "Axamer Lizum", "lat": 47.19583, "lon": 11.30139 },
+      { "name": "Bergeralm (Steinach)", "lat": 47.07528, "lon": 11.45722 },
+      { "name": "Glungezer", "lat": 47.20861, "lon": 11.52806 },
+      { "name": "Kellerjoch", "lat": 47.31889, "lon": 11.77083 },
+      { "name": "Hochkössen", "lat": 47.65316, "lon": 12.42116 },
+      { "name": "Bergbahnen Kappl", "lat": 47.05973, "lon": 10.37253 },
+      { "name": "Kühtai", "lat": 47.21361, "lon": 11.02333 },
+      { "name": "Muttereralm", "lat": 47.22221, "lon": 11.36664 },
+      { "name": "Nordkette (Innsbruck)", "lat": 47.26833, "lon": 11.39333 },
+      { "name": "Obergurgl-Hochgurgl", "lat": 46.86700, "lon": 11.01700 },
+      { "name": "Patscherkofel", "lat": 47.20889, "lon": 11.46083 },
+      { "name": "Rangger Köpfl", "lat": 47.23300, "lon": 11.18300 },
+      { "name": "Rosshütte (Seefeld)", "lat": 47.33108, "lon": 11.19991 },
+      { "name": "Schlick 2000 (Fulpmes)", "lat": 47.14878, "lon": 11.31613 },
+      { "name": "Serles (Mieders)", "lat": 47.15618, "lon": 11.38819 },
+      { "name": "Silvapark Galtür", "lat": 46.96339, "lon": 10.13645 },
+      { "name": "Stubaier Gletscher", "lat": 46.99343, "lon": 11.11642 },
+      { "name": "Ski Arlberg (St. Anton)", "lat": 47.12963, "lon": 10.26818 },
+      { "name": "Ischgl (Silvretta Arena)", "lat": 47.01306, "lon": 10.28806 },
+      { "name": "Elfer (Neustift)", "lat": 47.11028, "lon": 11.30583 }
+    ],
+    "Wandergebiete und Ausflugsziele": [
+      { "name": "Nordkette (Seegrube/Hafelekar)", "lat": 47.26833, "lon": 11.39333 },
+      { "name": "Patscherkofel (Igls)", "lat": 47.20889, "lon": 11.46083 },
+      { "name": "Rosshütte Seefeld (Sommer)", "lat": 47.33108, "lon": 11.19991 },
+      { "name": "Muttereralm (Sommer)", "lat": 47.22221, "lon": 11.36664 },
+      { "name": "Glungezer (Sommer)", "lat": 47.20861, "lon": 11.52806 },
+      { "name": "Serlesbahnen (Sommer)", "lat": 47.15618, "lon": 11.38819 }
+    ],
+    "weitere Liftanlagen": [
+      { "name": "Burglift Stans", "lat": 47.36870, "lon": 11.71630 },
+      { "name": "Birkenlift Seefeld", "lat": 47.32944, "lon": 11.18917 },
+      { "name": "Geigenbühel Seefeld", "lat": 47.33000, "lon": 11.18750 },
+      { "name": "Kinderland Rinn (Archenstadel)", "lat": 47.25237, "lon": 11.50369 },
+      { "name": "Katzenkopf Leutasch", "lat": 47.36564, "lon": 11.16762 },
+      { "name": "Hüttegglift Weerberg", "lat": 47.30000, "lon": 11.67000 },
+      { "name": "Schwannerlift Weerberg", "lat": 47.32000, "lon": 11.65000 },
+      { "name": "Vögelsberg Wattens", "lat": 47.28178, "lon": 11.59224 },
+      { "name": "Wildstättlift Wattenberg", "lat": 47.26887, "lon": 11.61928 },
+      { "name": "Sonnenberglift Gries", "lat": 47.19523, "lon": 11.15692 },
+      { "name": "Sonnenbergbahn Milders", "lat": 47.09980, "lon": 11.31000 },
+      { "name": "Skilift Trins", "lat": 47.08404, "lon": 11.42096 }
+    ],
+    "Eislaufplätze": [
+      { "name": "Eishalle Götzens", "lat": 47.23283, "lon": 11.32232 },
+      { "name": "Eishalle Steinach", "lat": 47.09701, "lon": 11.46777 },
+      { "name": "Eislaufplatz Baggersee", "lat": 47.26556, "lon": 11.44667 },
+      { "name": "Eislaufplatz Hötting-West", "lat": 47.26900, "lon": 11.35000 },
+      { "name": "Eislaufplatz Igls", "lat": 47.23127, "lon": 11.41018 },
+      { "name": "Eislaufplatz Schwaz", "lat": 47.35000, "lon": 11.70000 },
+      { "name": "Eislaufplatz Sillpark (IBK)", "lat": 47.26582, "lon": 11.40357 },
+      { "name": "Eislaufplatz Silz", "lat": 47.26349, "lon": 10.92969 },
+      { "name": "Eislaufplatz Trins", "lat": 47.08404, "lon": 11.42096 },
+      { "name": "Eislaufplatz Zirl", "lat": 47.27333, "lon": 11.24139 },
+      { "name": "Eishalle Telfs", "lat": 47.30325, "lon": 11.06641 }
+    ],
+    "Hallenbäder": [
+      { "name": "Hallenbad Amraser Straße (IBK)", "lat": 47.26400, "lon": 11.41500 },
+      { "name": "Hallenbad Höttinger Au (IBK)", "lat": 47.26503, "lon": 11.38116 },
+      { "name": "Hallenbad Olympisches Dorf (IBK)", "lat": 47.27000, "lon": 11.45200 },
+      { "name": "Freizeitzentrum Axams (Halle)", "lat": 47.23257, "lon": 11.29174 },
+      { "name": "Freizeitzentrum Neustift (Halle)", "lat": 47.10783, "lon": 11.30438 }
+    ],
+    "Freibäder und Badeseen": [
+      { "name": "Völser Badl (Völs)", "lat": 47.25207, "lon": 11.32584 },
+      { "name": "Freibad Telfs (Telfer Bad)", "lat": 47.30707, "lon": 11.06817 },
+      { "name": "Freibad Wattens", "lat": 47.29170, "lon": 11.59280 },
+      { "name": "Baggersee Rossau (IBK)", "lat": 47.26556, "lon": 11.44667 },
+      { "name": "Tivoli Freibad Innsbruck", "lat": 47.26017, "lon": 11.40845 },
+      { "name": "Schwimmbad Hall in Tirol", "lat": 47.27900, "lon": 11.50600 },
+      { "name": "Schwimmbad Inzing", "lat": 47.27260, "lon": 11.19578 },
+      { "name": "Schwimmbad Mieders", "lat": 47.15700, "lon": 11.40000 },
+      { "name": "Familienbad Mutters", "lat": 47.23200, "lon": 11.35500 },
+      { "name": "Freibad Neustift", "lat": 47.11028, "lon": 11.30583 },
+      { "name": "Erlebnisschwimmbad Schwaz", "lat": 47.35000, "lon": 11.70000 },
+      { "name": "Strandperle Seefeld (Wildsee)", "lat": 47.32222, "lon": 11.19083 },
+      { "name": "Freischwimmbad Steinach", "lat": 47.09300, "lon": 11.46500 },
+      { "name": "Badeanlage Zirl", "lat": 47.27539, "lon": 11.23851 }
+    ]
+  };
+
+  // Marker-Popups für jede Kategorie hinzufügen
+  data.Skigebiete.forEach(attraction => {
+    L.marker([attraction.lat, attraction.lon], { icon: skiIcon })
+      .bindPopup(attraction.name + " (Skigebiet)")
+      .addTo(map);
+  });
+  data["Wandergebiete und Ausflugsziele"].forEach(attraction => {
+    L.marker([attraction.lat, attraction.lon], { icon: hikeIcon })
+      .bindPopup(attraction.name + " (Wandergebiet)")
+      .addTo(map);
+  });
+  data["weitere Liftanlagen"].forEach(attraction => {
+    L.marker([attraction.lat, attraction.lon], { icon: liftIcon })
+      .bindPopup(attraction.name + " (Liftanlage)")
+      .addTo(map);
+  });
+  data.Eislaufplätze.forEach(attraction => {
+    L.marker([attraction.lat, attraction.lon], { icon: iceIcon })
+      .bindPopup(attraction.name + " (Eislaufplatz)")
+      .addTo(map);
+  });
+  data.Hallenbäder.forEach(attraction => {
+    L.marker([attraction.lat, attraction.lon], { icon: indoorIcon })
+      .bindPopup(attraction.name + " (Hallenbad)")
+      .addTo(map);
+  });
+  data["Freibäder und Badeseen"].forEach(attraction => {
+    L.marker([attraction.lat, attraction.lon], { icon: outdoorIcon })
+      .bindPopup(attraction.name + " (Freibad/Badesee)")
+      .addTo(map);
+  });
+</script>
+
+</body>
+</html>

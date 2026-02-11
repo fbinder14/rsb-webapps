@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einmaleins Übungsapp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #quiz-container, #result {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin: 10px 0;
+        }
+
+        #answers {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .answer-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .answer-btn:hover {
+            background-color: #45a049;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #progress {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #result {
+            display: none;
+        }
+
+        #score, #grade, #time {
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <p id="progress"></p>
+        <h1 id="question"></h1>
+        <div id="answers">
+            <button class="answer-btn"></button>
+            <button class="answer-btn"></button>
+            <button class="answer-btn"></button>
+            <button class="answer-btn"></button>
+        </div>
+        <div id="feedback"></div>
+    </div>
+    <div id="result">
+        <h1>Ergebnis</h1>
+        <p id="score"></p>
+        <p id="grade"></p>
+        <p id="time"></p>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const questionEl = document.getElementById('question');
+            const answerBtns = document.querySelectorAll('.answer-btn');
+            const feedbackEl = document.getElementById('feedback');
+            const resultEl = document.getElementById('result');
+            const scoreEl = document.getElementById('score');
+            const gradeEl = document.getElementById('grade');
+            const timeEl = document.getElementById('time');
+            const progressEl = document.getElementById('progress');
+
+            let currentQuestion = 0;
+            let score = 0;
+            const totalQuestions = 10;
+            let questions = [];
+            let startTime;
+
+            // Funktion zum Generieren einer zufälligen Aufgabe mit Punkt als Malzeichen
+            function generateQuestion() {
+                const num1 = Math.floor(Math.random() * 10) + 1;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                const correctAnswer = num1 * num2;
+                const answers = [correctAnswer];
+
+                // Generiere drei falsche Antworten
+                while (answers.length < 4) {
+                    const wrongAnswer = correctAnswer + Math.floor(Math.random() * 10) - 5;
+                    if (wrongAnswer > 0 && !answers.includes(wrongAnswer)) {
+                        answers.push(wrongAnswer);
+                    }
+                }
+
+                // Mische die Antworten
+                answers.sort(() => Math.random() - 0.5);
+
+                return {
+                    question: `${num1} · ${num2}`, // Punkt als Malzeichen
+                    answers: answers,
+                    correct: correctAnswer
+                };
+            }
+
+            // Lade die aktuelle Frage
+            function loadQuestion() {
+                if (currentQuestion < totalQuestions) {
+                    if (currentQuestion === 0) {
+                        startTime = Date.now(); // Starte die Zeitmessung bei der ersten Frage
+                    }
+                    const q = questions[currentQuestion];
+                    questionEl.textContent = q.question;
+                    answerBtns.forEach((btn, index) => {
+                        btn.textContent = q.answers[index];
+                        btn.onclick = () => checkAnswer(q.answers[index], q.correct);
+                    });
+                    feedbackEl.textContent = '';
+                    progressEl.textContent = `Frage ${currentQuestion + 1} von ${totalQuestions}`;
+                } else {
+                    showResult();
+                }
+            }
+
+            // Überprüfe die ausgewählte Antwort
+            function checkAnswer(selected, correct) {
+                answerBtns.forEach(btn => btn.disabled = true); // Deaktiviere Buttons
+                if (selected === correct) {
+                    score++;
+                    feedbackEl.textContent = 'Richtig!';
+                    feedbackEl.style.color = 'green';
+                } else {
+                    feedbackEl.textContent = `Falsch! Die richtige Antwort ist ${correct}.`;
+                    feedbackEl.style.color = 'red';
+                }
+                currentQuestion++;
+                setTimeout(() => {
+                    answerBtns.forEach(btn => btn.disabled = false); // Reaktiviere Buttons
+                    loadQuestion();
+                }, 1000); // Warte 1 Sekunde
+            }
+
+            // Zeige das Ergebnis an
+            function showResult() {
+                document.getElementById('quiz-container').style.display = 'none';
+                resultEl.style.display = 'block';
+                scoreEl.textContent = `Du hast ${score} von ${totalQuestions} Fragen richtig beantwortet.`;
+                const percentage = (score / totalQuestions) * 100;
+                let grade;
+                if (percentage >= 90) grade = 1;
+                else if (percentage >= 80) grade = 2;
+                else if (percentage >= 70) grade = 3;
+                else if (percentage >= 60) grade = 4;
+                else if (percentage >= 50) grade = 5;
+                else grade = 6;
+                gradeEl.textContent = `Deine Note: ${grade}`;
+
+                // Berechne und zeige die benötigte Zeit
+                const endTime = Date.now();
+                const timeTaken = Math.floor((endTime - startTime) / 1000);
+                timeEl.textContent = `Benötigte Zeit: ${timeTaken} Sekunden`;
+            }
+
+            // Generiere alle Fragen beim Start
+            for (let i = 0; i < totalQuestions; i++) {
+                questions.push(generateQuestion());
+            }
+
+            // Starte die App
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

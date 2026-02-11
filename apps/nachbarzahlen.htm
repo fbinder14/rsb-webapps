@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+			<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nachbarzahlen-Übungen für Grundschüler</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .question-container { margin-bottom: 20px; }
+        .feedback { padding: 5px; margin-top: 10px; }
+        .correct { color: white; background-color: green; }
+        .incorrect { color: white; background-color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-4">Nachbarzahlen-Übungen</h1>
+        <div id="questions"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        const allQuestions = [
+            { numbers: [null, 34, 35], options: [33, 36, 32, 37], correct: 33 },
+            { numbers: [56, null, 58], options: [57, 55, 59, 54], correct: 57 },
+            { numbers: [66, 67, null], options: [68, 65, 64, 69], correct: 68 },
+            { numbers: [72, 73, null], options: [74, 71, 70, 75], correct: 74 },
+            { numbers: [null, 19, 20], options: [18, 21, 17, 22], correct: 18 },
+            { numbers: [28, null, 30], options: [29, 27, 31, 26], correct: 29 },
+            { numbers: [41, 42, null], options: [43, 40, 39, 44], correct: 43 },
+            { numbers: [null, 82, 83], options: [81, 84, 80, 85], correct: 81 },
+            // ... Sie können hier weitere Fragen hinzufügen ...
+        ];
+
+        function getRandomQuestions(n) {
+            const shuffled = allQuestions.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, n);
+        }
+
+        function generateQuestionHTML(question, index) {
+            const optionsHTML = question.options.map(option => 
+                `<option value="${option}">${option}</option>`
+            ).join('');
+
+            const numbersHTML = question.numbers.map(number => 
+                number === null ? `<select class="custom-select" id="question-${index}" onchange="checkAnswer(${index}, this.value)">
+                                    <option selected>Wähle...</option>
+                                    ${optionsHTML}
+                                  </select>` 
+                              : `<span class="input-group-text">${number}</span>`
+            ).join('');
+
+            return `
+                <div class="question-container">
+                    <div class="form-group">
+                        <label for="question-${index}">Frage ${index + 1}</label>
+                        <div class="input-group">
+                            ${numbersHTML}
+                        </div>
+                    </div>
+                    <div id="feedback-${index}" class="feedback"></div>
+                </div>
+            `;
+        }
+
+        function checkAnswer(index, selectedValue) {
+            const question = questions[index];
+            const correctAnswer = question.correct;
+            const feedbackElement = document.getElementById(`feedback-${index}`);
+
+            if (parseInt(selectedValue) === correctAnswer) {
+                feedbackElement.textContent = 'Richtig!';
+                feedbackElement.className = 'feedback correct';
+            } else {
+                feedbackElement.textContent = 'Falsch!';
+                feedbackElement.className = 'feedback incorrect';
+            }
+        }
+
+        function init() {
+            questions = getRandomQuestions(8);
+            const questionsHTML = questions.map(generateQuestionHTML).join('');
+            document.getElementById('questions').innerHTML = questionsHTML;
+        }
+
+        let questions = [];
+        window.onload = init;
+    </script>
+</body>
+</html>
+``

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown-App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #countdown {
+            font-size: 2rem;
+            margin: 1rem 0;
+        }
+        input, button {
+            margin: 0.5rem;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Countdown-Timer</h1>
+        <input type="date" id="dateInput" required>
+        <input type="time" id="timeInput" required>
+        <button onclick="startCountdown()">Start Countdown</button>
+        <div id="countdown"></div>
+    </div>
+
+    <script>
+        let countdownInterval;
+
+        function startCountdown() {
+            clearInterval(countdownInterval);
+            
+            const dateInput = document.getElementById('dateInput').value;
+            const timeInput = document.getElementById('timeInput').value;
+            
+            if (!dateInput || !timeInput) {
+                alert('Bitte geben Sie ein gültiges Datum und eine gültige Uhrzeit ein.');
+                return;
+            }
+
+            const targetDate = new Date(dateInput + 'T' + timeInput);
+
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown').innerHTML = 'Countdown beendet!';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('countdown').innerHTML = 
+                    `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

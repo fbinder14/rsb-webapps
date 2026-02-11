@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnowPro Finanz-Check: Complete</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; overscroll-behavior-y: none; }
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+        .safe-area-inset { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Animationen */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col tap-highlight-transparent safe-area-inset"
+      x-data="appData()" x-init="initApp()">
+
+    <header class="bg-white shadow-sm border-b border-slate-200 px-6 py-4 shrink-0 z-20 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white font-extrabold rounded-lg w-10 h-10 flex items-center justify-center text-xl shadow-blue-200 shadow-lg">SP</div>
+            <div>
+                <h1 class="font-bold text-slate-900 leading-none">SnowPro</h1>
+                <span class="text-xs text-slate-500 font-medium" x-text="mode === 'quiz' ? 'Level 1: Verstehen' : 'Level 2: Struktur'"></span>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <div class="h-2 w-8 rounded-full transition-colors" :class="mode === 'quiz' ? 'bg-blue-600' : 'bg-green-500'"></div>
+            <div class="h-2 w-8 rounded-full transition-colors" :class="mode === 'sorting' ? 'bg-blue-600' : (mode === 'victory' ? 'bg-green-500' : 'bg-slate-200')"></div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center p-4 w-full max-w-3xl mx-auto overflow-y-auto">
+
+        <template x-if="mode === 'quiz'">
+            <div class="w-full flex flex-col items-center animate-pop space-y-6">
+                <div class="w-full bg-white rounded-2xl shadow-lg border border-slate-100 p-6 text-center relative mt-6">
+                    <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                        Phase <span x-text="quizStep + 1"></span> von 5
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-blue-900 mt-2 mb-2" x-text="currentQuizTerm.name"></h2>
+                    <p class="text-slate-500 text-sm">Welche Aussage von Max Winter passt dazu?</p>
+                </div>
+
+                <div class="w-full space-y-3">
+                    <template x-for="desc in quizOptions" :key="desc.id">
+                        <button 
+                            @click="checkQuizAnswer(desc)"
+                            :disabled="isAnimating"
+                            :class="{
+                                'bg-white border-slate-200 text-slate-700 hover:border-blue-400': feedbackState !== 'error' || errorId !== desc.id,
+                                'bg-red-50 border-red-400 text-red-700 animate-shake': feedbackState === 'error' && errorId === desc.id,
+                                'bg-green-100 border-green-500 text-green-800 scale-[1.02] shadow-lg': feedbackState === 'success' && successId === desc.id,
+                                'opacity-40': feedbackState === 'success' && successId !== desc.id
+                            }"
+                            class="w-full p-4 rounded-xl border-2 text-left transition-all duration-200 outline-none flex items-center justify-between"
+                        >
+                            <span class="text-base font-medium leading-snug" x-text="desc.text"></span>
+                            <div class="ml-3 shrink-0">
+                                <svg x-show="feedbackState === 'success' && successId === desc.id" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <template x-if="mode === 'transition'">
+            <div class="flex flex-col items-center justify-center h-full text-center animate-pop">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Level 1 Geschafft!</h2>
+                <p class="text-slate-600 mb-8 max-w-sm">Du hast die Begriffe verstanden.<br>Jetzt bringen wir Ordnung in das Chaos.</p>
+                <button @click="startSortingLevel()" class="bg-blue-600 text-white font-bold py-3 px-10 rounded-full shadow-lg active:scale-95 transition-transform">
+                    Weiter zu Level 2
+                </button>
+            </div>
+        </template>
+
+        <template x-if="mode === 'sorting'">
+            <div class="w-full flex flex-col h-full animate-pop">
+                
+                <div class="text-center mb-4">
+                    <h3 class="text-lg font-bold text-slate-800">Der Kreislauf</h3>
+                    <p class="text-sm text-slate-500">Tippe auf die jeweils <span class="text-blue-600 font-bold">nächste Phase</span>.</p>
+                </div>
+
+                <div class="flex flex-col space-y-2 mb-8 relative">
+                    <div class="absolute left-6 top-4 bottom-4 w-1 bg-slate-200 -z-10"></div>
+                    
+                    <template x-for="i in 5">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full border-4 flex items-center justify-center shrink-0 z-0 transition-all duration-300"
+                                 :class="sortingProgress >= i ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-300'">
+                                <span class="font-bold text-lg" x-text="i"></span>
+                            </div>
+                            
+                            <div class="ml-4 flex-grow h-14 rounded-xl border-2 border-dashed flex items-center px-4 transition-all duration-300"
+                                 :class="sortingProgress >= i ? 'bg-blue-50 border-blue-200 border-solid' : 'bg-slate-50/50 border-slate-200'">
+                                
+                                <template x-if="sortingProgress >= i">
+                                    <span class="font-bold text-blue-900 animate-pop" x-text="getPhaseName(i)"></span>
+                                </template>
+                                <template x-if="sortingProgress < i">
+                                    <span class="text-slate-300 italic text-sm">???</span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-auto">
+                    <template x-for="phase in availableSortOptions" :key="phase.id">
+                        <button 
+                            @click="checkSortAnswer(phase)"
+                            :class="{
+                                'animate-shake bg-red-100 border-red-300 text-red-800': feedbackState === 'error' && errorId === phase.id
+                            }"
+                            class="p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm hover:border-blue-400 active:scale-95 transition-all text-sm md:text-base outline-none"
+                            x-text="phase.name">
+                        </button>
+                    </template>
+                </div>
+
+            </div>
+        </template>
+
+        <template x-if="mode === 'victory'">
+            <div class="flex flex-col items-center justify-center h-full text-center animate-pop p-6">
+                <div class="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mb-6 shadow-xl">
+                    <span class="text-4xl">🏆</span>
+                </div>
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-2">SnowPro Experte!</h2>
+                <p class="text-lg text-slate-600 mb-8">Max Winter ist stolz auf dich. Der Finanzplan steht und die neue Maschine ist gesichert.</p>
+                <button @click="initApp()" class="text-blue-600 font-semibold hover:underline">
+                    Ganze Stunde Neustarten
+                </button>
+            </div>
+        </template>
+
+    </main>
+
+    <script>
+        function appData() {
+            return {
+                mode: 'quiz', // 'quiz', 'transition', 'sorting', 'victory'
+                
+                // --- QUIZ DATA ---
+                quizQueue: [
+                    { id: 1, name: 'Investition' },
+                    { id: 2, name: 'Nutzung & Wertverlust' },
+                    { id: 3, name: 'Kalkulation' },
+                    { id: 4, name: 'Rückfluss' },
+                    { id: 5, name: 'Ersatzinvestition' }
+                ],
+                allQuizDesc: [
+                    { id: 1, text: 'Wir geben heute 24.000,00 € für die neue „Ski-Press 2000“ aus.' },
+                    { id: 2, text: 'Die Presse wird täglich genutzt und verliert dadurch an Wert.' },
+                    { id: 3, text: 'Ich rechne den jährlichen Wertverlust in den Preis jedes Ski-Paares ein.' },
+                    { id: 4, text: 'Kunden zahlen unsere Boards – so fließt der AfA-Anteil zurück in die Kasse.' },
+                    { id: 5, text: 'Wir kaufen von dem angesparten Geld nach 8 Jahren eine neue Anlage.' }
+                ],
+                quizStep: 0,
+                quizOptions: [],
+
+                // --- SORTING DATA ---
+                phasesList: [
+                    { id: 1, name: 'Investition / Anschaffung' },
+                    { id: 2, name: 'Nutzung & Wertminderung' },
+                    { id: 3, name: 'Kalkulation der AfA' },
+                    { id: 4, name: 'Rückfluss über Umsatzerlöse' },
+                    { id: 5, name: 'Ersatzinvestition' }
+                ],
+                sortingProgress: 0, // How many slots filled (0-5)
+                availableSortOptions: [],
+
+                // --- SHARED STATE ---
+                feedbackState: 'idle',
+                successId: null,
+                errorId: null,
+                isAnimating: false,
+
+                // --- LOGIC ---
+                get currentQuizTerm() { return this.quizQueue[this.quizStep] || {}; },
+
+                initApp() {
+                    this.mode = 'quiz';
+                    this.quizStep = 0;
+                    this.sortingProgress = 0;
+                    // Quiz Options Shuffle
+                    this.quizOptions = [...this.allQuizDesc].sort(() => Math.random() - 0.5);
+                },
+
+                // QUIZ LOGIC
+                checkQuizAnswer(desc) {
+                    if (this.isAnimating) return;
+                    
+                    if (desc.id === this.currentQuizTerm.id) {
+                        this.isAnimating = true;
+                        this.feedbackState = 'success';
+                        this.successId = desc.id;
+                        if(navigator.vibrate) navigator.vibrate(50);
+                        
+                        setTimeout(() => {
+                            this.quizStep++;
+                            if (this.quizStep >= 5) {
+                                this.mode = 'transition';
+                            } else {
+                                this.quizOptions = this.quizOptions.filter(d => d.id !== desc.id);
+                            }
+                            this.resetFeedback();
+                        }, 1000);
+                    } else {
+                        this.triggerError(desc.id);
+                    }
+                },
+
+                // SORTING LOGIC Setup
+                startSortingLevel() {
+                    this.mode = 'sorting';
+                    this.sortingProgress = 0;
+                    // Shuffle phases for the buttons
+                    this.availableSortOptions = [...this.phasesList].sort(() => Math.random() - 0.5);
+                },
+
+                checkSortAnswer(phase) {
+                    if (this.isAnimating) return;
+
+                    const nextNeededId = this.sortingProgress + 1;
+
+                    if (phase.id === nextNeededId) {
+                        // Correct
+                        if(navigator.vibrate) navigator.vibrate(50);
+                        this.sortingProgress++;
+                        
+                        // Remove from bottom buttons
+                        this.availableSortOptions = this.availableSortOptions.filter(p => p.id !== phase.id);
+
+                        if (this.sortingProgress >= 5) {
+                            setTimeout(() => { this.mode = 'victory'; }, 800);
+                        }
+                    } else {
+                        // Wrong
+                        this.triggerError(phase.id);
+                    }
+                },
+
+                getPhaseName(id) {
+                    const p = this.phasesList.find(x => x.id === id);
+                    return p ? p.name : '';
+                },
+
+                // Helpers
+                triggerError(id) {
+                    this.isAnimating = true;
+                    this.feedbackState = 'error';
+                    this.errorId = id;
+                    if(navigator.vibrate) navigator.vibrate([100,50,100]);
+                    setTimeout(() => { this.resetFeedback(); }, 500);
+                },
+
+                resetFeedback() {
+                    this.feedbackState = 'idle';
+                    this.successId = null;
+                    this.errorId = null;
+                    this.isAnimating = false;
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+        }
+        .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    </style>
+</body>
+</html>

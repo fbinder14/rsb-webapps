@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeitanteilige Abschreibung</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2 class="my-4">Zeitanteilige Abschreibung</h2>
+
+        <!-- Wirtschaftsgüter Liste -->
+        <div id="wirtschaftsguterListe"></div>
+
+    </div>
+
+    <!-- Bootstrap JS und jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <!-- Eigener JavaScript Code -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wirtschaftsguterListe = document.getElementById('wirtschaftsguterListe');
+            const wirtschaftsguter = generiereWirtschaftsguter(8);
+
+            wirtschaftsguter.forEach(gut => {
+                wirtschaftsguterListe.appendChild(erstelleWirtschaftsgutElement(gut));
+            });
+        });
+
+        function generiereWirtschaftsguter(anzahl) {
+            const wirtschaftsguter = [];
+            const aktuellesJahr = new Date().getFullYear();
+
+            for (let i = 0; i < anzahl; i++) {
+                const monat = Math.floor(Math.random() * 12) + 1;
+                const name = `Wirtschaftsgut ${i + 1}`;
+                const anschaffungsdatum = `17.${monat.toString().padStart(2, '0')}.${aktuellesJahr}`;
+                const abschreibungMonate = 13 - monat;
+
+                wirtschaftsguter.push({ name, anschaffungsdatum, abschreibungMonate });
+            }
+
+            return wirtschaftsguter;
+        }
+
+        function erstelleWirtschaftsgutElement(gut) {
+            const div = document.createElement('div');
+            div.className = 'mb-3';
+
+            const label = document.createElement('label');
+            label.textContent = `${gut.name} - Anschaffungsdatum: ${gut.anschaffungsdatum}`;
+            div.appendChild(label);
+
+            const select = document.createElement('select');
+            select.className = 'custom-select my-2';
+
+            for (let i = 1; i <= 12; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                select.appendChild(option);
+            }
+
+            div.appendChild(select);
+
+            const button = document.createElement('button');
+            button.className = 'btn btn-primary';
+            button.textContent = 'Überprüfen';
+            button.onclick = function() {
+                if (parseInt(select.value) === gut.abschreibungMonate) {
+                    button.textContent = 'Perfekt!';
+                    button.className = 'btn btn-success';
+                } else {
+                    button.textContent = 'Falsch';
+                    button.className = 'btn btn-danger';
+                }
+            };
+
+            div.appendChild(button);
+
+            return div;
+        }
+    </script>
+</body>
+</html>

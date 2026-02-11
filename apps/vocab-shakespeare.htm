@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gapped Text – Vokabeltraining</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root{
+      /* sanfte Pastellfarben */
+      --pastel-bg: #f8fafc;
+      --pastel-card: #ffffff;
+      --pastel-ring: #dbeafe;     /* sky-100 */
+      --pastel-focus: #93c5fd;    /* sky-300 */
+      --pastel-text: #334155;     /* slate-700 */
+      --pastel-chip: #eef2ff;     /* indigo-50 */
+      --pastel-chip-text: #4338ca;/* indigo-700 */
+      --pastel-correct-bg:#dcfce7;/* green-100 */
+      --pastel-correct-ring:#86efac;/* green-300 */
+      --pastel-button:#60a5fa;    /* blue-400 */
+      --pastel-button-hover:#3b82f6;/* blue-500 */
+      --pastel-success:#34d399;   /* emerald-400 */
+    }
+    body{ background:var(--pastel-bg); color:var(--pastel-text); }
+    .gap{
+      min-width: 10ch;
+      padding: .56rem .7rem;
+      border-radius: .75rem;
+      border: 2px solid var(--pastel-ring);
+      background: #fff;
+      line-height: 1.9;
+      font-weight: 600;
+      outline: none;
+      transition: all .15s ease;
+      text-transform: lowercase;
+    }
+    .gap:focus{
+      border-color: var(--pastel-focus);
+      box-shadow: 0 0 0 6px rgba(147,197,253,.25);
+    }
+    .gap.correct{
+      background: var(--pastel-correct-bg);
+      border-color: var(--pastel-correct-ring);
+      color:#065f46;
+    }
+    .gap[disabled]{ cursor:not-allowed; }
+    .num{ color:#94a3b8; font-weight:700; margin-left:.25rem;}
+    .word-chip{ background:var(--pastel-chip); color:var(--pastel-chip-text); }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+  </style>
+</head>
+
+<body>
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-[fadeIn_.4s_ease-out]">
+    <header class="mb-6 sm:mb-10">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Gapped Text – New Vocabulary</h1>
+      <p class="mt-2 text-slate-600">Trage die passenden Wörter in die Lücken ein. Korrekte Lücken werden gesperrt und grün markiert. Die Zeit läuft automatisch.</p>
+      <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <span class="px-3 py-1.5 rounded-full bg-white shadow ring-1 ring-slate-200">Zeit: <span id="timer" class="font-semibold">00:00</span></span>
+        <button id="resetBtn" class="px-3 py-1.5 rounded-lg text-white bg-[color:var(--pastel-button)] hover:bg-[color:var(--pastel-button-hover)] active:scale-[.99]">Neu starten</button>
+        <details class="ml-auto">
+          <summary class="cursor-pointer text-slate-700 underline decoration-dotted">Wortliste</summary>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span class="word-chip px-2 py-1 rounded shadow">roof</span>
+            <span class="word-chip px-2 py-1 rounded shadow">own</span>
+            <span class="word-chip px-2 py-1 rounded shadow">actor</span>
+            <span class="word-chip px-2 py-1 rounded shadow">careful</span>
+            <span class="word-chip px-2 py-1 rounded shadow">heavy</span>
+            <span class="word-chip px-2 py-1 rounded shadow">builder</span>
+          </div>
+        </details>
+      </div>
+    </header>
+
+    <!-- Text-Karte -->
+    <section class="bg-[color:var(--pastel-card)] rounded-2xl shadow-sm ring-1 ring-slate-200 p-5 sm:p-7 leading-8 text-lg">
+      <p class="mb-4">
+        On the new house, the
+        <input inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" class="gap" id="gap-1" aria-label="Gap 1" />
+        <span class="num">(1)</span>
+        keeps everyone dry.
+      </p>
+      <p class="mb-4">
+        The
+        <input inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" class="gap" id="gap-6" aria-label="Gap 6" />
+        <span class="num">(6)</span>
+        checks the plans and is very
+        <input inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" class="gap" id="gap-4" aria-label="Gap 4" />
+        <span class="num">(4)</span>
+        when lifting the
+        <input inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" class="gap" id="gap-5" aria-label="Gap 5" />
+        <span class="num">(5)</span>
+        beams.
+      </p>
+      <p class="mb-2">
+        The team hopes to
+        <input inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" class="gap" id="gap-2" aria-label="Gap 2" />
+        <span class="num">(2)</span>
+        the equipment one day. Later, an
+        <input inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" class="gap" id="gap-3" aria-label="Gap 3" />
+        <span class="num">(3)</span>
+        arrives to film a scene.
+      </p>
+    </section>
+
+    <!-- Abschlusskarte (ohne Lösungen) -->
+    <section id="completeCard" class="hidden mt-6 p-5 sm:p-6 rounded-2xl bg-emerald-100 text-emerald-900 shadow-lg ring-1 ring-emerald-200">
+      <h2 class="text-xl sm:text-2xl font-bold">Alles korrekt – sehr gut!</h2>
+      <p class="mt-1">Bearbeitungszeit: <span id="finalTime" class="font-semibold"></span></p>
+    </section>
+  </main>
+
+  <script>
+    // Vorgaben
+    const answers = {
+      1: "roof",
+      2: "own",
+      3: "actor",
+      4: "careful",
+      5: "heavy",
+      6: "builder"
+    };
+
+    const inputs = Array.from(document.querySelectorAll(".gap"));
+    const timerEl = document.getElementById("timer");
+    const finalTimeEl = document.getElementById("finalTime");
+    const completeCard = document.getElementById("completeCard");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let started = false;
+    let startTime = 0;
+    let timerInterval = null;
+
+    function pad(n){ return n.toString().padStart(2, "0"); }
+
+    function startTimer() {
+      if (started) return;
+      started = true;
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const s = Math.floor(elapsed / 1000);
+        const mm = Math.floor(s / 60);
+        const ss = s % 60;
+        timerEl.textContent = `${pad(mm)}:${pad(ss)}`;
+      }, 250);
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function nextEnabledInput(current){
+      const idx = inputs.indexOf(current);
+      return inputs.slice(idx + 1).find(i => !i.disabled);
+    }
+
+    function lockCorrect(input) {
+      input.classList.add("correct");
+      input.setAttribute("disabled", "disabled");
+      input.setAttribute("aria-disabled", "true");
+      // automatisches Weiter­springen
+      const nxt = nextEnabledInput(input);
+      if (nxt) nxt.focus();
+    }
+
+    function allCorrect() {
+      return inputs.every(i => i.classList.contains("correct"));
+    }
+
+    function celebrate() {
+      const duration = 1800;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({
+          particleCount: 7,
+          startVelocity: 38,
+          spread: 360,
+          ticks: 140,
+          scalar: 0.9,
+          colors: ["#a7f3d0","#93c5fd","#fde68a","#fbcfe8","#bfdbfe"],
+          origin: { x: Math.random(), y: Math.random() * 0.3 }
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    function onWin() {
+      stopTimer();
+      finalTimeEl.textContent = timerEl.textContent;
+      completeCard.classList.remove("hidden");
+      completeCard.classList.add("animate-[fadeIn_.6s_ease-out]");
+      celebrate();
+    }
+
+    function checkInput(e) {
+      startTimer();
+      const el = e.target;
+      const id = parseInt(el.id.replace("gap-",""), 10);
+
+      // Nur Buchstaben, klein
+      const sanitized = el.value.replace(/[^a-zA-Z]/g, '').toLowerCase();
+      if (el.value !== sanitized) el.value = sanitized;
+
+      if (sanitized === answers[id]) {
+        lockCorrect(el);
+        if (allCorrect()) onWin();
+      } else {
+        el.classList.remove("correct");
+      }
+    }
+
+    // Listener
+    inputs.forEach(inp => {
+      inp.addEventListener("input", checkInput);
+      inp.addEventListener("focus", startTimer, { once: true });
+      // Enter springt zum nächsten Feld
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const nxt = nextEnabledInput(inp);
+          if (nxt) nxt.focus();
+        }
+      });
+    });
+
+    // Reset
+    resetBtn.addEventListener("click", () => {
+      stopTimer();
+      started = false;
+      timerEl.textContent = "00:00";
+      completeCard.classList.add("hidden");
+      inputs.forEach(inp => {
+        inp.removeAttribute("disabled");
+        inp.value = "";
+        inp.classList.remove("correct");
+      });
+      setTimeout(() => inputs[0].focus(), 50);
+    });
+  </script>
+</body>
+</html>

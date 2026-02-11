@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Abschreibungen & HGB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8 flex justify-center items-center min-h-screen">
+
+    <!-- App Window Wrapper (Same Layout as Email) -->
+    <div class="bg-white w-full max-w-4xl shadow-2xl rounded-lg overflow-hidden border border-gray-300 flex flex-col h-[90vh] md:h-auto">
+        
+        <!-- Window Header (Fake OS Bar) -->
+        <div class="bg-gray-800 text-white px-4 py-2 flex justify-between items-center text-sm shrink-0">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Lernmodul - BWR Klasse 9</span>
+            </div>
+            <div class="flex space-x-2">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Toolbar (Adapted for Quiz) -->
+        <div class="bg-gray-50 border-b border-gray-200 p-3 flex justify-between items-center text-gray-600 shrink-0">
+            <div class="flex space-x-4">
+                <div class="flex items-center space-x-2 px-3 py-1 bg-white border border-gray-300 rounded shadow-sm">
+                    <i class="fas fa-user-tie text-blue-600"></i> 
+                    <span class="font-medium text-sm">SnowPro Max Winter e.K.</span>
+                </div>
+            </div>
+            <div class="text-sm font-semibold text-gray-500" id="score-display">
+                Punkte: 0 / 5
+            </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8" id="quiz-container">
+            
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-8 text-center">
+                    <h1 class="text-2xl font-bold text-gray-800 mb-2">Wissenscheck: Abschreibungen</h1>
+                    <p class="text-gray-600">Basierend auf der E-Mail von Steuerberater Dr. Rechner.</p>
+                </div>
+
+                <!-- Questions will be injected here via JS -->
+                <div id="questions-list" class="space-y-6"></div>
+
+                <!-- Reset Button -->
+                <div class="mt-8 text-center hidden" id="reset-area">
+                    <button onclick="renderQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow transition transform hover:scale-105">
+                        <i class="fas fa-redo mr-2"></i> Quiz neu starten
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const quizData = [
+            {
+                id: 1,
+                question: "Welches Gesetz schreibt Kaufleuten zwingend vor, dass abnutzbare Anlagen planmäßig abgeschrieben werden müssen?",
+                options: [
+                    "Das Strafgesetzbuch (StGB)",
+                    "Das Handelsgesetzbuch (HGB)",
+                    "Das Bürgerliche Gesetzbuch (BGB)",
+                    "Die Straßenverkehrsordnung (StVO)"
+                ],
+                correct: 1, // Index of correct answer
+                explanation: "Richtig ist das HGB. Dr. Rechner nennt explizit § 253 Abs. 3 HGB als Rechtsgrundlage für die Bilanz."
+            },
+            {
+                id: 2,
+                question: "Warum darf Max Winter die 84.000 € für den Transporter nicht sofort im Kaufjahr komplett als Aufwand buchen?",
+                options: [
+                    "Weil das Unternehmen sonst zu viel Gewinn machen würde.",
+                    "Weil der Transporter über mehrere Jahre genutzt wird (Verteilung der Kosten).",
+                    "Weil Dr. Rechner die Rechnung verloren hat.",
+                    "Weil man Anlagegüter niemals als Aufwand buchen darf."
+                ],
+                correct: 1,
+                explanation: "Genau! Die Kosten müssen gerecht auf die Jahre verteilt werden, in denen der Wagen auch genutzt wird."
+            },
+            {
+                id: 3,
+                question: "Welches Prinzip verbietet es, den Transporter in der Bilanz wertvoller darzustellen, als er tatsächlich ist?",
+                options: [
+                    "Das Vorsichtsprinzip",
+                    "Das Optimismusprinzip",
+                    "Das Regionalprinzip",
+                    "Das Zufallsprinzip"
+                ],
+                correct: 0,
+                explanation: "Korrekt. Das Vorsichtsprinzip dient dem Gläubigerschutz: Man darf sich nicht 'reicher rechnen' als man ist."
+            },
+            {
+                id: 4,
+                question: "Woher weiß der Steuerberater, wie lange der Transporter voraussichtlich genutzt werden kann (Nutzungsdauer)?",
+                options: [
+                    "Er schätzt das grob über den Daumen.",
+                    "Er fragt beim Hersteller (VW) nach.",
+                    "Aus den AfA-Tabellen des Finanzministeriums (§ 7 EStG).",
+                    "Er würfelt die Anzahl der Jahre."
+                ],
+                correct: 2,
+                explanation: "Stimmt. Die amtlichen AfA-Tabellen geben die steuerlich anerkannte Nutzungsdauer vor."
+            },
+            {
+                id: 5,
+                question: "Was passiert durch die Buchung der Abschreibung in der Bilanz?",
+                options: [
+                    "Der Wert des Transporters steigt.",
+                    "Der Gewinn des Unternehmens erhöht sich.",
+                    "Der Wert des Transporters sinkt und es entsteht Aufwand.",
+                    "Es passiert nichts, es ist nur eine Notiz."
+                ],
+                correct: 2,
+                explanation: "Richtig. Die Abschreibung erfasst den Wertverlust als Aufwand und mindert den Buchwert des Fahrzeugs."
+            }
+        ];
+
+        let score = 0;
+        const totalQuestions = quizData.length;
+
+        function renderQuiz() {
+            const container = document.getElementById('questions-list');
+            const scoreDisplay = document.getElementById('score-display');
+            const resetArea = document.getElementById('reset-area');
+            
+            container.innerHTML = '';
+            score = 0;
+            scoreDisplay.textContent = `Punkte: 0 / ${totalQuestions}`;
+            resetArea.classList.add('hidden');
+
+            quizData.forEach((item, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6';
+                questionCard.innerHTML = `
+                    <div class="flex items-start mb-4">
+                        <span class="bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded mr-3 mt-1">FRAGE ${index + 1}</span>
+                        <h3 class="text-lg font-semibold text-gray-800 leading-tight">${item.question}</h3>
+                    </div>
+                    <div class="space-y-3" id="options-${index}">
+                        ${item.options.map((option, optIndex) => `
+                            <button onclick="checkAnswer(${index}, ${optIndex})" 
+                                class="option-btn w-full text-left px-4 py-3 rounded border border-gray-200 hover:bg-gray-50 hover:border-blue-300 transition-all duration-200 flex items-center group relative">
+                                <div class="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center group-hover:border-blue-400">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-blue-500 opacity-0 transition-opacity check-dot"></div>
+                                </div>
+                                <span class="text-gray-700">${option}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden mt-4 p-4 rounded-md text-sm border-l-4 fade-in"></div>
+                `;
+                container.appendChild(questionCard);
+            });
+        }
+
+        function checkAnswer(qIndex, selectedOptIndex) {
+            const question = quizData[qIndex];
+            const optionsDiv = document.getElementById(`options-${qIndex}`);
+            const feedbackDiv = document.getElementById(`feedback-${qIndex}`);
+            const buttons = optionsDiv.getElementsByTagName('button');
+            const isCorrect = selectedOptIndex === question.correct;
+
+            // Disable all buttons for this question
+            for (let btn of buttons) {
+                btn.disabled = true;
+                btn.classList.add('cursor-not-allowed', 'opacity-70');
+                btn.classList.remove('hover:bg-gray-50', 'hover:border-blue-300');
+            }
+
+            // Highlight selected
+            const selectedBtn = buttons[selectedOptIndex];
+            
+            if (isCorrect) {
+                // Correct styling
+                selectedBtn.classList.remove('border-gray-200', 'opacity-70');
+                selectedBtn.classList.add('bg-green-50', 'border-green-500', 'text-green-800');
+                selectedBtn.querySelector('.border-2').classList.replace('border-gray-300', 'border-green-500');
+                selectedBtn.querySelector('.check-dot').classList.replace('bg-blue-500', 'bg-green-500');
+                selectedBtn.querySelector('.check-dot').classList.remove('opacity-0');
+                
+                // Feedback
+                feedbackDiv.className = "mt-4 p-4 rounded-md text-sm border-l-4 border-green-500 bg-green-50 text-green-800 fade-in";
+                feedbackDiv.innerHTML = `<i class="fas fa-check-circle mr-2"></i> <strong>Richtig!</strong> ${question.explanation}`; // Reuse generic or specific correct text
+                
+                score++;
+                updateScore();
+            } else {
+                // Wrong styling
+                selectedBtn.classList.remove('border-gray-200', 'opacity-70');
+                selectedBtn.classList.add('bg-red-50', 'border-red-500', 'text-red-800');
+                selectedBtn.querySelector('.border-2').classList.replace('border-gray-300', 'border-red-500');
+                selectedBtn.querySelector('.check-dot').classList.replace('bg-blue-500', 'bg-red-500');
+                selectedBtn.querySelector('.check-dot').classList.remove('opacity-0');
+
+                // Highlight correct one as well (for learning effect)
+                const correctBtn = buttons[question.correct];
+                correctBtn.classList.remove('opacity-70');
+                correctBtn.classList.add('bg-green-50', 'border-green-500', 'ring-1', 'ring-green-500');
+
+                // Feedback
+                feedbackDiv.className = "mt-4 p-4 rounded-md text-sm border-l-4 border-red-500 bg-red-50 text-red-800 fade-in";
+                feedbackDiv.innerHTML = `<i class="fas fa-times-circle mr-2"></i> <strong>Leider falsch.</strong> ${question.explanation}`;
+            }
+
+            feedbackDiv.classList.remove('hidden');
+
+            // Check if all answered to show reset button
+            const allAnswered = document.querySelectorAll('[id^="feedback-"]:not(.hidden)').length === totalQuestions;
+            if (allAnswered) {
+                document.getElementById('reset-area').classList.remove('hidden');
+                document.getElementById('reset-area').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function updateScore() {
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.textContent = `Punkte: ${score} / ${totalQuestions}`;
+            scoreDisplay.classList.add('text-blue-600', 'font-bold');
+            setTimeout(() => scoreDisplay.classList.remove('text-blue-600', 'font-bold'), 300);
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', renderQuiz);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teilbarkeitsregeln Übung</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 50px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .hidden {
+            display: none;
+        }
+        .feedback {
+            margin-top: 20px;
+        }
+        .smiley {
+            font-size: 2rem;
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Teilbarkeitsregeln Übung</h1>
+        <div id="quiz-section">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title" id="question">Frage wird geladen...</h5>
+                    <div class="mt-4 d-flex justify-content-center">
+                        <button id="yes-btn" class="btn btn-success me-3">Ja</button>
+                        <button id="no-btn" class="btn btn-danger">Nein</button>
+                    </div>
+                    <div id="feedback" class="feedback text-center"></div>
+                    <div id="next-btn-container" class="mt-3 text-center hidden">
+                        <button id="next-btn" class="btn btn-primary">Weiter</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 text-center">
+                <p>Frage <span id="current-question">1</span> von 20</p>
+            </div>
+        </div>
+        <div id="result-section" class="hidden">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3>Auswertung</h3>
+                    <p id="score">Du hast x von 20 Aufgaben richtig beantwortet.</p>
+                    <p id="start-time"></p>
+                    <p id="duration"></p>
+                    <button id="restart-btn" class="btn btn-primary mt-3">Nochmal versuchen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies (Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const rules = [
+            {
+                name: "2",
+                description: "durch 2",
+                isDivisible: (number) => number % 2 === 0,
+                generateNumber: () => {
+                    const lastDigit = [0, 2, 4, 6, 8][Math.floor(Math.random() * 5)];
+                    const number = getRandomNumberExcludingLastDigit(lastDigit, 2);
+                    return number;
+                },
+                explanation: "Eine Zahl ist durch 2 teilbar, wenn ihre Einerziffer 0, 2, 4, 6 oder 8 ist."
+            },
+            {
+                name: "5",
+                description: "durch 5",
+                isDivisible: (number) => number % 5 === 0,
+                generateNumber: () => {
+                    const lastDigit = [0, 5][Math.floor(Math.random() * 2)];
+                    const number = getRandomNumberExcludingLastDigit(lastDigit, 5);
+                    return number;
+                },
+                explanation: "Eine Zahl ist durch 5 teilbar, wenn ihre Einerziffer 0 oder 5 ist."
+            },
+            {
+                name: "10",
+                description: "durch 10",
+                isDivisible: (number) => number % 10 === 0,
+                generateNumber: () => {
+                    const lastDigit = 0;
+                    const number = getRandomNumberExcludingLastDigit(lastDigit, 10);
+                    return number;
+                },
+                explanation: "Eine Zahl ist durch 10 teilbar, wenn ihre Einerziffer 0 ist."
+            },
+            {
+                name: "4",
+                description: "durch 4",
+                isDivisible: (number) => number % 4 === 0,
+                generateNumber: () => {
+                    const lastTwoDigits = Math.floor(Math.random() * 25) * 4; // ensures divisible by 4
+                    const number = getRandomNumberExcludingLastTwoDigits(lastTwoDigits, 4);
+                    return number;
+                },
+                explanation: "Eine Zahl ist durch 4 teilbar, wenn die aus den letzten beiden Ziffern gebildete Zahl durch 4 teilbar ist."
+            },
+            {
+                name: "3",
+                description: "durch 3",
+                isDivisible: (number) => {
+                    const sum = number.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+                    return sum % 3 === 0;
+                },
+                generateNumber: () => {
+                    let number;
+                    do {
+                        number = Math.floor(Math.random() * 1000) + 1;
+                    } while (Math.random() < 0.5 ? (number % 3 === 0) : (number % 3 !== 0));
+                    return number;
+                },
+                explanation: "Eine Zahl ist durch 3 teilbar, wenn ihre Quersumme durch 3 teilbar ist."
+            },
+            {
+                name: "9",
+                description: "durch 9",
+                isDivisible: (number) => {
+                    const sum = number.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+                    return sum % 9 === 0;
+                },
+                generateNumber: () => {
+                    let number;
+                    do {
+                        number = Math.floor(Math.random() * 1000) + 1;
+                    } while (Math.random() < 0.5 ? (number % 9 === 0) : (number % 9 !== 0));
+                    return number;
+                },
+                explanation: "Eine Zahl ist durch 9 teilbar, wenn ihre Quersumme durch 9 teilbar ist."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let startTime;
+        let selectedRules = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('yes-btn').addEventListener('click', () => handleAnswer(true));
+            document.getElementById('no-btn').addEventListener('click', () => handleAnswer(false));
+            document.getElementById('next-btn').addEventListener('click', nextQuestion);
+            document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+            startQuiz();
+        });
+
+        function startQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedRules = [];
+            startTime = new Date();
+            document.getElementById('quiz-section').classList.remove('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion >= 20) {
+                showResult();
+                return;
+            }
+            document.getElementById('feedback').innerHTML = '';
+            document.getElementById('next-btn-container').classList.add('hidden');
+            document.getElementById('yes-btn').disabled = false;
+            document.getElementById('no-btn').disabled = false;
+
+            const rule = rules[Math.floor(Math.random() * rules.length)];
+            const number = rule.generateNumber();
+
+            selectedRules.push(rule);
+
+            document.getElementById('question').innerText = `Ist die Zahl ${number} teilbar ${rule.description}?`;
+            document.getElementById('current-question').innerText = currentQuestion + 1;
+            document.getElementById('question').dataset.correctAnswer = rule.isDivisible(number) ? 'yes' : 'no';
+            document.getElementById('question').dataset.explanation = rule.explanation;
+            document.getElementById('question').dataset.number = number;
+            document.getElementById('question').dataset.rule = rule.description;
+            currentQuestion++;
+        }
+
+        function handleAnswer(userAnswer) {
+            const correctAnswer = document.getElementById('question').dataset.correctAnswer;
+            const explanation = document.getElementById('question').dataset.explanation;
+            const number = document.getElementById('question').dataset.number;
+            const rule = document.getElementById('question').dataset.rule;
+
+            document.getElementById('yes-btn').disabled = true;
+            document.getElementById('no-btn').disabled = true;
+
+            if ((userAnswer && correctAnswer === 'yes') || (!userAnswer && correctAnswer === 'no')) {
+                score++;
+                document.getElementById('feedback').innerHTML = `<span class="smiley">&#128522;</span>`;
+            } else {
+                document.getElementById('feedback').innerHTML = `<span class="incorrect">&#10060; Falsch!</span><br><small>${explanation}</small>`;
+            }
+            document.getElementById('next-btn-container').classList.remove('hidden');
+        }
+
+        function showResult() {
+            const endTime = new Date();
+            const durationMs = endTime - startTime;
+            const duration = new Date(durationMs).toISOString().substr(14, 5);
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit', 
+                              hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const startTimeStr = startTime.toLocaleString('de-DE', options);
+
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+            document.getElementById('score').innerText = `Du hast ${score} von 20 Aufgaben richtig beantwortet.`;
+            document.getElementById('start-time').innerText = `Startzeit: ${startTimeStr}`;
+            document.getElementById('duration').innerText = `Benötigte Zeit: ${duration}`;
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        function getRandomNumberExcludingLastDigit(lastDigit, divisor) {
+            const otherDigits = Math.floor(Math.random() * 900) + 100; // 100-999
+            return parseInt(otherDigits.toString().slice(0, -1) + lastDigit);
+        }
+
+        function getRandomNumberExcludingLastTwoDigits(lastTwoDigits, divisor) {
+            const prefix = Math.floor(Math.random() * 90) + 10; // 10-99
+            return parseInt(prefix.toString() + lastTwoDigits.toString().padStart(2, '0'));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Mail Ansicht - Dr. Rechner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8 flex justify-center items-center min-h-screen">
+
+    <!-- Email Client Window -->
+    <div class="bg-white w-full max-w-4xl shadow-2xl rounded-lg overflow-hidden border border-gray-300">
+        
+        <!-- Window Header (Fake OS Bar) -->
+        <div class="bg-gray-800 text-white px-4 py-2 flex justify-between items-center text-sm">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-envelope"></i>
+                <span>Mail - Posteingang</span>
+            </div>
+            <div class="flex space-x-2">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="bg-gray-50 border-b border-gray-200 p-3 flex space-x-4 text-gray-600">
+            <button class="hover:bg-gray-200 px-3 py-1 rounded flex items-center space-x-2 transition">
+                <i class="fas fa-reply"></i> <span>Antworten</span>
+            </button>
+            <button class="hover:bg-gray-200 px-3 py-1 rounded flex items-center space-x-2 transition">
+                <i class="fas fa-reply-all"></i> <span>Allen antworten</span>
+            </button>
+            <button class="hover:bg-gray-200 px-3 py-1 rounded flex items-center space-x-2 transition">
+                <i class="fas fa-share"></i> <span>Weiterleiten</span>
+            </button>
+            <div class="border-l border-gray-300 mx-2"></div>
+            <button class="hover:bg-gray-200 px-3 py-1 rounded flex items-center space-x-2 text-red-500 transition">
+                <i class="fas fa-trash"></i> <span>Löschen</span>
+            </button>
+        </div>
+
+        <!-- Email Header Area -->
+        <div class="p-6 border-b border-gray-100 bg-white">
+            <h1 class="text-xl font-semibold text-gray-800 mb-4">Wichtige Rückfragen zum Jahresabschluss – Bewertung Ihrer Anlagen</h1>
+            
+            <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-4">
+                    <!-- Avatar -->
+                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        DR
+                    </div>
+                    <!-- Sender Info -->
+                    <div>
+                        <div class="font-bold text-gray-900">Dr. Hannes Rechner <span class="text-gray-500 font-normal text-sm">&lt;hannes.rechner@kanzlei-rechner.de&gt;</span></div>
+                        <div class="text-sm text-gray-500">An: Max Winter &lt;max.winter@snowpro.com&gt;</div>
+                    </div>
+                </div>
+                <!-- Date -->
+                <div class="text-sm text-gray-500 text-right">
+                    <div>Mo, 12. Dez. 2024</div>
+                    <div>09:42 Uhr</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Body -->
+        <div class="p-8 text-gray-800 leading-relaxed text-base bg-white min-h-[400px]">
+            <p class="mb-4">Sehr geehrter Herr Winter,</p>
+            
+            <p class="mb-4">
+                wir stecken mitten in den Vorbereitungen für Ihren Jahresabschluss. Dabei ist mir aufgefallen, dass Sie sehr verwundert über den gesunkenen Buchwert Ihres Transporters und der Produktionsmaschinen waren.
+            </p>
+            
+            <p class="mb-4">
+                Gerne erkläre ich Ihnen kurz den rechtlichen Hintergrund, damit Sie für das Bankgespräch gewappnet sind. Wir dürfen Ihre Anlagegüter in der Bilanz nämlich nicht einfach mit dem Kaufpreis stehen lassen.
+            </p>
+
+            <p class="mb-2">
+                Das <strong>Handelsgesetzbuch (HGB)</strong> schreibt uns in <strong>§ 253 Abs. 3</strong> zwingend vor:
+            </p>
+            
+            <!-- Legal Quote Block -->
+            <blockquote class="bg-gray-50 border-l-4 border-gray-400 p-4 italic text-gray-700 mb-6 mx-2 font-serif">
+                "Vermögensgegenstände des Anlagevermögens, deren Nutzung zeitlich begrenzt ist, sind um planmäßige Abschreibungen zu vermindern. Die planmäßige Abschreibung bestimmt sich nach der voraussichtlichen Nutzungsdauer."
+            </blockquote>
+
+            <p class="mb-2">Für unsere Buchführung bedeutet das konkret:</p>
+            
+            <ul class="list-none space-y-3 mb-6 ml-1">
+                <li class="flex items-start">
+                    <i class="fas fa-check-circle text-blue-600 mt-1 mr-3"></i>
+                    <div>
+                        <strong>Verteilung der Anschaffungskosten:</strong><br>
+                        Die Kosten für den Transporter (84.000,00 €) dürfen nicht sofort im Kaufjahr voll als Aufwand gebucht werden. Stattdessen müssen wir diese Kosten gerecht auf die gesamte Nutzungsdauer von <strong>6 Jahren</strong> verteilen.
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check-circle text-blue-600 mt-1 mr-3"></i>
+                    <div>
+                        <strong>Vorsichtsprinzip:</strong><br>
+                        Wir dürfen uns nicht "reicher rechnen" als wir sind. Da der Wagen an Wert verliert, muss dieser Verlust in der Bilanz gezeigt werden, um Gläubiger zu schützen.
+                    </div>
+                </li>
+            </ul>
+
+            <p class="mb-6">
+                Für die Steuererklärung nutzen wir zudem die <strong>AfA-Tabellen</strong> des Finanzministeriums (gemäß <strong>§ 7 EStG</strong>), aus denen sich die Nutzungsdauer ergibt.
+            </p>
+
+            <p class="mb-8 font-medium text-gray-700">
+                Bitte bestätigen Sie mir noch kurz die aktuellen Kilometerstände, damit wir die Buchungen finalisieren können.
+            </p>
+
+            <div class="border-t border-gray-200 pt-4 text-sm text-gray-500">
+                <p>Mit freundlichen Grüßen</p>
+                <p class="font-bold text-gray-800 mt-2">Dr. Hannes Rechner</p>
+                <p>Steuerberater</p>
+                <p class="text-blue-600">Kanzlei Rechner & Partner, Bad Reichenhall</p>
+            </div>
+            
+            <!-- --- Button Area --- -->
+            <div class="mt-8 pt-4 border-t border-gray-200 text-center">
+                <h3 class="text-base font-medium text-gray-700 mb-3">Nächster Schritt: Überprüfe dein Wissen!</h3>
+                <a href="https://seminarlehrer.com/playground/wertminderung-quiz.htm" target="_blank" 
+                   class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto text-base">
+                    <i class="fas fa-question-circle mr-3"></i> Zum Quiz
+                </a>
+                <p class="text-xs text-gray-400 mt-2">Öffnet in einem neuen Fenster</p>
+            </div>
+            <!-- --- End Button Area --- -->
+
+        </div>
+
+    </div>
+
+</body>
+</html>

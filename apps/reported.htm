@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drama at School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .dashboard {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        .memory-card {
+            height: 150px;
+            background: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        .memory-card.flipped, .memory-card.matched {
+            background: #007bff;
+        }
+        .memory-card.matched {
+            opacity: 0.7;
+        }
+        .score-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .score-left, .score-right {
+            padding: 10px;
+            transition: background-color 0.3s;
+            width: 48%;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .highlight {
+            background-color: #dc3545;
+            color: white;
+        }
+        @media (max-width: 576px) {
+            .card-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            .memory-card {
+                height: 100px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container dashboard">
+        <h1 class="text-center mb-4">Drama at School</h1>
+        <div class="score-panel">
+            <div class="score-left highlight" id="left-panel">Left Score: <span id="left-score">0</span></div>
+            <div class="score-right" id="right-panel">Right Score: <span id="right-score">0</span></div>
+        </div>
+        <div class="card-grid" id="game-board"></div>
+        <button class="btn btn-primary mt-3 d-block mx-auto" id="reset-btn" style="display: none;">Play Again</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const cardsData = [
+            { id: 1, text: 'Mia said, "I am talking to the principal!"', matchId: 11 },
+            { id: 11, text: 'Mia said that she was talking to the principal.', matchId: 1 },
+            { id: 2, text: 'Leo said, "I forgot my homework!"', matchId: 12 },
+            { id: 12, text: 'Leo said that he had forgotten his homework.', matchId: 2 },
+            { id: 3, text: 'Anna said, "We are having a fight!"', matchId: 13 },
+            { id: 13, text: 'Anna said that they were having a fight.', matchId: 3 },
+            { id: 4, text: 'Tom said, "I will call my parents."', matchId: 14 },
+            { id: 14, text: 'Tom said that he would call his parents.', matchId: 4 },
+            { id: 5, text: 'Sarah said, "He broke my pencil!"', matchId: 15 },
+            { id: 15, text: 'Sarah said that he had broken her pencil.', matchId: 5 },
+            { id: 6, text: 'Ben said, "I have never cheated before."', matchId: 16 },
+            { id: 16, text: 'Ben said that he had never cheated before.', matchId: 6 }
+        ];
+
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let leftScore = 0;
+        let rightScore = 0;
+        let isLeftTurn = true;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createBoard() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            const shuffledCards = shuffle([...cardsData]);
+            shuffledCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('memory-card');
+                cardElement.dataset.id = card.id;
+                cardElement.dataset.matchId = card.matchId;
+                cardElement.textContent = '?';
+                cardElement.addEventListener('click', flipCard);
+                gameBoard.appendChild(cardElement);
+            });
+        }
+
+        function flipCard() {
+            if (flippedCards.length >= 2 || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+            this.classList.add('flipped');
+            this.textContent = cardsData.find(card => card.id == this.dataset.id).text;
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 1000);
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            if (card1.dataset.id === card2.dataset.matchId || card1.dataset.matchId === card2.dataset.id) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                updateScore();
+                if (matchedPairs === cardsData.length / 2) {
+                    document.getElementById('reset-btn').style.display = 'block';
+                }
+            } else {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1.textContent = '?';
+                card2.textContent = '?';
+                switchTurn();
+            }
+            flippedCards = [];
+        }
+
+        function updateScore() {
+            if (isLeftTurn) {
+                leftScore += 10;
+                document.getElementById('left-score').textContent = leftScore;
+            } else {
+                rightScore += 10;
+                document.getElementById('right-score').textContent = rightScore;
+            }
+            switchTurn();
+        }
+
+        function switchTurn() {
+            isLeftTurn = !isLeftTurn;
+            const leftPanel = document.getElementById('left-panel');
+            const rightPanel = document.getElementById('right-panel');
+            if (isLeftTurn) {
+                leftPanel.classList.add('highlight');
+                rightPanel.classList.remove('highlight');
+            } else {
+                leftPanel.classList.remove('highlight');
+                rightPanel.classList.add('highlight');
+            }
+        }
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            leftScore = 0;
+            rightScore = 0;
+            matchedPairs = 0;
+            isLeftTurn = true;
+            document.getElementById('left-score').textContent = '0';
+            document.getElementById('right-score').textContent = '0';
+            document.getElementById('left-panel').classList.add('highlight');
+            document.getElementById('right-panel').classList.remove('highlight');
+            document.getElementById('reset-btn').style.display = 'none';
+            createBoard();
+        });
+
+        createBoard();
+    </script>
+</body>
+</html>

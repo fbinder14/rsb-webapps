@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Führungsstile-Quiz: autoritär vs. kooperativ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0f1c;
+      --bg-gradient-start: #1a2a4a;
+      --bg-gradient-end: #07101e;
+      --card-bg: #0f1a2b;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-primary: #2a6df4;
+      --accent-secondary: #00d4ff;
+      --success: #20c997;
+      --error: #ff6b6b;
+      --text-primary: #e9eef7;
+      --text-muted: #a8b2c1;
+      --choice-bg: #13233b;
+      --choice-hover: #1a2f50;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(1200px 600px at 80% -10%, var(--bg-gradient-start) 0%, var(--bg-dark) 60%, var(--bg-gradient-end) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      line-height: 1.6;
+    }
+
+    .container-narrow {
+      max-width: 860px;
+    }
+
+    /* Glassmorphism-Effekt */
+    .glass {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--card-border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 20px;
+    }
+
+    .card-quiz {
+      background: var(--card-bg);
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-quiz:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Gradient-Text für Überschriften */
+    .title-gradient {
+      background: linear-gradient(90deg, #fff 0%, #b9d1ff 40%, #8bb0ff 80%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    /* Chips für Metadata */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cfe0ff;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    /* Buttons mit modernen Hover-Effekten */
+    .btn-choice {
+      position: relative;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 16px 20px;
+      width: 100%;
+      background: var(--choice-bg);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-choice::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    .btn-choice:hover {
+      background: var(--choice-hover);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(42, 109, 244, 0.2);
+    }
+
+    .btn-choice:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-choice:active {
+      transform: scale(0.98);
+    }
+
+    .btn-choice:focus {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    .btn-choice.btn-disabled {
+      opacity: 0.6;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    /* Feedback-Bereiche mit Animationen */
+    .feedback {
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: none;
+      animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      font-weight: 500;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.success {
+      background: rgba(32, 201, 151, 0.12);
+      border: 2px solid rgba(32, 201, 151, 0.35);
+      color: var(--success);
+    }
+
+    .feedback.error {
+      background: rgba(255, 107, 107, 0.12);
+      border: 2px solid rgba(255, 107, 107, 0.35);
+      color: var(--error);
+    }
+
+    /* Fortschrittsbalken mit Gradient */
+    .progress {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 15px rgba(42, 109, 244, 0.5);
+    }
+
+    /* Badge-Styling */
+    .badge-custom {
+      border-radius: 999px;
+      padding: 0.5rem 0.9rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: rgba(42, 109, 244, 0.15);
+      border: 1px solid rgba(42, 109, 244, 0.3);
+      color: #5a9aff;
+    }
+
+    /* Buttons mit modernem Look */
+    .btn-next {
+      border-radius: 12px;
+      padding: 12px 32px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(42, 109, 244, 0.3);
+    }
+
+    .btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(42, 109, 244, 0.4);
+    }
+
+    .btn-restart {
+      border-radius: 12px;
+      padding: 14px 40px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(42, 109, 244, 0.4);
+    }
+
+    .btn-restart:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 30px rgba(42, 109, 244, 0.5);
+    }
+
+    /* Utility-Klassen */
+    .hidden {
+      display: none !important;
+    }
+
+    .text-muted-custom {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Animationen */
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(42, 109, 244, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 20px rgba(42, 109, 244, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(42, 109, 244, 0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .pulse-animation {
+      animation: pulseGlow 1s ease-out;
+    }
+
+    /* Konfetti-Partikel */
+    .confetti {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Responsive Anpassungen */
+    @media (max-width: 768px) {
+      .chip {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.7rem;
+      }
+
+      .display-6 {
+        font-size: 1.75rem;
+      }
+
+      .btn-choice {
+        font-size: 1rem;
+        padding: 14px 18px;
+      }
+    }
+
+    /* Accessibility Improvements */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Focus-Indikatoren für bessere Zugänglichkeit */
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container container-narrow py-4 py-md-5">
+    <!-- Header -->
+    <header class="mb-4 text-center" role="banner">
+      <div class="d-flex flex-wrap justify-content-center gap-2 mb-3" aria-label="Quiz-Informationen">
+        <span class="chip" aria-label="Anzahl der Szenarien">🧩 10 Szenarien</span>
+        <span class="chip" aria-label="Zeitmessung aktiviert">⏱️ Zeit läuft</span>
+        <span class="chip" aria-label="Standort">📍 Bobingen · Augsburg</span>
+      </div>
+      <h1 class="display-6 fw-bold title-gradient mb-3">
+        Führungsstile erkennen: autoritär (A) oder kooperativ (K)
+      </h1>
+      <p class="text-muted-custom mb-0">
+        Wähle bei jedem Szenario A oder K. Du erhältst sofort Rückmeldung mit Begründung. 
+        Am Ende siehst du deine Punktzahl und die benötigte Zeit in Sekunden.
+      </p>
+    </header>
+
+    <!-- Fortschrittsanzeige -->
+    <div class="glass p-3 mb-4" role="region" aria-label="Fortschrittsanzeige">
+      <div class="d-flex justify-content-between align-items-center mb-2 small">
+        <span class="fw-semibold">Fortschritt</span>
+        <span id="progressText" aria-live="polite">0 / 10</span>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Quiz-Fortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Quiz-Karte -->
+    <div class="card-quiz p-4 mb-3" id="quizCard" role="main" aria-live="polite">
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <span class="badge-custom" id="questionBadge" aria-label="Aktuelle Fragennummer">Fall 1</span>
+        <span class="text-muted-custom" id="locationTag" aria-label="Standort des Szenarios">Augsburg/Bobingen</span>
+      </div>
+      
+      <h2 class="h5 mb-4" id="questionText">Laden...</h2>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+          <button 
+            class="btn-choice" 
+            id="btnA" 
+            data-choice="A"
+            aria-label="Antwort A: autoritär auswählen">
+            <span style="position: relative; z-index: 1;">A · autoritär</span>
+          </button>
+        </div>
+        <div class="col-12 col-md-6">
+          <button 
+            class="btn-choice" 
+            id="btnK" 
+            data-choice="K"
+            aria-label="Antwort K: kooperativ auswählen">
+            <span style="position: relative; z-index: 1;">K · kooperativ</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="feedbackContainer" class="feedback" role="alert" aria-live="assertive"></div>
+
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mt-4">
+        <button id="btnNext" class="btn-next hidden" aria-label="Zur nächsten Frage">
+          Weiter
+        </button>
+        <small class="text-muted-custom">
+          💡 <strong>Tipp:</strong> A = Leitung entscheidet allein. K = Mitarbeitende werden einbezogen.
+        </small>
+      </div>
+    </div>
+
+    <!-- Ergebnisanzeige -->
+    <div id="resultsCard" class="glass p-4 text-center hidden" role="region" aria-label="Quiz-Ergebnisse">
+      <h2 class="h3 mb-4 title-gradient">🎯 Auswertung</h2>
+      
+      <div class="mb-4">
+        <p class="h5 mb-2">
+          Punktzahl: <span class="fw-bold" id="finalScore" style="color: var(--accent-secondary);">0</span> / 10
+        </p>
+        <p class="h5 mb-3">
+          Benötigte Zeit: <span class="fw-bold" id="finalTime" style="color: var(--accent-secondary);">0</span> Sekunden
+        </p>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+        <span class="chip">✅ Richtig</span>
+        <span class="chip">❌ Falsch</span>
+      </div>
+
+      <button class="btn-restart" id="btnRestart" aria-label="Quiz neu starten">
+        🔄 Neu starten
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-4 text-center text-muted-custom" role="contentinfo">
+      <small>
+        <strong>Hinweis:</strong> In dieser Übung werden die Begriffe „autoritär" und „autoritativ" gleichbedeutend verwendet.
+      </small>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Quiz-Szenarien
+    const SCENARIOS = [
+      {
+        location: "Bobingen · Bäckerei",
+        text: "Der Filialleiter entscheidet allein, wer an der Theke und wer in der Backstube arbeitet. Er informiert das Team erst am nächsten Morgen über seinen Plan.",
+        correct: "A",
+        reason: "Leitung entscheidet allein; Team wird nur informiert, nicht beteiligt."
+      },
+      {
+        location: "Augsburg · Handwerksbetrieb",
+        text: "Für eine neue Werbeaktion bittet die Chefin ihr Team um Ideen, diskutiert Vorschläge gemeinsam und trifft danach die Entscheidung.",
+        correct: "K",
+        reason: "Ideensammlung und Diskussion; Beteiligung des Teams vor der Entscheidung."
+      },
+      {
+        location: "Augsburg Hbf · IT-Start-up",
+        text: "Der Gründer erwartet, dass alle Aufgaben exakt nach seinem Plan erledigt werden. Kritik oder Nachfragen gelten als Zeitverschwendung.",
+        correct: "A",
+        reason: "Keine Diskussion; klare Anordnung von oben."
+      },
+      {
+        location: "Bobingen · Autowerkstatt",
+        text: "Azubis dürfen beim Frühjahrs-Check eigene Vorschläge einbringen. Der Werkstattmeister lobt gute Ideen und setzt einige um.",
+        correct: "K",
+        reason: "Mitarbeitende werden einbezogen; Vorschläge fließen in Entscheidungen ein."
+      },
+      {
+        location: "Augsburg · Stadtfest (Sicherheit)",
+        text: "Der Leiter ordnet streng an, wer wann wo steht. Positionen dürfen ohne Rücksprache nicht verlassen werden.",
+        correct: "A",
+        reason: "Strikte Anweisungen ohne Mitbestimmung."
+      },
+      {
+        location: "Süden Bobingen · Pflegedienst",
+        text: "Dienstpläne werden in einer Teamsitzung erstellt. Wünsche der Mitarbeitenden werden berücksichtigt, bevor die Leitung festlegt.",
+        correct: "K",
+        reason: "Mitbestimmung im Prozess; Leitung entscheidet auf Basis der Rückmeldungen."
+      },
+      {
+        location: "Augsburger Innenstadt · Restaurant",
+        text: "Neue Öffnungszeiten werden mitgeteilt: 'Das ist beschlossen, Diskussionen bringen nichts.'",
+        correct: "A",
+        reason: "Entscheidung von oben; Diskussion ausdrücklich ausgeschlossen."
+      },
+      {
+        location: "Straßberg bei Augsburg · Schreinerei",
+        text: "Der Inhaber bespricht den Ablauf für einen Großauftrag. Gemeinsam legt das Team Zuständigkeiten und Fristen fest.",
+        correct: "K",
+        reason: "Gemeinsame Abstimmung und klare, gemeinsam getragene Zuständigkeiten."
+      },
+      {
+        location: "Augsburg · Messe-Team",
+        text: "Die Projektleiterin stellt morgens das Tagesziel vor und bittet um Rückmeldungen, was realistisch erreichbar ist.",
+        correct: "K",
+        reason: "Rückmeldungen fließen ein; Zielabgleich mit dem Team."
+      },
+      {
+        location: "Bobingen · Logistikzentrum",
+        text: "Der Schichtleiter ordnet Überstunden an, ohne nachzufragen oder Gründe zu nennen.",
+        correct: "A",
+        reason: "Anordnung ohne Begründung oder Mitsprache."
+      }
+    ];
+
+    // State-Management
+    let currentIndex = 0;
+    let score = 0;
+    let startTime = null;
+    let isLocked = false;
+
+    // DOM-Elemente
+    const elements = {
+      questionBadge: document.getElementById('questionBadge'),
+      locationTag: document.getElementById('locationTag'),
+      questionText: document.getElementById('questionText'),
+      btnA: document.getElementById('btnA'),
+      btnK: document.getElementById('btnK'),
+      feedbackContainer: document.getElementById('feedbackContainer'),
+      btnNext: document.getElementById('btnNext'),
+      progressBar: document.getElementById('progressBar'),
+      progressText: document.getElementById('progressText'),
+      quizCard: document.getElementById('quizCard'),
+      resultsCard: document.getElementById('resultsCard'),
+      finalScore: document.getElementById('finalScore'),
+      finalTime: document.getElementById('finalTime'),
+      btnRestart: document.getElementById('btnRestart')
+    };
+
+    // Quiz initialisieren
+    function initQuiz() {
+      currentIndex = 0;
+      score = 0;
+      isLocked = false;
+      startTime = Date.now();
+      elements.resultsCard.classList.add('hidden');
+      elements.quizCard.classList.remove('hidden');
+      renderQuestion();
+    }
+
+    // Frage rendern
+    function renderQuestion() {
+      const scenario = SCENARIOS[currentIndex];
+      
+      elements.questionBadge.textContent = `Fall ${currentIndex + 1}`;
+      elements.locationTag.textContent = scenario.location;
+      elements.questionText.textContent = scenario.text;
+      
+      elements.feedbackContainer.classList.remove('show', 'success', 'error');
+      elements.feedbackContainer.textContent = '';
+      elements.btnNext.classList.add('hidden');
+      
+      [elements.btnA, elements.btnK].forEach(btn => {
+        btn.classList.remove('btn-disabled');
+        btn.disabled = false;
+      });
+      
+      isLocked = false;
+      updateProgress();
+    }
+
+    // Fortschritt aktualisieren
+    function updateProgress() {
+      const answeredCount = currentIndex;
+      const percentage = Math.round((answeredCount / SCENARIOS.length) * 100);
+      
+      elements.progressBar.style.width = `${percentage}%`;
+      elements.progressBar.setAttribute('aria-valuenow', percentage);
+      elements.progressText.textContent = `${answeredCount} / ${SCENARIOS.length}`;
+    }
+
+    // Antwort verarbeiten
+    function handleAnswer(choice) {
+      if (isLocked) return;
+      
+      isLocked = true;
+      const scenario = SCENARIOS[currentIndex];
+      const isCorrect = (choice === scenario.correct);
+      
+      if (isCorrect) {
+        score++;
+        showFeedback(true, scenario.reason);
+        animateSuccess();
+      } else {
+        showFeedback(false, scenario.reason);
+      }
+      
+      [elements.btnA, elements.btnK].forEach(btn => {
+        btn.classList.add('btn-disabled');
+        btn.disabled = true;
+      });
+      
+      elements.btnNext.classList.remove('hidden');
+      
+      const answeredCount = currentIndex + 1;
+      const percentage = Math.round((answeredCount / SCENARIOS.length) * 100);
+      elements.progressBar.style.width = `${percentage}%`;
+      elements.progressBar.setAttribute('aria-valuenow', percentage);
+      elements.progressText.textContent = `${answeredCount} / ${SCENARIOS.length}`;
+      
+      if (answeredCount === SCENARIOS.length) {
+        elements.btnNext.textContent = 'Ergebnis anzeigen';
+      } else {
+        elements.btnNext.textContent = 'Weiter';
+      }
+    }
+
+    // Feedback anzeigen
+    function showFeedback(isCorrect, reason) {
+      const icon = isCorrect ? '✅' : '❌';
+      const status = isCorrect ? 'Richtig' : 'Falsch';
+      
+      elements.feedbackContainer.innerHTML = `
+        ${icon} <strong>${status}.</strong> ${reason}
+      `;
+      elements.feedbackContainer.classList.add(isCorrect ? 'success' : 'error', 'show');
+    }
+
+    // Erfolgsanimation
+    function animateSuccess() {
+      elements.progressBar.classList.add('pulse-animation');
+      setTimeout(() => {
+        elements.progressBar.classList.remove('pulse-animation');
+      }, 1000);
+    }
+
+    // Nächste Frage
+    function nextQuestion() {
+      const isLastQuestion = (currentIndex >= SCENARIOS.length - 1);
+      
+      if (isLastQuestion) {
+        showResults();
+      } else {
+        currentIndex++;
+        renderQuestion();
+      }
+    }
+
+    // Ergebnisse anzeigen
+    function showResults() {
+      const elapsedSeconds = Math.max(0, Math.round((Date.now() - startTime) / 1000));
+      
+      elements.finalScore.textContent = score;
+      elements.finalTime.textContent = elapsedSeconds;
+      
+      elements.quizCard.classList.add('hidden');
+      elements.resultsCard.classList.remove('hidden');
+      
+      createConfetti(score);
+    }
+
+    // Konfetti-Effekt
+    function createConfetti(points) {
+      const confettiCount = Math.min(150, 40 + points * 8);
+      const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#00d4ff', '#20c997'];
+      
+      for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.width = confetti.style.height = (6 + Math.random() * 8) + 'px';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        confetti.style.opacity = '0.9';
+        
+        document.body.appendChild(confetti);
+        
+        const duration = 4000 + Math.random() * 2000;
+        const drift = (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 70);
+        const rotation = Math.random() * 720 - 360;
+        
+        confetti.animate([
+          { 
+            transform: 'translate(0, 0) rotate(0deg)',
+            opacity: 0.9
+          },
+          { 
+            transform: `translate(${drift}vw, 110vh) rotate(${rotation}deg)`,
+            opacity: 0
+          }
+        ], {
+          duration: duration,
+          easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          fill: 'forwards'
+        });
+        
+        setTimeout(() => confetti.remove(), duration + 100);
+      }
+    }
+
+    // Event-Listener
+    elements.btnA.addEventListener('click', () => handleAnswer('A'));
+    elements.btnK.addEventListener('click', () => handleAnswer('K'));
+    elements.btnNext.addEventListener('click', nextQuestion);
+    elements.btnRestart.addEventListener('click', initQuiz);
+
+    // Tastatursteuerung für bessere Accessibility
+    document.addEventListener('keydown', (e) => {
+      if (isLocked) return;
+      
+      if (e.key === 'a' || e.key === 'A') {
+        elements.btnA.click();
+      } else if (e.key === 'k' || e.key === 'K') {
+        elements.btnK.click();
+      }
+    });
+
+    // Quiz starten
+    initQuiz();
+  </script>
+</body>
+</html>

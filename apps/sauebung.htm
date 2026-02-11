@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktives Lernspiel - BwR Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #quiz-app {
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+        }
+
+        #question-container {
+            margin-bottom: 20px;
+        }
+
+        .answer-btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: none;
+            cursor: pointer;
+        }
+
+        .answer-btn:hover {
+            background-color: #ddd;
+        }
+
+        #explanation {
+            margin-top: 20px;
+            color: green;
+        }
+
+        #next-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+        }
+
+        #score-container {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-app">
+        <h1>BwR Quiz</h1>
+        <div id="question-container">
+            <div id="question"></div>
+            <div id="answers">
+                <button class="answer-btn"></button>
+                <button class="answer-btn"></button>
+                <button class="answer-btn"></button>
+                <button class="answer-btn"></button>
+            </div>
+        </div>
+        <div id="explanation"></div>
+        <button id="next-btn" style="display: none;">Nächste Frage</button>
+        <div id="score-container"></div>
+    </div>
+    <script>
+        const quizData = [
+            {
+                question: "Warum hat sich der Geschäftsführer für das Angebot des Bankhauses Bobingen entschieden?",
+                answers: [
+                    "Wegen des niedrigeren Effektivzinses.",
+                    "Wegen des niedrigeren Kreditbetrags.",
+                    "Wegen der längeren Laufzeit.",
+                    "Wegen des höheren Disagios."
+                ],
+                correct: 0,
+                explanation: "Der Geschäftsführer hat sich aufgrund des niedrigeren Effektivzinses von 2,30% entschieden, was zu geringeren Gesamtkreditkosten führt. (Siehe Aufgabe 1.1)"
+            },
+            {
+                question: "Wie hoch sind die Anschaffungskosten für den neuen 3D-Drucker?",
+                answers: [
+                    "75.000,00 €",
+                    "77.610,00 €",
+                    "80.000,00 €",
+                    "78.000,00 €"
+                ],
+                correct: 1,
+                explanation: "Die Anschaffungskosten für den 3D-Drucker betragen 77.610,00 €. (Siehe Aufgabe 1)"
+            },
+            {
+                question: "Welches Material gehört nicht zu den Rohstoffen des Unternehmens?",
+                answers: [
+                    "Holz (Esche, Buche, Pappel)",
+                    "Aluminium",
+                    "Latexkleber",
+                    "Strom"
+                ],
+                correct: 3,
+                explanation: "Strom gehört zu den Betriebsstoffen und nicht zu den Rohstoffen. (Siehe Informationen zum Unternehmen)"
+            }
+            // Weitere Fragen können hier hinzugefügt werden
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadQuestion();
+            document.getElementById("next-btn").addEventListener("click", loadNextQuestion);
+        });
+
+        function loadQuestion() {
+            const questionData = quizData[currentQuestion];
+            document.getElementById("question").textContent = questionData.question;
+            const answerButtons = document.querySelectorAll(".answer-btn");
+            answerButtons.forEach((btn, index) => {
+                btn.textContent = questionData.answers[index];
+                btn.onclick = () => selectAnswer(index);
+            });
+            document.getElementById("explanation").textContent = "";
+        }
+
+        function selectAnswer(index) {
+            const questionData = quizData[currentQuestion];
+            if (index === questionData.correct) {
+                document.getElementById("explanation").textContent = "Richtig! " + questionData.explanation;
+                score++;
+            } else {
+                document.getElementById("explanation").textContent = "Falsch. " + questionData.explanation;
+            }
+            document.getElementById("next-btn").style.display = "block";
+        }
+
+        function loadNextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showScore();
+            }
+            document.getElementById("next-btn").style.display = "none";
+        }
+
+        function showScore() {
+            document.getElementById("question-container").style.display = "none";
+            document.getElementById("score-container").textContent = `Du hast ${score} von ${quizData.length} Fragen richtig beantwortet.`;
+        }
+    </script>
+</body>
+</html>

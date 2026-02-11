@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kostenarten zuordnen | SnowPro</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
+body {
+font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+background: linear-gradient(135deg, #0c4a6e 0%, #075985 50%, #0369a1 100%);
+min-height: 100vh;
+padding: 16px;
+overflow-x: hidden;
+color: #1e293b;
+}
+.mountain-bg {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+height: 35vh;
+background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.05) 100%);
+clip-path: polygon(0 100%, 12% 55%, 28% 75%, 45% 35%, 62% 65%, 78% 45%, 100% 100%);
+pointer-events: none;
+z-index: 0;
+}
+.snowflake {
+position: fixed;
+color: rgba(255,255,255,0.35);
+font-size: 1rem;
+animation: fall linear infinite;
+pointer-events: none;
+z-index: 0;
+}
+@keyframes fall {
+0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+100% { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
+}
+.container {
+position: relative;
+z-index: 10;
+max-width: 1100px;
+margin: 0 auto;
+}
+/* Header */
+header {
+text-align: center;
+margin-bottom: 24px;
+}
+.logo {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 12px;
+margin-bottom: 4px;
+}
+.logo svg {
+width: 42px;
+height: 42px;
+fill: white;
+}
+.logo h1 {
+font-size: 2rem;
+font-weight: 800;
+background: linear-gradient(135deg, #ffffff 0%, #7dd3fc 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+.subtitle {
+color: #bae6fd;
+font-size: 0.9rem;
+font-weight: 300;
+letter-spacing: 0.5px;
+}
+/* Info-Box */
+.info-box {
+background: rgba(255,255,255,0.12);
+backdrop-filter: blur(12px);
+border-radius: 20px;
+padding: 20px 24px;
+margin-bottom: 24px;
+border: 1px solid rgba(255,255,255,0.1);
+}
+.info-box h2 {
+color: white;
+font-size: 1.4rem;
+font-weight: 700;
+text-align: center;
+margin-bottom: 6px;
+}
+.info-box p {
+color: #bae6fd;
+text-align: center;
+font-size: 0.95rem;
+margin-bottom: 16px;
+}
+.progress-container {
+display: flex;
+align-items: center;
+gap: 16px;
+}
+.progress-bar {
+flex: 1;
+height: 10px;
+background: rgba(255,255,255,0.2);
+border-radius: 999px;
+overflow: hidden;
+}
+.progress-fill {
+height: 100%;
+width: 0%;
+background: linear-gradient(90deg, #22c55e, #4ade80);
+border-radius: 999px;
+transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.progress-text {
+color: white;
+font-weight: 700;
+font-size: 1.1rem;
+min-width: 50px;
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+/* Spielbereich */
+.game-area {
+display: grid;
+grid-template-columns: 1fr;
+gap: 20px;
+}
+@media (min-width: 900px) {
+.game-area {
+grid-template-columns: 1fr 1.2fr 1fr;
+}
+.zone-variable { order: 1; }
+.card-source { order: 2; }
+.zone-fix { order: 3; }
+}
+/* Drop-Zonen */
+.drop-zone-wrapper {
+background: rgba(255,255,255,0.06);
+border-radius: 20px;
+padding: 16px;
+}
+.zone-header {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 8px;
+}
+.zone-dot {
+width: 14px;
+height: 14px;
+border-radius: 50%;
+}
+.zone-variable .zone-dot {
+background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+.zone-fix .zone-dot {
+background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+}
+.zone-header h3 {
+color: white;
+font-size: 1.15rem;
+font-weight: 700;
+}
+.zone-description {
+color: #93c5fd;
+font-size: 0.8rem;
+margin-bottom: 12px;
+padding-left: 24px;
+}
+.drop-zone {
+min-height: 180px;
+border: 3px dashed rgba(255,255,255,0.25);
+border-radius: 16px;
+padding: 14px;
+transition: all 0.3s ease;
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+align-content: flex-start;
+}
+.zone-variable .drop-zone {
+background: linear-gradient(180deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
+}
+.zone-fix .drop-zone {
+background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(14, 165, 233, 0.04) 100%);
+}
+.drop-zone.highlight {
+border-color: #fbbf24;
+background: rgba(251, 191, 36, 0.15);
+transform: scale(1.02);
+}
+/* Karten-Container */
+.card-source {
+background: rgba(255,255,255,0.08);
+border-radius: 20px;
+padding: 20px;
+min-height: 280px;
+}
+.card-source-hint {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+color: rgba(255,255,255,0.7);
+font-size: 0.85rem;
+margin-bottom: 16px;
+padding: 8px 16px;
+background: rgba(255,255,255,0.1);
+border-radius: 999px;
+width: fit-content;
+margin-left: auto;
+margin-right: auto;
+}
+.card-source-hint svg {
+width: 18px;
+height: 18px;
+stroke: currentColor;
+fill: none;
+}
+.cards-container {
+display: flex;
+flex-wrap: wrap;
+gap: 12px;
+justify-content: center;
+}
+/* Karten */
+.card {
+background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+border-radius: 14px;
+padding: 14px 18px;
+font-weight: 500;
+font-size: 0.92rem;
+box-shadow: 0 6px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+cursor: grab;
+transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+user-select: none;
+border: 2px solid transparent;
+position: relative;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.card-icon {
+font-size: 1.2rem;
+line-height: 1;
+}
+.card:hover {
+transform: translateY(-3px) scale(1.02);
+box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+border-color: #0ea5e9;
+}
+.card:active {
+cursor: grabbing;
+transform: scale(1.06) rotate(1.5deg);
+}
+.card.dragging {
+opacity: 0.9;
+transform: scale(1.08) rotate(-1deg);
+z-index: 1000;
+box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+.card.correct {
+background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%);
+border-color: #22c55e;
+cursor: default;
+opacity: 0.75;
+transform: scale(0.96);
+box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+.card.correct::after {
+content: '✓';
+position: absolute;
+right: 10px;
+color: #16a34a;
+font-weight: 800;
+font-size: 1.1rem;
+}
+.card.correct:hover {
+transform: scale(0.96);
+box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+border-color: #22c55e;
+}
+.card.wrong {
+animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+border-color: #ef4444;
+background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%);
+}
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+15%, 45%, 75% { transform: translateX(-10px) rotate(-1deg); }
+30%, 60%, 90% { transform: translateX(10px) rotate(1deg); }
+}
+/* Erfolgs-Nachricht */
+.success-message {
+display: none;
+margin-top: 32px;
+background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+border-radius: 20px;
+padding: 32px;
+text-align: center;
+box-shadow: 0 12px 40px rgba(34, 197, 94, 0.3);
+}
+.success-message.visible {
+display: block;
+animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+0% { transform: scale(0.8); opacity: 0; }
+100% { transform: scale(1); opacity: 1; }
+}
+.success-icon {
+font-size: 3rem;
+margin-bottom: 12px;
+}
+.success-message h3 {
+color: white;
+font-size: 1.8rem;
+font-weight: 700;
+margin-bottom: 8px;
+}
+.success-message p {
+color: #bbf7d0;
+font-size: 1rem;
+margin-bottom: 20px;
+}
+.btn-reset {
+background: white;
+color: #16a34a;
+border: none;
+padding: 14px 28px;
+font-size: 1rem;
+font-weight: 700;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.2s;
+font-family: inherit;
+}
+.btn-reset:hover {
+background: #f0fdf4;
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+/* Footer */
+footer {
+margin-top: 32px;
+text-align: center;
+color: rgba(186, 230, 253, 0.5);
+font-size: 0.75rem;
+}
+/* Mobile Anpassungen */
+@media (max-width: 600px) {
+body {
+padding: 12px;
+}
+.logo h1 {
+font-size: 1.6rem;
+}
+.logo svg {
+width: 34px;
+height: 34px;
+}
+.info-box {
+padding: 16px;
+}
+.info-box h2 {
+font-size: 1.2rem;
+}
+.card {
+padding: 12px 14px;
+font-size: 0.85rem;
+}
+.drop-zone {
+min-height: 140px;
+}
+}
+</style>
+</head>
+<body>
+<div id="snowflakes"></div>
+<div class="mountain-bg"></div>
+<div class="container">
+<!-- Header -->
+<header>
+<div class="logo">
+<svg viewBox="0 0 24 24">
+<path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6zm0 2.5L18 10v9h-2v-7H8v7H6v-9l6-4.5z"/>
+</svg>
+<h1>SnowPro</h1>
+</div>
+<p class="subtitle">Max Winter e. K. · Bad Reichenhall</p>
+</header>
+<!-- Info-Box -->
+<div class="info-box">
+<h2>🎯 Kostenarten zuordnen</h2>
+<p>Ziehe die Kostenpositionen in die richtige Kategorie!</p>
+<div class="progress-container">
+<div class="progress-bar">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+<span class="progress-text" id="progressText">0/8</span>
+</div>
+</div>
+<!-- Spielbereich -->
+<div class="game-area">
+<!-- Variable Kosten -->
+<div class="drop-zone-wrapper zone-variable">
+<div class="zone-header">
+<div class="zone-dot"></div>
+<h3>Variable Kosten</h3>
+</div>
+<p class="zone-description">mengenabhängig – fallen nur bei Produktion an</p>
+<div class="drop-zone" id="dropVariable" data-type="variable"></div>
+</div>
+<!-- Karten in der Mitte -->
+<div class="card-source">
+<div class="card-source-hint">
+<svg viewBox="0 0 24 24" stroke-width="2">
+<path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+</svg>
+<span>Ziehen & Ablegen</span>
+</div>
+<div class="cards-container" id="cards"></div>
+</div>
+<!-- Fixe Kosten -->
+<div class="drop-zone-wrapper zone-fix">
+<div class="zone-header">
+<div class="zone-dot"></div>
+<h3>Fixe Kosten</h3>
+</div>
+<p class="zone-description">mengenunabhängig – fallen immer an</p>
+<div class="drop-zone" id="dropFix" data-type="fix"></div>
+</div>
+</div>
+<!-- Erfolgs-Nachricht -->
+<div class="success-message" id="successMessage">
+<div class="success-icon">🎉</div>
+<h3>Perfekt!</h3>
+<p>Du hast alle Kostenarten richtig zugeordnet!</p>
+<button class="btn-reset" onclick="resetGame()">Nochmal spielen</button>
+</div>
+<!-- Footer -->
+<footer>
+<p>BWR-Unterricht · Investitionsrechnung · Kostenvergleichsrechnung</p>
+</footer>
+</div>
+<script>
+const costItems = [
+{ id: 1, text: "Personalkosten pro Stück", type: "variable", icon: "👷" },
+{ id: 2, text: "Materialkosten pro Stück", type: "variable", icon: "🔧" },
+{ id: 3, text: "Energiekosten pro Stück", type: "variable", icon: "⚡" },
+{ id: 4, text: "Reparaturen (variabel)", type: "variable", icon: "🛠️" },
+{ id: 5, text: "Abschreibung", type: "fix", icon: "📉" },
+{ id: 6, text: "Kalkulatorische Zinsen", type: "fix", icon: "💰" },
+{ id: 7, text: "Versicherungsbeiträge", type: "fix", icon: "🛡️" },
+{ id: 8, text: "Wartungspauschale (jährlich)", type: "fix", icon: "📋" },
+];
+let correctCount = 0;
+const totalItems = costItems.length;
+let draggedElement = null;
+let draggedItem = null;
+let clonedCard = null;
+function createSnowflakes() {
+const container = document.getElementById('snowflakes');
+const flakes = ['❄', '❅', '❆', '✧'];
+for (let i = 0; i < 15; i++) {
+const flake = document.createElement('div');
+flake.className = 'snowflake';
+flake.textContent = flakes[Math.floor(Math.random() * flakes.length)];
+flake.style.left = Math.random() * 100 + 'vw';
+flake.style.animationDuration = (Math.random() * 12 + 10) + 's';
+flake.style.animationDelay = Math.random() * 12 + 's';
+flake.style.fontSize = (Math.random() * 0.7 + 0.5) + 'rem';
+container.appendChild(flake);
+}
+}
+function shuffle(array) {
+const arr = [...array];
+for (let i = arr.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[arr[i], arr[j]] = [arr[j], arr[i]];
+}
+return arr;
+}
+function createCards() {
+const container = document.getElementById('cards');
+container.innerHTML = '';
+shuffle(costItems).forEach(item => {
+const card = document.createElement('div');
+card.className = 'card';
+card.draggable = true;
+card.dataset.id = item.id;
+card.dataset.type = item.type;
+card.innerHTML = `<span class="card-icon">${item.icon}</span><span>${item.text}</span>`;
+card.addEventListener('dragstart', handleDragStart);
+card.addEventListener('dragend', handleDragEnd);
+card.addEventListener('touchstart', handleTouchStart, { passive: false });
+card.addEventListener('touchmove', handleTouchMove, { passive: false });
+card.addEventListener('touchend', handleTouchEnd);
+container.appendChild(card);
+});
+}
+function handleDragStart(e) {
+draggedElement = e.target.closest('.card');
+draggedItem = costItems.find(item => item.id == draggedElement.dataset.id);
+draggedElement.classList.add('dragging');
+e.dataTransfer.effectAllowed = 'move';
+}
+function handleDragEnd(e) {
+e.target.classList.remove('dragging');
+document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('highlight'));
+}
+function handleTouchStart(e) {
+const card = e.target.closest('.card');
+if (!card || card.classList.contains('correct')) return;
+draggedElement = card;
+draggedItem = costItems.find(item => item.id == card.dataset.id);
+clonedCard = card.cloneNode(true);
+clonedCard.style.position = 'fixed';
+clonedCard.style.zIndex = '9999';
+clonedCard.style.width = card.offsetWidth + 'px';
+clonedCard.style.pointerEvents = 'none';
+clonedCard.classList.add('dragging');
+document.body.appendChild(clonedCard);
+const touch = e.touches[0];
+moveClone(touch.clientX, touch.clientY);
+card.style.opacity = '0.3';
+e.preventDefault();
+}
+function handleTouchMove(e) {
+if (!clonedCard) return;
+const touch = e.touches[0];
+moveClone(touch.clientX, touch.clientY);
+document.querySelectorAll('.drop-zone').forEach(zone => {
+const rect = zone.getBoundingClientRect();
+const isOver = touch.clientX >= rect.left && touch.clientX <= rect.right &&
+touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+zone.classList.toggle('highlight', isOver);
+});
+e.preventDefault();
+}
+function handleTouchEnd(e) {
+if (!clonedCard) return;
+const touch = e.changedTouches[0];
+document.querySelectorAll('.drop-zone').forEach(zone => {
+const rect = zone.getBoundingClientRect();
+if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+handleDrop(zone);
+}
+zone.classList.remove('highlight');
+});
+clonedCard.remove();
+clonedCard = null;
+if (draggedElement) draggedElement.style.opacity = '1';
+}
+function moveClone(x, y) {
+if (clonedCard) {
+clonedCard.style.left = (x - clonedCard.offsetWidth / 2) + 'px';
+clonedCard.style.top = (y - clonedCard.offsetHeight / 2) + 'px';
+}
+}
+function setupDropZones() {
+document.querySelectorAll('.drop-zone').forEach(zone => {
+zone.addEventListener('dragover', e => {
+e.preventDefault();
+zone.classList.add('highlight');
+});
+zone.addEventListener('dragleave', () => zone.classList.remove('highlight'));
+zone.addEventListener('drop', e => {
+e.preventDefault();
+handleDrop(zone);
+});
+});
+}
+function handleDrop(zone) {
+if (!draggedElement || !draggedItem || draggedElement.classList.contains('correct')) return;
+const isCorrect = draggedItem.type === zone.dataset.type;
+if (isCorrect) {
+draggedElement.classList.add('correct');
+draggedElement.draggable = false;
+zone.appendChild(draggedElement);
+correctCount++;
+updateProgress();
+if (correctCount === totalItems) {
+setTimeout(celebrateCompletion, 600);
+}
+} else {
+draggedElement.classList.add('wrong');
+setTimeout(() => draggedElement.classList.remove('wrong'), 500);
+}
+zone.classList.remove('highlight');
+}
+function updateProgress() {
+document.getElementById('progressFill').style.width = (correctCount / totalItems * 100) + '%';
+document.getElementById('progressText').textContent = `${correctCount}/${totalItems}`;
+}
+function celebrateCompletion() {
+const duration = 3500;
+const end = Date.now() + duration;
+const colors = ['#22c55e', '#0ea5e9', '#fbbf24', '#ffffff'];
+(function frame() {
+confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors });
+confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors });
+if (Date.now() < end) requestAnimationFrame(frame);
+})();
+document.getElementById('successMessage').classList.add('visible');
+}
+function resetGame() {
+correctCount = 0;
+updateProgress();
+document.getElementById('dropVariable').innerHTML = '';
+document.getElementById('dropFix').innerHTML = '';
+document.getElementById('successMessage').classList.remove('visible');
+createCards();
+}
+document.addEventListener('DOMContentLoaded', () => {
+createSnowflakes();
+createCards();
+setupDropZones();
+});
+</script>
+</body>
+</html>

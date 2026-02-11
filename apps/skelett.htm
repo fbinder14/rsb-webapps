@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skelett-Checker Dashboard | 5. Klasse Bio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Zusätzliche einfache Stile, falls Tailwind nicht alle visuellen Anatomie-Akzente abdeckt */
+        .anatomical-bg {
+            background-color: #f0f9ff; /* Light Blue/Anatomical Tint */
+        }
+        .quiz-panel {
+            min-height: 400px;
+        }
+        /* Animation für das Einblenden der Lösung */
+        .solution-hidden {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .solution-visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="anatomical-bg p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto shadow-2xl bg-white rounded-xl overflow-hidden">
+        
+        <header class="bg-blue-800 p-4 text-white flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-bold">🦴 Skelett-Checker Dashboard (5. Klasse Realschule)</h1>
+            <div id="timerDisplay" class="text-3xl font-extrabold bg-red-600 px-4 py-1 rounded">45:00</div>
+        </header>
+
+        <div class="flex flex-col lg:flex-row p-6 gap-6">
+
+            <div class="lg:w-2/3 space-y-6">
+                
+                <h2 class="text-xl font-semibold border-b pb-2 text-blue-800">Interaktive Knochen-Rätsel (Audio-Quiz)</h2>
+
+                <div class="bg-gray-100 p-6 rounded-lg shadow-inner quiz-panel">
+                    
+                    <div id="quizDescription" class="text-xl md:text-2xl font-medium mb-6 text-gray-700">
+                        Klicken Sie auf **"Start/Nächster Knochen"**, um das Quiz zu beginnen.
+                    </div>
+
+                    <div id="solutionContainer" class="solution-hidden border-t-4 border-green-500 pt-4 mt-6">
+                        <p class="text-sm text-gray-500 mb-1">Richtige Lösung:</p>
+                        <p id="solutionName" class="text-3xl font-extrabold text-green-700"></p>
+                        <p id="solutionFunction" class="mt-2 text-lg text-gray-600"></p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between space-x-4">
+                    <button onclick="revealSolution()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition duration-300 shadow-md flex-grow">
+                        LÖSUNG EINBLENDEN (Zum Abgleich)
+                    </button>
+                    <button onclick="nextBone()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition duration-300 shadow-md flex-grow">
+                        <span id="nextButtonText">Start Quiz (Knochen 1/10)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:w-1/3 space-y-6">
+                
+                <div>
+                    <h2 class="text-xl font-semibold border-b pb-2 text-blue-800 mb-3">Phasen-Tracker (45 Min.)</h2>
+                    <ul id="phaseList" class="space-y-2 text-sm">
+                        </ul>
+                </div>
+                
+                <div class="mt-6">
+                    <h2 class="text-xl font-semibold border-b pb-2 text-blue-800 mb-3">Anatomische Referenz</h2>
+                    <p class="text-sm text-red-500 mb-2">*(Im fertigen Dashboard hier das Bild des Skeletts anzeigen, z.B. *
+*)*</p>
+                    <div class="bg-gray-200 p-4 rounded-lg text-center text-gray-500">
+                        Platzhalter für das große Skelettmodell
+                    </div>
+                    <p id="locationHint" class="mt-2 text-md font-bold text-orange-600 text-center">Aktueller Knochen: Wird im Rumpf erwartet.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // DATEN (Die 10 Knochen-Beschreibungen)
+        const bones = [
+            {
+                id: 1,
+                desc: "Ich bin der längste und stärkste Knochen in deinem ganzen Körper. Du findest mich im oberen Teil deines Beins. Meine Hauptaufgabe ist es, als massiver Stützpfeiler dein gesamtes Körpergewicht zu tragen und dir zu helfen, große Schritte zu machen. Ich trage den Namen eines weiblichen Tieres.",
+                name: "Oberschenkelknochen (Femur)",
+                func: "Stützfunktion / Hebelwirkung",
+                hint: "Lage: Oberschenkel"
+            },
+            {
+                id: 2,
+                desc: "Ich bin ein flexibler Stapel aus vielen kleinen, aufeinander sitzenden Knochen. Ich beginne am unteren Ende deines Kopfes und ziehe mich bis zu deinem Gesäß. Meine Form ist doppelt S-förmig, denn meine wichtigste Funktion ist es, Stöße beim Laufen abzufedern und das empfindliche Rückenmark zu schützen.",
+                name: "Wirbelsäule",
+                func: "Stützfunktion / Stoßdämpfer / Schutz des Rückenmarks",
+                hint: "Lage: Mitte des Rückens"
+            },
+            {
+                id: 3,
+                desc: "Wir sind ein großer, flacher, knöcherner Ring, der wie eine Schüssel geformt ist. Wir sitzen ganz unten an deinem Rumpf. Wir sind der starke Halt, auf dem dein gesamter Oberkörper sitzt, und wir schützen die empfindlichen Organe im unteren Bauchraum.",
+                name: "Becken",
+                func: "Stützfunktion / Schutz (untere Organe)",
+                hint: "Lage: Hüftbereich"
+            },
+            {
+                id: 4,
+                desc: "Wir sind viele, schmale Knochen und bilden einen Käfig um deine Lunge und dein Herz. Wir sitzen im Brustbereich und bewegen uns, wenn du tief ein- und ausatmest. Unsere Hauptaufgabe ist der Schutz der lebenswichtigen Atemorgane.",
+                name: "Rippen",
+                func: "Schutzfunktion (Herz & Lunge)",
+                hint: "Lage: Brustkorb"
+            },
+            {
+                id: 5,
+                desc: "Ich sitze ganz oben auf deinem Körper. Ich bin ein stabiler, hohler Panzer aus verschiedenen Platten. Meine einzige und wichtigste Aufgabe ist es, dein Gehirn – dein wichtigstes Organ – vor Stößen und Verletzungen zu schützen.",
+                name: "Schädel (Cranium)",
+                func: "Schutzfunktion (Gehirn)",
+                hint: "Lage: Kopf"
+            },
+            {
+                id: 6,
+                desc: "Ich bin ein Knochen, der aussieht wie ein kleiner Säbel und sitzt direkt unter deinem Hals. Ich verbinde deinen Rumpf mit deinem Arm. Wenn du deine Hand auf die gegenüberliegende Schulter legst, kannst du mich direkt unter der Haut ertasten. Ich halte deine Schulter stabil.",
+                name: "Schlüsselbein (Clavicula)",
+                func: "Verbindungs- & Stützfunktion",
+                hint: "Lage: Zwischen Hals und Schulter"
+            },
+            {
+                id: 7,
+                desc: "Wir sind die vielen kleinen Einzelknochen, die ganz vorne an deinen Gliedmaßen sitzen. Ohne uns könntest du keine kleinen Gegenstände greifen, keine Stifte halten und auch nicht richtig laufen. Wir ermöglichen die Feinmotorik.",
+                name: "Finger- und Zehenknochen (Phalangen)",
+                func: "Beweglichkeit / Feinmotorik",
+                hint: "Lage: Hände & Füße"
+            },
+            {
+                id: 8,
+                desc: "Ich bin der Knochen, der sich zwischen deiner Schulter und deinem Ellenbogen befindet. Ich bin ein massiver Knochen, der als wichtiger Hebel dient, wenn du deinen Arm beugst und streckst.",
+                name: "Oberarmknochen (Humerus)",
+                func: "Hebelwirkung",
+                hint: "Lage: Oberarm"
+            },
+            {
+                id: 9,
+                desc: "Ich bin einer der beiden parallelen Knochen im Unterarm und liege auf der Seite des Daumens. Ich bin der Knochen, der sich um den anderen Knochen im Unterarm dreht, wenn du deine Handfläche nach oben oder unten drehst.",
+                name: "Speiche (Radius)",
+                func: "Hebelwirkung / Drehfunktion",
+                hint: "Lage: Unterarm (Daumenseite)"
+            },
+            {
+                id: 10,
+                desc: "Ich bin der zweite der beiden parallelen Knochen im Unterarm und liege auf der Seite des kleinen Fingers. Ich bin der stabilere der beiden Unterarmknochen und bilde den wichtigen Drehpunkt für das Ellbogengelenk.",
+                name: "Elle (Ulna)",
+                func: "Hebelwirkung / Drehpunkt",
+                hint: "Lage: Unterarm (kleiner Finger-Seite)"
+            }
+        ];
+
+        // PHASEN-DATEN
+        const phases = [
+            "I. Einstieg (5 Min.): Motivation & Basisfunktionen",
+            "II. Erarbeitung I (15 Min.): Stütz- & Schutzfunktion (Gruppenarbeit)",
+            "Interaktiver Quiz-Check (10 Min.)", // Hier findet der Quiz-Teil statt
+            "III. Erarbeitung II (15 Min.): Mechanik & Gelenke",
+            "IV. Sicherung & Transfer (10 Min.): Gesunderhaltung & Fazit"
+        ];
+        
+        let currentBoneIndex = -1;
+        let quizActive = false;
+        let timerSeconds = 45 * 60; // 45 Minuten in Sekunden
+        let timerInterval;
+
+        // DOM-Elemente
+        const quizDescription = document.getElementById('quizDescription');
+        const solutionContainer = document.getElementById('solutionContainer');
+        const solutionName = document.getElementById('solutionName');
+        const solutionFunction = document.getElementById('solutionFunction');
+        const locationHint = document.getElementById('locationHint');
+        const nextButtonText = document.getElementById('nextButtonText');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const phaseList = document.getElementById('phaseList');
+
+        // Initialisierung des Phasen-Trackers
+        phases.forEach((phase, index) => {
+            const listItem = document.createElement('li');
+            listItem.id = `phase-${index}`;
+            listItem.className = 'p-2 rounded transition-colors duration-300 bg-gray-50';
+            listItem.textContent = phase;
+            phaseList.appendChild(listItem);
+        });
+        
+        // Initialisierung des Timers
+        function startTimer() {
+            if (timerInterval) return; // Verhindert mehrfaches Starten
+            timerInterval = setInterval(updateTimer, 1000);
+            updatePhaseTracker(0); // Starte in der ersten Phase
+        }
+
+        function updateTimer() {
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                timerDisplay.textContent = "ENDE";
+                timerDisplay.classList.add('animate-pulse');
+                return;
+            }
+            timerSeconds--;
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Logik zur automatischen Phasen-Aktualisierung basierend auf verbleibender Zeit (grob)
+            const elapsed = 45 * 60 - timerSeconds;
+            if (elapsed > 5 * 60 && elapsed < 20 * 60) updatePhaseTracker(1);
+            if (currentBoneIndex > 0 && currentBoneIndex < 10) updatePhaseTracker(2); // Quiz Phase
+            if (elapsed > 30 * 60 && currentBoneIndex === 10) updatePhaseTracker(3);
+            if (elapsed > 40 * 60) updatePhaseTracker(4);
+        }
+
+        function updatePhaseTracker(activeIndex) {
+            document.querySelectorAll('#phaseList li').forEach((item, index) => {
+                item.classList.remove('bg-yellow-300', 'font-bold');
+                item.classList.add('bg-gray-50');
+                if (index === activeIndex) {
+                    item.classList.add('bg-yellow-300', 'font-bold');
+                    item.classList.remove('bg-gray-50');
+                }
+            });
+        }
+        
+        // QUIZ-Logik
+        function nextBone() {
+            if (!quizActive) {
+                quizActive = true;
+                startTimer();
+            }
+
+            currentBoneIndex++;
+            solutionContainer.classList.add('solution-hidden');
+            solutionContainer.classList.remove('solution-visible');
+            
+            if (currentBoneIndex >= bones.length) {
+                // Quiz beendet
+                quizDescription.innerHTML = "<span class='text-green-600 font-extrabold'>CHECK! Alle 10 Knochen sind besprochen!</span> Gehen Sie zur nächsten Phase über.";
+                nextButtonText.textContent = "Quiz beendet";
+                nextButtonText.disabled = true;
+                locationHint.textContent = "Alle Knochen wurden geprüft!";
+                updatePhaseTracker(3);
+                return;
+            }
+
+            const currentBone = bones[currentBoneIndex];
+            
+            // Audio-Text anzeigen (Simulierung der Audio-Wiedergabe)
+            quizDescription.textContent = currentBone.desc;
+
+            // Vorbereitung für die nächste Einblendung
+            solutionName.textContent = '';
+            solutionFunction.textContent = '';
+            
+            // UI Update
+            nextButtonText.textContent = `Nächster Knochen (${currentBoneIndex + 1}/10)`;
+            locationHint.textContent = currentBone.hint;
+            updatePhaseTracker(2); // Stellt sicher, dass der Tracker auf "Quiz-Check" steht
+        }
+
+        function revealSolution() {
+            if (currentBoneIndex < 0 || currentBoneIndex >= bones.length) return;
+
+            const currentBone = bones[currentBoneIndex];
+            
+            // Lösung einblenden
+            solutionName.textContent = currentBone.name;
+            solutionFunction.textContent = `Funktion: ${currentBone.func}`;
+            
+            solutionContainer.classList.remove('solution-hidden');
+            solutionContainer.classList.add('solution-visible');
+        }
+
+        // Initialisierung beim Laden
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Zeigt an, dass der Timer bereit ist
+            timerDisplay.textContent = "45:00 (Klick zum Start)";
+            timerDisplay.addEventListener('click', () => {
+                if (!quizActive) {
+                    // Setze den Timer auf 45 Minuten zurück, falls nötig, und starte
+                    timerSeconds = 45 * 60;
+                    startTimer();
+                    nextBone(); // Startet direkt mit dem ersten Knochen
+                }
+            });
+            // Initiale Phase auf Grau setzen, da noch nicht gestartet
+            document.getElementById('phase-0').classList.add('bg-gray-300');
+        });
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zufällige Gruppenbildung mit Countdown</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --stripe-blue: #635bff;
+            --stripe-blue-light: #847eff;
+            --stripe-gray-100: #f6f9fc;
+            --stripe-gray-200: #e6ebf1;
+            --stripe-gray-400: #adb5cc;
+            --stripe-gray-600: #6b7c93;
+            --stripe-gray-800: #32325d;
+            --stripe-text: #32325d;
+            --stripe-red: #dc3545; /* Für abgelaufenen Timer */
+            --stripe-border-radius: 6px;
+            --stripe-box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            --stripe-box-shadow-hover: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            background-color: var(--stripe-gray-100);
+            color: var(--stripe-text);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: var(--stripe-border-radius);
+            box-shadow: var(--stripe-box-shadow);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--stripe-gray-800);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* --- Timer Section Styles --- */
+        .timer-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--stripe-gray-200);
+        }
+
+        #timerDisplay {
+            
+			: 85px;
+            font-weight: 600;
+            color: var(--stripe-blue);
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+
+        #timerProgressBarContainer {
+            width: 100%;
+            max-width: 400px;
+            height: 10px;
+            background-color: var(--stripe-gray-200);
+            border-radius: var(--stripe-border-radius);
+            margin: 10px auto 20px auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #timerProgressBarFill {
+            height: 100%;
+            width: 100%;
+            background-color: var(--stripe-blue);
+            border-radius: var(--stripe-border-radius);
+            transition: width 0.5s linear, background-color 0.5s ease;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .timer-controls label {
+             font-size: 0.9em;
+             color: var(--stripe-gray-600);
+             margin-right: 5px;
+        }
+
+        .timer-controls input[type="number"] {
+            width: 65px;
+            padding: 8px 10px;
+            border: 1px solid var(--stripe-gray-200);
+            border-radius: var(--stripe-border-radius);
+            font-size: 0.95em;
+            text-align: center;
+        }
+         .timer-controls input[type="number"]:focus {
+             outline: none;
+             border-color: var(--stripe-blue);
+             box-shadow: 0 0 0 1px var(--stripe-blue);
+         }
+        .timer-controls span {
+             font-weight: bold;
+             color: var(--stripe-gray-600);
+             margin: 0 2px;
+        }
+
+        .timer-buttons {
+             display: flex;
+             gap: 8px;
+             margin-left: 15px;
+        }
+
+         @media (max-width: 450px) {
+             .timer-controls {
+                 flex-direction: column;
+                 gap: 15px;
+             }
+             .timer-buttons {
+                  margin-left: 0;
+             }
+         }
+
+        /* --- Group Controls Styles --- */
+        .group-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 600px) {
+            .group-controls {
+                grid-template-columns: 1fr auto auto;
+                align-items: end;
+            }
+            .control-group:last-child {
+                 grid-column: 2 / 4;
+                 display: flex;
+                 gap: 10px;
+                 justify-content: flex-end;
+            }
+             .control-group--size { grid-column: 2 / 3; grid-row: 1 / 2; }
+             .control-group--names { grid-column: 1 / 2; grid-row: 1 / 3; }
+            .control-group--buttons { grid-column: 2 / 3; grid-row: 2 / 3; display: flex; gap: 10px; justify-content: flex-end; }
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--stripe-gray-600);
+            font-size: 0.9em;
+        }
+
+        #studentCountDisplay {
+            font-size: 0.85em;
+            color: var(--stripe-gray-600);
+            margin-bottom: 5px;
+            height: 1.2em;
+        }
+
+        textarea,
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--stripe-gray-200);
+            border-radius: var(--stripe-border-radius);
+            font-size: 1em;
+            transition: box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+        textarea:focus,
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--stripe-blue);
+            box-shadow: 0 0 0 1px var(--stripe-blue);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .control-group input[type="number"] { max-width: 100px; }
+
+        .button-group {
+             display: flex;
+             gap: 10px;
+             justify-content: flex-start;
+        }
+
+         @media (min-width: 600px) {
+            .button-group { justify-content: flex-end; }
+         }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--stripe-border-radius);
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            white-space: nowrap;
+        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #startTimerButton { background-color: var(--stripe-blue); color: white; box-shadow: var(--stripe-box-shadow); }
+        #startTimerButton:hover:not(:disabled) { background-color: var(--stripe-blue-light); box-shadow: var(--stripe-box-shadow-hover); }
+
+        #stopTimerButton, #resetTimerButton, #resetGroupButton {
+            background-color: var(--stripe-gray-200);
+            color: var(--stripe-gray-600);
+            box-shadow: none;
+        }
+         #stopTimerButton:hover:not(:disabled),
+         #resetTimerButton:hover:not(:disabled),
+         #resetGroupButton:hover { background-color: #dcdfe6; }
+
+        #generateGroupButton { background-color: var(--stripe-blue); color: white; box-shadow: var(--stripe-box-shadow); }
+        #generateGroupButton:hover { background-color: var(--stripe-blue-light); box-shadow: var(--stripe-box-shadow-hover); }
+
+        #results {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Ggf. Mindestbreite anpassen */
+            gap: 25px; /* Ggf. Abstand anpassen */
+        }
+
+        .group-card {
+            background-color: #ffffff;
+            border: 1px solid var(--stripe-gray-200);
+            border-radius: var(--stripe-border-radius);
+            padding: 20px 25px; /* Ggf. Innenabstand anpassen */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.2s ease;
+        }
+        .group-card:hover { box-shadow: var(--stripe-box-shadow); }
+
+        .group-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px; /* Mehr Abstand nach unten */
+            /* Änderung: Schriftgröße erhöht */
+            font-size: calc(1.1em + 5px); /* Verwende calc() um 15px hinzuzufügen */
+            color: var(--stripe-gray-800);
+            border-bottom: 1px solid var(--stripe-gray-200);
+            padding-bottom: 10px; /* Mehr Abstand zur Linie */
+            line-height: 1.3; /* Ggf. Zeilenhöhe anpassen */
+        }
+        .group-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .group-card li {
+            padding: 6px 0; /* Etwas mehr vertikaler Abstand */
+            color: var(--stripe-gray-600);
+            /* Änderung: Schriftgröße erhöht */
+            font-size: calc(0.95em + 5px); /* Verwende calc() um 15px hinzuzufügen */
+            line-height: 1.4; /* Ggf. Zeilenhöhe anpassen */
+        }
+
+        .message { padding: 10px 15px; border-radius: var(--stripe-border-radius); text-align: center; margin-top: 15px; font-size: 0.9em; }
+        .error-message { color: #dc3545; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .warning-message { color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; }
+        .success-message { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .info-message { color: #0c5460; background-color: #d1ecf1; border: 1px solid #bee5eb; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Schüler-Gruppeneinteilung</h1>
+
+        <!-- Timer Section -->
+        <div class="timer-section">
+            <div id="timerDisplay">05:00</div>
+            <div id="timerProgressBarContainer">
+                <div id="timerProgressBarFill"></div>
+            </div>
+            <div class="timer-controls">
+                <div>
+                    <label for="timerMinutes">Zeit:</label>
+                    <input type="number" id="timerMinutes" value="4" min="0" max="99">
+                    <span>:</span>
+                    <input type="number" id="timerSeconds" value="0" min="0" max="59">
+                    <small>(MM:SS)</small>
+                </div>
+                 <div class="timer-buttons">
+                    <button id="startTimerButton" class="timer-btn">Start</button>
+                    <button id="stopTimerButton" class="timer-btn">Stop</button>
+                    <button id="resetTimerButton" class="timer-btn">Reset</button>
+                </div>
+            </div>
+        </div>
+        <!-- ENDE: Timer Section -->
+
+
+        <!-- Group Controls Section -->
+        <div class="group-controls">
+             <div class="control-group control-group--names">
+                 <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                     <label for="studentNames">Schülernamen (jeder Name in einer neuen Zeile)</label>
+                     <span id="studentCountDisplay">Anzahl: 0</span>
+                 </div>
+                 <textarea id="studentNames" placeholder="Anna Müller
+Ben Schmidt
+Clara Fischer
+David Weber
+..."></textarea>
+             </div>
+
+             <div class="control-group control-group--size">
+                 <label for="groupSize">Gruppengröße</label>
+                 <input type="number" id="groupSize" value="2" min="1">
+             </div>
+
+            <div class="control-group control-group--buttons">
+                 <div class="button-group">
+                    <button id="generateGroupButton">Los!</button>
+                    <button id="resetGroupButton">Reset</button>
+                 </div>
+             </div>
+        </div>
+        <!-- ENDE: Group Controls Section -->
+
+         <div id="messageArea"></div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // --- Timer Variablen ---
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerMinutesInput = document.getElementById('timerMinutes');
+        const timerSecondsInput = document.getElementById('timerSeconds');
+        const startTimerButton = document.getElementById('startTimerButton');
+        const stopTimerButton = document.getElementById('stopTimerButton');
+        const resetTimerButton = document.getElementById('resetTimerButton');
+        const timerProgressBarFill = document.getElementById('timerProgressBarFill');
+
+        let countdown;
+        let timeRemaining; // in Sekunden
+        let totalDurationInSeconds;
+        let isTimerRunning = false;
+        let initialMinutes = 4;
+        let initialSeconds = 0;
+
+        // --- Gruppen Variablen ---
+        const studentNamesTextarea = document.getElementById('studentNames');
+        const groupSizeInput = document.getElementById('groupSize');
+        const generateGroupButton = document.getElementById('generateGroupButton');
+        const resetGroupButton = document.getElementById('resetGroupButton');
+        const resultsDiv = document.getElementById('results');
+        const messageArea = document.getElementById('messageArea');
+        const studentCountDisplay = document.getElementById('studentCountDisplay');
+
+        // --- Timer Funktionen ---
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateProgressBar() {
+            if (totalDurationInSeconds === undefined || totalDurationInSeconds <= 0) {
+                timerProgressBarFill.style.width = '100%';
+                return;
+            }
+            const percentage = Math.max(0, (timeRemaining / totalDurationInSeconds) * 100);
+            timerProgressBarFill.style.width = `${percentage}%`;
+
+            if (timeRemaining < 10 && timeRemaining >= 0) {
+                timerProgressBarFill.style.backgroundColor = 'orange';
+             } else if (timeRemaining < 0) {
+                 timerProgressBarFill.style.backgroundColor = 'var(--stripe-red)';
+             } else {
+                 timerProgressBarFill.style.backgroundColor = 'var(--stripe-blue)';
+             }
+        }
+
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeRemaining);
+            document.title = `${formatTime(timeRemaining)} - Gruppenbildung`;
+            updateProgressBar();
+        }
+
+        function tick() {
+            timeRemaining--;
+            updateDisplay();
+
+            if (timeRemaining < 0) {
+                stopTimer();
+                timerDisplay.textContent = "00:00";
+                document.title = "Zeit abgelaufen! - Gruppenbildung";
+                timerDisplay.style.color = 'var(--stripe-red)';
+                timerProgressBarFill.style.backgroundColor = 'var(--stripe-red)';
+                timerProgressBarFill.style.width = '0%';
+                startTimerButton.disabled = false;
+                stopTimerButton.disabled = true;
+                
+				nutesInput.disabled = false;
+                timerSecondsInput.disabled = false;
+            }
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+
+            const minutes = parseInt(timerMinutesInput.value, 10) || 0;
+            const seconds = parseInt(timerSecondsInput.value, 10) || 0;
+
+            if (timeRemaining === undefined || timeRemaining < 0) {
+                timeRemaining = (minutes * 60) + seconds;
+                totalDurationInSeconds = timeRemaining;
+            } else {
+                 if (totalDurationInSeconds === undefined || totalDurationInSeconds <= 0) {
+                     totalDurationInSeconds = (minutes * 60) + seconds;
+                 }
+            }
+
+
+            if (timeRemaining <= 0) {
+                displayMessage("Bitte eine gültige Zeit > 00:00 einstellen.", "warning", true);
+                return;
+            }
+
+            isTimerRunning = true;
+            timerDisplay.style.color = 'var(--stripe-blue)';
+            timerProgressBarFill.style.backgroundColor = 'var(--stripe-blue)';
+            updateDisplay();
+            countdown = setInterval(tick, 1000);
+
+            startTimerButton.disabled = true;
+            stopTimerButton.disabled = false;
+            timerMinutesInput.disabled = true;
+            timerSecondsInput.disabled = true;
+        }
+
+        function stopTimer() {
+            if (!isTimerRunning) return;
+
+            clearInterval(countdown);
+            countdown = null;
+            isTimerRunning = false;
+
+            startTimerButton.disabled = false;
+            stopTimerButton.disabled = true;
+            timerMinutesInput.disabled = false;
+            timerSecondsInput.disabled = false;
+            if (timeRemaining >= 0) {
+                 document.title = `Pausiert - Gruppenbildung`;
+            }
+        }
+
+        function resetTimer() {
+            stopTimer();
+
+            initialMinutes = parseInt(timerMinutesInput.value, 10);
+            initialSeconds = parseInt(timerSecondsInput.value, 10);
+
+            if (isNaN(initialMinutes) || initialMinutes < 0) initialMinutes = 0;
+            if (isNaN(initialSeconds) || initialSeconds < 0 || initialSeconds > 59) initialSeconds = 0;
+
+            timeRemaining = (initialMinutes * 60) + initialSeconds;
+            totalDurationInSeconds = timeRemaining;
+
+            timerMinutesInput.value = initialMinutes;
+            timerSecondsInput.value = initialSeconds;
+            timerDisplay.style.color = 'var(--stripe-blue)';
+            timerProgressBarFill.style.width = '100%';
+            timerProgressBarFill.style.backgroundColor = 'var(--stripe-blue)';
+            updateDisplay();
+            document.title = `Gruppenbildung`;
+
+            startTimerButton.disabled = false;
+            stopTimerButton.disabled = true;
+            timerMinutesInput.disabled = false;
+            timerSecondsInput.disabled = false;
+        }
+
+
+        // --- Gruppen Funktionen ---
+
+        function updateStudentCount() {
+            const namesInput = studentNamesTextarea.value.trim();
+            const namesArray = namesInput ? namesInput.split('\n').map(name => name.trim()).filter(name => name !== '') : [];
+            const count = namesArray.length;
+            studentCountDisplay.textContent = `Anzahl: ${count}`;
+            return namesArray;
+        }
+
+        function shuffleArray(array) {
+            const shuffledArray = [...array];
+            for (let i = shuffledArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+            }
+            return shuffledArray;
+        }
+
+        function generateGroups() {
+            const groupSize = parseInt(groupSizeInput.value, 10);
+            messageArea.innerHTML = '';
+            resultsDiv.innerHTML = '';
+
+            const namesArray = updateStudentCount();
+
+            if (namesArray.length === 0) {
+                displayMessage("Bitte gib die Namen der Schüler ein.", "error");
+                return;
+            }
+            if (isNaN(groupSize) || groupSize < 1) {
+                displayMessage("Bitte gib eine gültige Gruppengröße (mindestens 1) ein.", "error");
+                return;
+            }
+            if (groupSize > namesArray.length && namesArray.length > 0) {
+                 displayMessage(`Gruppengröße (${groupSize}) ist größer als Schülerzahl (${namesArray.length}). Es wird eine Gruppe gebildet.`, "warning");
+            }
+
+            const shuffledNames = shuffleArray(namesArray);
+            const groups = [];
+            const actualGroupSize = Math.max(1, groupSize);
+
+            for (let i = 0; i < shuffledNames.length; i += actualGroupSize) {
+                const group = shuffledNames.slice(i, i + actualGroupSize);
+                groups.push(group);
+            }
+
+            groups.forEach((group, index) => {
+                const groupCard = document.createElement('div');
+                groupCard.classList.add('group-card');
+                const title = document.createElement('h3');
+                title.textContent = `Gruppe ${index + 1}`;
+                groupCard.appendChild(title);
+                const list = document.createElement('ul');
+                group.forEach(name => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = name;
+                    list.appendChild(listItem);
+                });
+                groupCard.appendChild(list);
+                resultsDiv.appendChild(groupCard);
+            });
+        }
+
+        function resetGroups() {
+            studentNamesTextarea.value = '';
+            groupSizeInput.value = '2';
+            resultsDiv.innerHTML = '';
+            messageArea.innerHTML = '';
+            updateStudentCount();
+        }
+
+        function displayMessage(message, type = 'info', isTimerMessage = false) {
+            if (!isTimerMessage) {
+                 messageArea.innerHTML = '';
+             }
+             const messageElement = document.createElement('p');
+             messageElement.textContent = message;
+             messageElement.className = `message ${type}-message`;
+             messageArea.appendChild(messageElement);
+        }
+
+        // --- Initialisierung & Event Listener ---
+
+        resetTimer();
+        updateStudentCount();
+
+        startTimerButton.addEventListener('click', startTimer);
+        stopTimerButton.addEventListener('click', stopTimer);
+        resetTimerButton.addEventListener('click', resetTimer);
+        timerMinutesInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+        timerSecondsInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+        timerMinutesInput.addEventListener('input', () => {
+             if (parseInt(timerMinutesInput.value) > 99) timerMinutesInput.value = 99;
+             if (parseInt(timerMinutesInput.value) < 0) timerMinutesInput.value = 0;
+         });
+         timerSecondsInput.addEventListener('input', () => {
+             if (parseInt(timerSecondsInput.value) > 59) timerSecondsInput.value = 59;
+             if (parseInt(timerSecondsInput.value) < 0) timerSecondsInput.value = 0;
+         });
+
+        generateGroupButton.addEventListener('click', generateGroups);
+        resetGroupButton.addEventListener('click', resetGroups);
+        studentNamesTextarea.addEventListener('input', updateStudentCount);
+
+    </script>
+
+</body>
+</html>

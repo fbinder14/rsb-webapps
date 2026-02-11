@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramm Einsatzgebiete</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .scenario {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .solution {
+            font-size: 1.2em;
+            margin: 20px 0;
+            display: none;
+            color: #333;
+        }
+        .reason {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 10px;
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #revealBtn {
+            background-color: #28a745;
+            color: #fff;
+        }
+        #revealBtn:hover {
+            background-color: #218838;
+        }
+        #swapBtn {
+            background-color: #007bff;
+            color: #fff;
+            display: none;
+        }
+        #swapBtn:hover {
+            background-color: #0069d9;
+        }
+        .countdown {
+            font-size: 2em;
+            margin: 20px 0;
+            display: none;
+            color: #ff5722;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="scenario" class="scenario">Lade Szenario...</div>
+        <button id="revealBtn">Lösung aufdecken</button>
+        <div id="solution" class="solution"></div>
+        <div id="reason" class="reason"></div>
+        <button id="swapBtn">Partnertausch</button>
+        <div id="countdown" class="countdown">3</div>
+    </div>
+
+    <script>
+        const scenarios = [
+            { 
+                description: "Verlauf der Durchschnittstemperaturen über ein Jahr", 
+                solution: "Liniendiagramm",
+                reason: "Liniendiagramme zeigen Trends und Veränderungen über einen Zeitraum hinweg effektiv."
+            },
+            { 
+                description: "Prozentuale Verteilung der Lieblingssportarten in der Klasse", 
+                solution: "Kreisdiagramm",
+                reason: "Kreisdiagramme veranschaulichen Anteile und prozentuale Verteilungen übersichtlich."
+            },
+            { 
+                description: "Vergleich der monatlichen Einnahmen verschiedener Abteilungen eines Unternehmens", 
+                solution: "Säulendiagramm",
+                reason: "Säulendiagramme ermöglichen einen klaren Vergleich von Werten zwischen verschiedenen Gruppen."
+            },
+            { 
+                description: "Anzahl der verkauften Bücher in verschiedenen Genres", 
+                solution: "Balkendiagramm",
+                reason: "Balkendiagramme sind ideal für den Vergleich von Kategorien, besonders wenn die Kategorien lang sind."
+            },
+            { 
+                description: "Entwicklung der Schülerzahlen an der Schule über die letzten zehn Jahre", 
+                solution: "Liniendiagramm",
+                reason: "Liniendiagramme zeigen die Entwicklung und Trends der Schülerzahlen über die Jahre hinweg."
+            },
+            { 
+                description: "Marktanteile der führenden Smartphone-Hersteller", 
+                solution: "Kreisdiagramm",
+                reason: "Kreisdiagramme veranschaulichen die Marktanteile der einzelnen Hersteller übersichtlich."
+            },
+            { 
+                description: "Durchschnittliche Noten in verschiedenen Schulfächern", 
+                solution: "Säulendiagramm",
+                reason: "Säulendiagramme ermöglichen den Vergleich der durchschnittlichen Noten zwischen den Fächern."
+            },
+            { 
+                description: "Häufigkeit der Nutzung verschiedener Lernplattformen durch Schüler", 
+                solution: "Balkendiagramm",
+                reason: "Balkendiagramme bieten einen klaren Überblick über die Nutzungshäufigkeiten der verschiedenen Plattformen."
+            },
+            { 
+                description: "Bevölkerungswachstum in verschiedenen Regionen eines Landes", 
+                solution: "Liniendiagramm",
+                reason: "Liniendiagramme zeigen das Bevölkerungswachstum über die Zeit und vergleichen verschiedene Regionen."
+            },
+            { 
+                description: "Budgetverteilung eines Schulprojekts (z.B. Materialien, Ausflüge, etc.)", 
+                solution: "Kreisdiagramm",
+                reason: "Kreisdiagramme veranschaulichen die prozentuale Aufteilung des Budgets auf verschiedene Posten."
+            },
+            { 
+                description: "Verkaufzahlen von Produkten in unterschiedlichen Verkaufsregionen", 
+                solution: "Säulendiagramm",
+                reason: "Säulendiagramme ermöglichen den Vergleich der Verkaufszahlen über verschiedene Regionen hinweg."
+            },
+            { 
+                description: "Zeitaufteilung bei verschiedenen täglichen Aktivitäten der Schüler", 
+                solution: "Balkendiagramm",
+                reason: "Balkendiagramme zeigen die Verteilung der Zeit auf verschiedene Aktivitäten übersichtlich."
+            }
+        ];
+
+        let shuffledScenarios = shuffleArray([...scenarios]);
+        let currentIndex = 0;
+
+        const scenarioEl = document.getElementById('scenario');
+        const revealBtn = document.getElementById('revealBtn');
+        const solutionEl = document.getElementById('solution');
+        const reasonEl = document.getElementById('reason');
+        const swapBtn = document.getElementById('swapBtn');
+        const countdownEl = document.getElementById('countdown');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function showScenario() {
+            if (currentIndex < shuffledScenarios.length) {
+                scenarioEl.textContent = shuffledScenarios[currentIndex].description;
+                solutionEl.style.display = 'none';
+                solutionEl.textContent = '';
+                reasonEl.style.display = 'none';
+                reasonEl.textContent = '';
+                revealBtn.style.display = 'inline-block';
+                swapBtn.style.display = 'none';
+                countdownEl.style.display = 'none';
+            } else {
+                scenarioEl.textContent = "Ihr seid fertig. Bitte Geräte zur Seite legen und nach vorne blicken.";
+                revealBtn.style.display = 'none';
+                swapBtn.style.display = 'none';
+                solutionEl.style.display = 'none';
+                reasonEl.style.display = 'none';
+                countdownEl.style.display = 'none';
+            }
+        }
+
+        revealBtn.addEventListener('click', () => {
+            const currentScenario = shuffledScenarios[currentIndex];
+            solutionEl.textContent = currentScenario.solution;
+            solutionEl.style.display = 'block';
+            reasonEl.textContent = currentScenario.reason;
+            reasonEl.style.display = 'block';
+            revealBtn.style.display = 'none';
+            swapBtn.style.display = 'inline-block';
+        });
+
+        swapBtn.addEventListener('click', () => {
+            let countdown = 3;
+            countdownEl.textContent = countdown;
+            countdownEl.style.display = 'block';
+            swapBtn.style.display = 'none';
+
+            const interval = setInterval(() => {
+                countdown--;
+                if (countdown >= 0) {
+                    countdownEl.textContent = countdown;
+                }
+                if (countdown < 0) {
+                    clearInterval(interval);
+                    currentIndex++;
+                    showScenario();
+                }
+            }, 1000);
+        });
+
+        // Initialize first scenario
+        showScenario();
+    </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Einmal Eins Übung</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .question {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .answer-btn {
+            width: 100%;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        .score {
+            font-size: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center mt-5">
+        <div id="quiz">
+            <div class="question" id="question">Lade Frage...</div>
+            <div class="d-grid gap-3">
+                <button class="btn btn-primary answer-btn" id="btn0">Antwort 1</button>
+                <button class="btn btn-primary answer-btn" id="btn1">Antwort 2</button>
+                <button class="btn btn-primary answer-btn" id="btn2">Antwort 3</button>
+                <button class="btn btn-primary answer-btn" id="btn3">Antwort 4</button>
+            </div>
+            <div class="mt-3">
+                Frage <span id="currentQuestion">1</span> von 20
+            </div>
+        </div>
+        <div id="result" class="score d-none">
+            Du hast <span id="score"></span> von 20 Aufgaben richtig!
+            <br>
+            Zeit: <span id="time"></span> Sekunden
+            <div class="mt-3">
+                <button class="btn btn-success" onclick="startQuiz()">Nochmal starten</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const totalQuestions = 20; // Anzahl der Fragen auf 20 erhöht
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let startTime = 0; // Startzeit
+        let endTime = 0;   // Endzeit
+
+        function generateQuestions() {
+            const used = new Set();
+            while (questions.length < totalQuestions) {
+                const a = Math.floor(Math.random() * 10) + 1;
+                const b = Math.floor(Math.random() * 10) + 1;
+                // Sortiere die Zahlen, um (2,3) und (3,2) als dieselbe Aufgabe zu behandeln
+                const [min, max] = a < b ? [a, b] : [b, a];
+                const key = min + '⋅' + max; // Verwende das Multiplikationszeichen ⋅
+                if (!used.has(key)) {
+                    used.add(key);
+                    questions.push({a: min, b: max, answer: min * max});
+                }
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz() {
+            questions = [];
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('result').classList.add('d-none');
+            document.getElementById('quiz').classList.remove('d-none');
+            generateQuestions();
+            showQuestion();
+            startTime = performance.now(); // Startzeit erfassen
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showResult();
+                return;
+            }
+
+            const q = questions[currentQuestionIndex];
+            // Verwende innerHTML, um das Multiplikationszeichen korrekt darzustellen
+            document.getElementById('question').innerHTML = `${q.a} &#8901; ${q.b} = ?`;
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+
+            // Generiere Antworten
+            const correct = q.answer;
+            let answers = [correct];
+            while (answers.length < 4) {
+                const wrong = Math.floor(Math.random() * 100) + 1;
+                if (!answers.includes(wrong)) {
+                    answers.push(wrong);
+                }
+            }
+            answers = shuffle(answers);
+
+            // Setze die Textinhalte der Buttons
+            answers.forEach((ans, index) => {
+                const btn = document.getElementById('btn' + index);
+                btn.textContent = ans;
+                btn.onclick = () => selectAnswer(ans === correct);
+            });
+        }
+
+        function selectAnswer(isCorrect) {
+            if (isCorrect) {
+                score++;
+            }
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        function showResult() {
+            endTime = performance.now(); // Endzeit erfassen
+            const elapsedTime = ((endTime - startTime) / 1000).toFixed(1); // Zeit in Sekunden mit einer Nachkommastelle
+
+            document.getElementById('quiz').classList.add('d-none');
+            document.getElementById('result').classList.remove('d-none');
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = elapsedTime;
+        }
+
+        // Starte das Quiz beim Laden der Seite
+        window.onload = startQuiz;
+    </script>
+</body>
+</html>

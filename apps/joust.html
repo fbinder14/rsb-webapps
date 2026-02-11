@@ -1,0 +1,908 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vocabulary Quest 🏔️</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sky-top: #1a2a6c;
+            --sky-mid: #b21f1f;
+            --sky-bottom: #fdbb2d;
+            --snow: #f0f4ff;
+            --ice: #d6e5fa;
+            --pine: #2d6a4f;
+            --pine-dark: #1b4332;
+            --rock: #5c677d;
+            --gold: #f4a261;
+            --gold-bright: #e9c46a;
+            --coral: #e76f51;
+            --correct: #52b788;
+            --correct-bg: #d8f3dc;
+            --wrong: #e63946;
+            --wrong-bg: #fde8e8;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: linear-gradient(180deg, #e8f0fe 0%, #d6e5fa 40%, #c1d9f2 70%, #b8d4e3 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Mountain background */
+        body::before {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 45vh;
+            background: 
+                linear-gradient(135deg, transparent 33%, #8fa8c8 33%, #8fa8c8 36%, transparent 36%),
+                linear-gradient(215deg, transparent 38%, #7b9bbd 38%, #7b9bbd 41%, transparent 41%),
+                linear-gradient(150deg, transparent 28%, #a3b8d0 28%, #a3b8d0 32%, transparent 32%);
+            opacity: 0.3;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 15vh;
+            background: linear-gradient(to top, rgba(200, 220, 240, 0.5), transparent);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 2rem;
+        }
+
+        /* Header */
+        .app-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .app-title {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--sky-top);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        .app-title .emoji {
+            font-size: 1.6rem;
+        }
+
+        .app-subtitle {
+            font-size: 0.9rem;
+            color: var(--rock);
+            font-weight: 500;
+        }
+
+        /* Progress */
+        .progress-area {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--rock);
+        }
+
+        .progress-bar-wrap {
+            height: 10px;
+            background: var(--ice);
+            border-radius: 999px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--pine), var(--correct));
+            border-radius: 999px;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--correct-bg);
+            color: var(--pine);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        /* Story card */
+        .story-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 1.75rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.6);
+            margin-bottom: 1.25rem;
+            animation: cardIn 0.4s ease-out;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sentence-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--rock);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .sentence-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+
+        .vocab-gap {
+            display: inline-block;
+            min-width: 120px;
+            border-bottom: 3px dashed var(--gold);
+            text-align: center;
+            padding: 2px 8px;
+            margin: 0 2px;
+            color: var(--coral);
+            font-weight: 700;
+            font-family: 'Fredoka', sans-serif;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .vocab-gap.correct {
+            border-bottom-color: var(--correct);
+            color: var(--correct);
+            background: var(--correct-bg);
+            border-radius: 6px;
+        }
+
+        .vocab-gap.wrong {
+            border-bottom-color: var(--wrong);
+            color: var(--wrong);
+            background: var(--wrong-bg);
+            border-radius: 6px;
+        }
+
+        /* German hint */
+        .german-hint {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #fff8e1, #fff3cd);
+            border-radius: 12px;
+            border-left: 4px solid var(--gold);
+            font-size: 0.9rem;
+            color: #6d5a00;
+        }
+
+        .german-hint strong {
+            font-weight: 700;
+        }
+
+        /* Input area */
+        .input-area {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.6);
+            margin-bottom: 1.25rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        .vocab-input {
+            flex: 1;
+            border: 2px solid var(--ice);
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            font-size: 1.1rem;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            color: #1a1a2e;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .vocab-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(244, 162, 97, 0.15);
+        }
+
+        .vocab-input::placeholder {
+            color: #adb5bd;
+            font-weight: 500;
+        }
+
+        .btn-check-answer {
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 0 1.5rem;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 12px rgba(231, 111, 81, 0.3);
+            white-space: nowrap;
+            min-height: 52px;
+        }
+
+        .btn-check-answer:active {
+            transform: scale(0.96);
+        }
+
+        .btn-check-answer:disabled {
+            opacity: 0.5;
+        }
+
+        /* Tooltip / Help button */
+        .help-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .btn-hint {
+            background: none;
+            border: 2px solid var(--ice);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--rock);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-hint:active {
+            background: var(--ice);
+        }
+
+        .btn-hint:disabled {
+            opacity: 0.4;
+        }
+
+        .hint-text {
+            font-size: 0.85rem;
+            color: var(--pine);
+            font-weight: 600;
+            background: var(--correct-bg);
+            padding: 0.4rem 0.75rem;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Feedback */
+        .feedback {
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            animation: feedbackIn 0.3s ease;
+        }
+
+        @keyframes feedbackIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .feedback.correct {
+            background: var(--correct-bg);
+            color: var(--pine);
+        }
+
+        .feedback.wrong {
+            background: var(--wrong-bg);
+            color: var(--wrong);
+        }
+
+        .btn-next {
+            width: 100%;
+            background: linear-gradient(135deg, var(--pine), var(--pine-dark));
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 0.9rem;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 4px 16px rgba(45, 106, 79, 0.3);
+        }
+
+        .btn-next:active {
+            transform: scale(0.97);
+        }
+
+        /* Results screen */
+        .results-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.6);
+            text-align: center;
+            animation: cardIn 0.5s ease-out;
+        }
+
+        .results-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .results-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--sky-top);
+            margin-bottom: 0.5rem;
+        }
+
+        .results-score {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'Fredoka', sans-serif;
+            color: var(--pine);
+            margin: 1rem 0;
+        }
+
+        .results-score span {
+            font-size: 1.5rem;
+            color: var(--rock);
+            font-weight: 500;
+        }
+
+        .results-message {
+            color: var(--rock);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .mistakes-list {
+            text-align: left;
+            background: var(--wrong-bg);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mistakes-list h6 {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            color: var(--wrong);
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .mistake-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(230, 57, 70, 0.1);
+        }
+
+        .mistake-item:last-child {
+            border-bottom: none;
+        }
+
+        .mistake-item .german {
+            color: var(--rock);
+            font-weight: 500;
+        }
+
+        .mistake-item .english {
+            color: var(--wrong);
+            font-weight: 700;
+        }
+
+        .btn-restart {
+            width: 100%;
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 1rem;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(231, 111, 81, 0.3);
+            transition: transform 0.15s;
+        }
+
+        .btn-restart:active {
+            transform: scale(0.97);
+        }
+
+        /* Stars animation */
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .star {
+            font-size: 2rem;
+            animation: starPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .star:nth-child(2) { animation-delay: 0.15s; }
+        .star:nth-child(3) { animation-delay: 0.3s; }
+        .star:nth-child(4) { animation-delay: 0.45s; }
+        .star:nth-child(5) { animation-delay: 0.6s; }
+
+        @keyframes starPop {
+            from { opacity: 0; transform: scale(0) rotate(-20deg); }
+            to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        .star.empty {
+            opacity: 0.25;
+        }
+
+        /* Snow decoration */
+        .snow-dot {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: snowFall linear infinite;
+        }
+
+        @keyframes snowFall {
+            0% { transform: translateY(-10vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(105vh) translateX(30px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="app"></div>
+
+<script>
+// ─── VOCABULARY DATA WITH STORY SENTENCES ───
+const vocabData = [
+    {
+        sentence: "Last weekend, Tom and his friends _____ went on a hiking trip in the mountains.",
+        answer: "finally",
+        german: "schließlich / endlich",
+        hint: "Du hast lange darauf gewartet – end...!",
+        phonetic: "[ˈfaɪnəli]"
+    },
+    {
+        sentence: "The trail was quite _____, so they had to be very careful.",
+        answer: "dangerous",
+        german: "gefährlich",
+        hint: "Etwas, wovor man Angst haben sollte.",
+        phonetic: "[ˈdeɪndʒərəs]"
+    },
+    {
+        sentence: "Everyone had to wear a _____ to protect their head.",
+        answer: "helmet",
+        german: "Helm",
+        hint: "Man trägt es auf dem Kopf – wie beim Fahrradfahren.",
+        phonetic: "[ˈhelmɪt]"
+    },
+    {
+        sentence: "The path went _____ two big rocks.",
+        answer: "between",
+        german: "zwischen",
+        hint: "Links ein Fels, rechts ein Fels – und du bist in der Mitte.",
+        phonetic: "[bɪˈtwiːn]"
+    },
+    {
+        sentence: "It was _____ _____ climbing a real mountain!",
+        answer: "as difficult as",
+        german: "so schwierig wie",
+        hint: "so ... wie → as ... as (+ das Wort für 'schwierig')",
+        phonetic: "[æz ˈdɪfɪkəlt æz]"
+    },
+    {
+        sentence: "After a while, the group found a _____ place near a lake to rest.",
+        answer: "quiet",
+        german: "ruhig / leise / still",
+        hint: "Kein Lärm, alles ist still.",
+        phonetic: "[ˈkwaɪət]"
+    },
+    {
+        sentence: "Some of them were _____ because it started to rain.",
+        answer: "worried",
+        german: "beunruhigt / besorgt",
+        hint: "Man macht sich Sorgen.",
+        phonetic: "[ˈwʌrɪd]"
+    },
+    {
+        sentence: "They walked very _____ on the wet rocks.",
+        answer: "slow",
+        german: "langsam",
+        hint: "Das Gegenteil von schnell (fast).",
+        phonetic: "[sləʊ]"
+    },
+    {
+        sentence: "But Tom was _____ enough to carry his big backpack the whole time.",
+        answer: "strong",
+        german: "stark",
+        hint: "Wenn du viel Kraft hast, bist du ...",
+        phonetic: "[strɒŋ]"
+    },
+    {
+        sentence: "At the lake, they played with a _____ on the grass.",
+        answer: "ball",
+        german: "Ball",
+        hint: "Ein rundes Spielgerät ⚽",
+        phonetic: "[bɔːl]"
+    },
+    {
+        sentence: "Tom is a real _____ – he loves every kind of sport.",
+        answer: "sportsman",
+        german: "Sportler",
+        hint: "Jemand, der viel Sport macht: sports + man",
+        phonetic: "[ˈspɔːtsmən]"
+    },
+    {
+        sentence: "They were all wearing warm _____ because it was cold in the mountains.",
+        answer: "hats",
+        german: "Mützen / Hüte",
+        hint: "Man trägt sie auf dem Kopf wenn es kalt ist (Mehrzahl!).",
+        phonetic: "[hæts]"
+    },
+    {
+        sentence: "The air was _____ – not hot, not cold, just perfect.",
+        answer: "warm",
+        german: "warm",
+        hint: "Nicht heiß und nicht kalt.",
+        phonetic: "[wɔːm]"
+    },
+    {
+        sentence: "A _____ came to visit the lake too – he was from Italy.",
+        answer: "visitor",
+        german: "Besucher",
+        hint: "Jemand, der zu Besuch kommt.",
+        phonetic: "[ˈvɪzɪtə]"
+    },
+    {
+        sentence: "He told them an _____ word for 'lake' – it was 'lago'.",
+        answer: "Italian",
+        german: "italienisch",
+        hint: "Die Sprache, die man in Rom spricht.",
+        phonetic: "[ɪˈtæliən]"
+    },
+    {
+        sentence: "Tom loves to learn about _____ – old stories from the past.",
+        answer: "history",
+        german: "Geschichte",
+        hint: "Was in der Vergangenheit passiert ist.",
+        phonetic: "[ˈhɪstri]"
+    },
+    {
+        sentence: "He showed them an old _____ with a picture of the mountain on it.",
+        answer: "card",
+        german: "(Spiel-)Karte",
+        hint: "Eine Karte, z.B. zum Spielen oder als Postkarte.",
+        phonetic: "[kɑːd]"
+    },
+    {
+        sentence: "The ice on the lake was very _____.",
+        answer: "thick",
+        german: "dick",
+        hint: "Das Gegenteil von dünn (thin).",
+        phonetic: "[θɪk]"
+    },
+    {
+        sentence: "They needed good _____ for the rocky parts of the trail.",
+        answer: "trainers",
+        german: "Turnschuhe",
+        hint: "Sportschuhe, die man zum Laufen trägt (Mehrzahl!).",
+        phonetic: "[ˈtreɪnəz]"
+    },
+    {
+        sentence: "_____ is Tom's favourite hobby – he could walk for hours!",
+        answer: "Hiking",
+        german: "Wandern",
+        hint: "Mit dem Rucksack durch die Natur laufen.",
+        phonetic: "[ˈhaɪkɪŋ]"
+    }
+];
+
+// ─── APP STATE ───
+let currentIndex = 0;
+let score = 0;
+let mistakes = [];
+let hintUsed = false;
+let answered = false;
+
+// ─── RENDER FUNCTIONS ───
+function renderApp() {
+    if (currentIndex >= vocabData.length) {
+        renderResults();
+        return;
+    }
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const item = vocabData[currentIndex];
+    const progress = ((currentIndex) / vocabData.length) * 100;
+    
+    const sentenceHTML = item.sentence.replace(/_{3,}/, 
+        `<span class="vocab-gap" id="gap">???</span>`
+    );
+
+    document.getElementById('app').innerHTML = `
+        <div class="app-header">
+            <div class="app-title"><span class="emoji">🏔️</span> Vocabulary Quest</div>
+            <div class="app-subtitle">Tom's Mountain Adventure – Satz ${currentIndex + 1} von ${vocabData.length}</div>
+        </div>
+
+        <div class="progress-area">
+            <div class="progress-info">
+                <span>Fortschritt</span>
+                <span class="score-badge">⭐ ${score} Punkte</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width: ${progress}%"></div>
+            </div>
+        </div>
+
+        <div class="story-card">
+            <div class="sentence-label">📖 Lies den Satz und fülle die Lücke:</div>
+            <div class="sentence-text">${sentenceHTML}</div>
+            <div class="german-hint">
+                <strong>🇩🇪 Gesucht:</strong> ${item.german} &nbsp; <small style="opacity:0.7">${item.phonetic}</small>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-row">
+                <input type="text" class="vocab-input" id="answerInput" 
+                       placeholder="Englisches Wort eingeben..." 
+                       autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <button class="btn-check-answer" id="checkBtn" onclick="checkAnswer()">Prüfen</button>
+            </div>
+            <div class="help-row">
+                <button class="btn-hint" id="hintBtn" onclick="showHint()">
+                    💡 Tipp anzeigen
+                </button>
+                <div id="hintArea"></div>
+            </div>
+        </div>
+
+        <div id="feedbackArea"></div>
+    `;
+
+    // Reset state
+    hintUsed = false;
+    answered = false;
+
+    // Focus input & enter key
+    const input = document.getElementById('answerInput');
+    setTimeout(() => input.focus(), 100);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !answered) checkAnswer();
+        if (e.key === 'Enter' && answered) nextQuestion();
+    });
+}
+
+function showHint() {
+    const item = vocabData[currentIndex];
+    hintUsed = true;
+    document.getElementById('hintArea').innerHTML = `<span class="hint-text">${item.hint}</span>`;
+    document.getElementById('hintBtn').disabled = true;
+}
+
+function checkAnswer() {
+    if (answered) return;
+    
+    const input = document.getElementById('answerInput');
+    const userAnswer = input.value.trim();
+    
+    if (!userAnswer) {
+        input.style.borderColor = 'var(--coral)';
+        input.style.animation = 'none';
+        input.offsetHeight; // reflow
+        input.style.animation = 'feedbackIn 0.3s ease';
+        return;
+    }
+
+    answered = true;
+    const item = vocabData[currentIndex];
+    const correct = userAnswer.toLowerCase() === item.answer.toLowerCase();
+    
+    const gap = document.getElementById('gap');
+    gap.textContent = item.answer;
+    
+    if (correct) {
+        gap.classList.add('correct');
+        if (!hintUsed) {
+            score += 2;
+        } else {
+            score += 1;
+        }
+        document.getElementById('feedbackArea').innerHTML = `
+            <div class="feedback correct">
+                ✅ ${hintUsed ? 'Richtig! (+1 Punkt – Tipp benutzt)' : 'Super! (+2 Punkte)'}
+            </div>
+            <button class="btn-next" onclick="nextQuestion()">Weiter →</button>
+        `;
+    } else {
+        gap.classList.add('wrong');
+        mistakes.push({ german: item.german, answer: item.answer, userAnswer: userAnswer });
+        document.getElementById('feedbackArea').innerHTML = `
+            <div class="feedback wrong">
+                ❌ Die richtige Antwort ist: <strong>${item.answer}</strong>
+            </div>
+            <button class="btn-next" onclick="nextQuestion()">Weiter →</button>
+        `;
+    }
+
+    // Update score display
+    document.querySelector('.score-badge').innerHTML = `⭐ ${score} Punkte`;
+    
+    input.disabled = true;
+    document.getElementById('checkBtn').disabled = true;
+    document.getElementById('hintBtn').disabled = true;
+}
+
+function nextQuestion() {
+    currentIndex++;
+    renderApp();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderResults() {
+    const maxScore = vocabData.length * 2;
+    const percent = Math.round((score / maxScore) * 100);
+    
+    let stars = 0;
+    if (percent >= 95) stars = 5;
+    else if (percent >= 80) stars = 4;
+    else if (percent >= 65) stars = 3;
+    else if (percent >= 45) stars = 2;
+    else if (percent >= 20) stars = 1;
+
+    let message = '';
+    if (percent >= 90) message = 'Fantastisch! Du bist ein Vocabulary Champion! 🏆';
+    else if (percent >= 70) message = 'Sehr gut gemacht! Weiter so! 💪';
+    else if (percent >= 50) message = 'Gut, aber da geht noch mehr! Übung macht den Meister. 📚';
+    else message = 'Nicht schlimm – schau dir die Vokabeln nochmal an und versuch es erneut! 🔁';
+
+    const starsHTML = Array.from({length: 5}, (_, i) => 
+        `<span class="star ${i < stars ? '' : 'empty'}">⭐</span>`
+    ).join('');
+
+    let mistakesHTML = '';
+    if (mistakes.length > 0) {
+        mistakesHTML = `
+            <div class="mistakes-list">
+                <h6>📝 Diese Wörter solltest du nochmal üben:</h6>
+                ${mistakes.map(m => `
+                    <div class="mistake-item">
+                        <span class="german">${m.german}</span>
+                        <span class="english">${m.answer}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    document.getElementById('app').innerHTML = `
+        <div class="results-card">
+            <div class="results-emoji">${percent >= 70 ? '🎉' : percent >= 50 ? '👍' : '📖'}</div>
+            <div class="results-title">Geschafft!</div>
+            <div class="stars">${starsHTML}</div>
+            <div class="results-score">${score} <span>/ ${maxScore} Punkte</span></div>
+            <div class="results-message">${message}</div>
+            ${mistakesHTML}
+            <button class="btn-restart" onclick="restartQuiz()">🔄 Nochmal spielen</button>
+        </div>
+    `;
+}
+
+function restartQuiz() {
+    currentIndex = 0;
+    score = 0;
+    mistakes = [];
+    // Shuffle the questions
+    vocabData.sort(() => Math.random() - 0.5);
+    renderApp();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── DECORATIVE SNOW ───
+function createSnow() {
+    for (let i = 0; i < 12; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'snow-dot';
+        dot.style.left = Math.random() * 100 + 'vw';
+        dot.style.animationDuration = (8 + Math.random() * 12) + 's';
+        dot.style.animationDelay = (Math.random() * 10) + 's';
+        dot.style.width = dot.style.height = (3 + Math.random() * 5) + 'px';
+        document.body.appendChild(dot);
+    }
+}
+
+// ─── INIT ───
+createSnow();
+renderApp();
+</script>
+
+</body>
+</html>

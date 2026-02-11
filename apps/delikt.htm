@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deliktfähigkeit – Interaktive Lernapp (Bayern, BGB)</title>
+  <meta name="description" content="Interaktive Übersicht zur Deliktfähigkeit nach BGB (Deutschland) mit Alters‑Slider, Merksätzen, Praxisfällen und Mini‑Quiz. Realschule Bayern." />
+  <style>
+    :root{
+      --bg1:#f8fafc; /* slate-50 */
+      --bg2:#eff6ff; /* sky-50 */
+      --card:#ffffff;
+      --ink:#0f172a; /* slate-900 */
+      --muted:#475569; /* slate-600 */
+      --border:#e2e8f0; /* slate-200 */
+      --brand:#0284c7; /* sky-600 */
+      --good:#059669; /* emerald-600 */
+      --warn:#7c3aed; /* indigo-600 (as accent) */
+      --bad:#dc2626; /* red-600 */
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",sans-serif;color:var(--ink);background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed;}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    h1{font-size:clamp(24px,3.2vw,34px);margin:0 0 6px 0;display:flex;gap:10px;align-items:center}
+    p.lead{color:var(--muted);max-width:860px;margin:0}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .badge{border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
+
+    /* layout */
+    .grid{display:grid;gap:16px}
+    .g-2{grid-template-columns:1fr 1fr}
+    .g-3{grid-template-columns:repeat(3,1fr)}
+    @media (max-width:900px){.g-2,.g-3{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+    .card .head{padding:14px 16px 0 16px}
+    .card .body{padding:12px 16px 16px 16px}
+    .title{font-weight:700}
+    .muted{color:var(--muted)}
+
+    .sliderRow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px}
+    input[type="range"]{width:100%}
+    .age{font-size:36px;font-weight:800}
+
+    .labelRow{display:flex;gap:8px;align-items:center;margin:6px 0}
+    .chip{display:inline-block;padding:3px 8px;border-radius:999px;background:#e0f2fe;color:#075985;font-size:12px;border:1px solid #bae6fd}
+    .chip-outline{background:#fff;color:#3730a3;border:1px solid #c7d2fe}
+
+    ul.clean{margin:8px 0 0 18px}
+    ul.clean li{margin:6px 0}
+
+    /* Tabs */
+    .tabs{margin-top:8px}
+    .tab-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .tab-buttons button{border:1px solid var(--border);background:#fff;padding:10px;border-radius:10px;cursor:pointer}
+    .tab-buttons button.active{border-color:#bae6fd;background:#f0f9ff}
+    .tab{display:none}
+    .tab.active{display:block}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .btn.secondary{background:#f8fafc}
+
+    /* Quiz */
+    .opt{width:100%;text-align:left;border:1px solid var(--border);padding:10px;border-radius:10px;background:#fff;cursor:pointer}
+    .opt:hover{background:#f8fafc}
+    .opt.correct{background:#ecfdf5;border-color:#a7f3d0}
+    .opt.wrong{background:#fef2f2;border-color:#fecaca}
+    .hint{border:1px solid var(--border);padding:8px;border-radius:8px;background:#fff;font-size:12px;color:var(--muted)}
+
+    .infoStripe{border:1px solid var(--border);border-radius:12px;background:#fff;display:flex;gap:10px;align-items:center;padding:8px;color:var(--muted)}
+    .footer{margin-top:8px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>⚖️ Deliktfähigkeit – kurz und klar</h1>
+      <p class="lead">Rechtslage: Deutschland (BGB), Realschule Bayern. Interaktive Übersicht zu zivilrechtlicher Deliktfähigkeit – mit Vergleich zum Strafrecht, Beispielen und Mini‑Quiz.</p>
+      <div class="badges">
+        <span class="badge">BGB §§ 823, 828, 829, 832</span>
+        <span class="badge">StGB § 19 / JGG</span>
+      </div>
+    </header>
+
+    <!-- Alters‑Explorer -->
+    <section class="card" style="margin-top:16px">
+      <div class="head">
+        <div class="title">ℹ️ Alters‑Explorer</div>
+        <p class="muted" style="margin:6px 0 10px 0">Schiebe das Alter und sieh die Rechtsfolgen.</p>
+      </div>
+      <div class="body">
+        <div class="sliderRow">
+          <input id="ageRange" type="range" min="1" max="21" step="1" value="14"/>
+          <div><span class="age" id="ageOut">14</span> <span class="muted">Jahre</span></div>
+        </div>
+
+        <div class="grid g-2" style="margin-top:12px">
+          <div class="card">
+            <div class="head"><div class="title">🛡️ Zivilrecht (Deliktfähigkeit)</div></div>
+            <div class="body">
+              <div class="labelRow"><span class="chip" id="civil-badge">Einsicht entscheidend</span><span class="muted">Altersgruppe: <span id="age-band"></span></span></div>
+              <ul class="clean" id="civil-points"></ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head" style="display:flex;justify-content:space-between;align-items:center">
+              <div class="title">🚨 Strafrecht (Vergleich)</div>
+              <label class="muted" style="display:flex;align-items:center;gap:6px;user-select:none">
+                anzeigen
+                <input id="toggle-crim" type="checkbox" checked />
+              </label>
+            </div>
+            <div class="body" id="crim-wrap">
+              <div class="labelRow"><span class="chip chip-outline" id="crim-badge">JGG</span><span class="muted">Altersgruppe: <span id="age-band-2"></span></span></div>
+              <ul class="clean" id="crim-points"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="infoStripe" style="margin-top:12px">
+          <div>🚧 <b>Sonderregel Straße:</b></div>
+          <div>7 bis unter 10 Jahre: keine Haftung für Unfälle im motorisierten Straßenverkehr (außer Vorsatz) – § 828 Abs. 2 BGB.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <section class="tabs">
+      <div class="tab-buttons">
+        <button class="tabBtn active" data-tab="grundlagen">Grundlagen</button>
+        <button class="tabBtn" data-tab="eltern">Eltern & Aufsicht</button>
+        <button class="tabBtn" data-tab="praxis">Praxisfälle</button>
+        <button class="tabBtn" data-tab="quiz">Quiz</button>
+      </div>
+
+      <div id="tab-grundlagen" class="tab active">
+        <div class="grid g-2" style="margin-top:12px">
+          <div class="card">
+            <div class="head"><div class="title">Begriffe</div></div>
+            <div class="body muted" style="color:var(--ink)">
+              <p><b>Deliktfähigkeit</b>: Fähigkeit, für einen rechtswidrigen Schaden nach dem Zivilrecht einzustehen.</p>
+              <p><b>Schadenersatz</b>: Ersatz eines Vermögensschadens (z. B. Reparaturkosten) nach § 823 BGB.</p>
+              <p><b>Einsichtsfähigkeit</b>: Verstehen, dass das eigene Verhalten einen Schaden verursacht und verboten ist.</p>
+              <p><b>Billigkeitshaftung</b> (§ 829 BGB): In Ausnahmefällen trotz fehlender Verantwortlichkeit ein Ausgleich, wenn es fair erscheint und Leistungsfähigkeit besteht.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="head"><div class="title">Gesetzesüberblick</div></div>
+            <div class="body">
+              <ul class="clean">
+                <li><b>§ 828 BGB</b>: Altersstufen der Verantwortlichkeit (unter 7: nein; 7–10: Verkehrsprivileg; 10–18: abhängig von Einsicht).</li>
+                <li><b>§ 829 BGB</b>: Billigkeitshaftung in besonderen Fällen.</li>
+                <li><b>§ 832 BGB</b>: Haftung aus Aufsichtspflichtverletzung (Eltern, Aufsichtspersonen).</li>
+                <li><b>§ 823 BGB</b>: Grundnorm des Schadenersatzes (vorsätzlich oder fahrlässig widerrechtlich).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-eltern" class="tab">
+        <div class="grid g-2" style="margin-top:12px">
+          <div class="card">
+            <div class="head"><div class="title">Eltern haften nicht automatisch</div></div>
+            <div class="body">
+              <ul class="clean">
+                <li>Haftung nur bei <b>verletzter Aufsichtspflicht</b> (§ 832 BGB).</li>
+                <li>Aufsicht richtet sich nach Alter, Einsicht und Situation (Spielplatz ≠ Straßenverkehr).</li>
+                <li>Wer nachweist, ausreichend beaufsichtigt zu haben, haftet nicht.</li>
+                <li><b>Privathaftpflicht</b> kann helfen, deckt aber je nach Tarif <i>auch</i> deliktunfähige Kinder ab oder nicht.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="head"><div class="title">Merksätze für den Unterricht</div></div>
+            <div class="body">
+              <ul class="clean">
+                <li><b>Unter 7</b>: nie haftbar.</li>
+                <li><b>7–10</b>: Verkehrsprivileg (Auto/Bahn). Sonst: Einsicht entscheidend.</li>
+                <li><b>10–18</b>: Einsicht prüfen (individuell!).</li>
+                <li><b>Ab 18</b>: volle Haftung.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-praxis" class="tab">
+        <div class="grid g-3" style="margin-top:12px">
+          <div class="card">
+            <div class="head"><div class="title">Fall‑Check</div></div>
+            <div class="body">
+              <p class="muted" style="margin-top:0">Einfache Heuristik zur Einordnung.</p>
+              <div style="margin:8px 0">
+                <label class="muted" for="age-input" style="font-size:14px">Alter</label>
+                <input id="age-input" type="number" min="1" max="20" value="14" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px"/>
+              </div>
+              <div style="margin:8px 0">
+                <label class="muted" style="font-size:14px">Situation</label>
+                <select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px">
+                  <option>Alltag (außer Verkehr)</option>
+                  <option>Straßenverkehr (motorisierte Fahrzeuge)</option>
+                  <option>Schule / Aufsichtssituation</option>
+                </select>
+              </div>
+              <div style="margin:8px 0">
+                <label class="muted" style="font-size:14px">Einsicht erkennbar?</label>
+                <select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px">
+                  <option>unbekannt</option>
+                  <option>ja</option>
+                  <option>nein</option>
+                </select>
+              </div>
+              <div class="hint" style="margin-top:8px">
+                <b>Merksatz:</b> Unter 7: keine Haftung. 7–10: Verkehrsprivileg. 10–18: Einsicht prüfen. Eltern haften nur bei Aufsichtspflichtverletzung.
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column:span 2">
+            <div class="head"><div class="title">Beispiele mit Lösungsideen</div></div>
+            <div class="body">
+              <div class="hint" style="margin-bottom:8px">Hinweis: Vereinfachte Darstellung.</div>
+              <div class="card" style="margin-bottom:10px">
+                <div class="body">
+                  <p><b>Graffiti am Spielplatzzaun (13 Jahre)</b></p>
+                  <p class="muted">Mögliche Haftung nach § 823 BGB bei vorhandener Einsicht. Eltern nur bei Aufsichtspflichtverletzung.</p>
+                </div>
+              </div>
+              <div class="card" style="margin-bottom:10px">
+                <div class="body">
+                  <p><b>Roller kollidiert mit parkendem Auto (8 Jahre)</b></p>
+                  <p class="muted">Kein Ersatzanspruch gegen das Kind für den Verkehrsunfall (§ 828 Abs. 2 BGB), außer Vorsatz.</p>
+                </div>
+              </div>
+              <div class="card">
+                <div class="body">
+                  <p><b>Ball zerstört Blumenvase im Wohnzimmer des Nachbarn (11 Jahre)</b></p>
+                  <p class="muted">Außerhalb Verkehr: Einsicht entscheidend (§ 828 Abs. 3 BGB). Versicherung prüfen.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-quiz" class="tab">
+        <div class="grid g-3" style="margin-top:12px">
+          <div class="card">
+            <div class="head"><div class="title">❓ Mini‑Quiz</div></div>
+            <div class="body">
+              <div style="height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden"><div id="progress" style="height:100%;width:0;background:linear-gradient(90deg,#bae6fd,#7dd3fc)"></div></div>
+              <p class="muted" style="font-size:12px;margin-top:6px"><span id="count">0</span> von <span id="total">0</span> beantwortet</p>
+            </div>
+          </div>
+
+          <div id="quiz-cases" class="grid" style="grid-column:span 2;gap:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Hinweis: Diese Lernapp bietet eine vereinfachte Übersicht. Im Einzelfall entscheidet immer die konkrete Situation und die Auslegung der genannten Paragraphen.
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------
+    // Daten & Logik
+    // ------------------------------
+    const cases = [
+      {
+        id: 1,
+        title: "Fußball gegen Garagentor",
+        text: "Eine 12-jährige Person schießt beim Kicken den Ball gegen das Garagentor des Nachbarn. Der Lack ist zerkratzt (Schaden 150,00 €).",
+        options: [
+          "volle Haftung der handelnden Person",
+          "keine Haftung, da unter 14",
+          "Haftung nur, wenn Einsichtsfähigkeit vorlag",
+        ],
+        answer: 2,
+        law: "§ 828 Abs. 3 BGB: zwischen 7 und 18 abhängig von der erforderlichen Einsicht; ggf. Aufsichtspflicht § 832 BGB.",
+      },
+      {
+        id: 2,
+        title: "Radweg – Auto kreuzt",
+        text: "Eine 9-jährige Person fährt mit dem Fahrrad, es kommt zur Kollision mit einem Auto. Am Auto entsteht ein Sachschaden von 600,00 €.",
+        options: [
+          "keine Haftung wegen besonderer Verkehrsregel bis 10",
+          "volle Haftung, weil Fahrrad",
+          "Haftung der Eltern immer",
+        ],
+        answer: 0,
+        law: "§ 828 Abs. 2 BGB: von 7 bis 10 keine Haftung für Schäden im motorisierten Straßenverkehr (außer Vorsatz).",
+      },
+      {
+        id: 3,
+        title: "Stifte auf den Boden",
+        text: "Eine 6-jährige Person wirft in der Schule Stifte von einem Tisch, ein Tablet fällt herunter (Schaden 180,00 €).",
+        options: [
+          "keine Haftung, da unter 7",
+          "volle Haftung, weil mutwillig",
+          "immer Schule haftet",
+        ],
+        answer: 0,
+        law: "§ 828 Abs. 1 BGB: unter 7 nicht verantwortlich.",
+      },
+    ];
+
+    function ageBand(age){
+      if (age < 7) return "unter 7";
+      if (age < 10) return "7 bis unter 10";
+      if (age < 18) return "10 bis unter 18";
+      return "ab 18";
+    }
+
+    function civilDelictInfo(age){
+      if (age < 7) return { headline:"Nicht deliktfähig", badge:"keine Haftung", points:[
+        "Unter 7 Jahren keine Verantwortlichkeit (§ 828 Abs. 1 BGB).",
+        "Schäden müssen in der Regel nicht ersetzt werden.",
+        "Eventuell Ausgleich aus Billigkeit (§ 829 BGB) möglich, kommt selten vor.",
+      ]};
+      if (age < 10) return { headline:"Eingeschränkt deliktfähig (Sonderregel Verkehr)", badge:"Verkehrsprivileg", points:[
+        "Zwischen 7 und 10: keine Haftung für Schäden im motorisierten Straßenverkehr (außer Vorsatz) (§ 828 Abs. 2 BGB).",
+        "Außerhalb des Verkehrs: verantwortlich, wenn die notwendige Einsicht vorlag (§ 828 Abs. 3 BGB).",
+      ]};
+      if (age < 18) return { headline:"Eingeschränkt deliktfähig", badge:"Einsicht entscheidend", points:[
+        "Zwischen 10 und 18: verantwortlich, wenn die erforderliche Einsicht vorhanden war (§ 828 Abs. 3 BGB).",
+        "Keine automatische Haftung der Eltern. Eltern haften nur bei Verletzung der Aufsichtspflicht (§ 832 BGB).",
+        "Privathaftpflichtversicherungen können Schäden abdecken (Policenbedingungen beachten).",
+      ]};
+      return { headline:"Voll deliktfähig", badge:"volle Haftung", points:[
+        "Ab 18 Jahren grundsätzlich volle Verantwortlichkeit (§§ 276, 823 BGB).",
+        "Schadenersatz und ggf. Schmerzensgeld möglich.",
+      ]};
+    }
+
+    function criminalInfo(age){
+      if (age < 14) return { headline:"Nicht strafmündig", badge:"Strafrecht: nein", points:[
+        "Unter 14 Jahren keine Strafverfolgung (§ 19 StGB).",
+        "Es können erzieherische Maßnahmen außerhalb des Strafrechts erfolgen.",
+      ]};
+      if (age < 18) return { headline:"Jugendstrafrecht (14–17)", badge:"JGG", points:[
+        "Strafmündig, wenn Einsichtsfähigkeit vorliegt (§ 3 JGG).",
+        "Erzieherischer Gedanke steht im Vordergrund (z. B. Sozialstunden).",
+      ]};
+      if (age < 21) return { headline:"Heranwachsende (18–20)", badge:"ggf. JGG", points:[
+        "Je nach Reife kann Jugendstrafrecht angewendet werden (§ 105 JGG).",
+      ]};
+      return { headline:"Erwachsenenstrafrecht", badge:"StGB", points:["Reguläres Strafrecht (StGB)."] };
+    }
+
+    // ------------------------------
+    // UI‑Binding
+    // ------------------------------
+    const ageRange = document.getElementById('ageRange');
+    const ageOut   = document.getElementById('ageOut');
+    const civilBadge = document.getElementById('civil-badge');
+    const civilPoints = document.getElementById('civil-points');
+    const ageBandOut = document.getElementById('age-band');
+
+    const crimWrap = document.getElementById('crim-wrap');
+    const crimBadge = document.getElementById('crim-badge');
+    const crimPoints = document.getElementById('crim-points');
+    const ageBandOut2 = document.getElementById('age-band-2');
+    const toggleCrim = document.getElementById('toggle-crim');
+
+    function renderByAge(){
+      const age = Number(ageRange.value);
+      ageOut.textContent = age;
+      ageBandOut.textContent = ageBand(age);
+      ageBandOut2.textContent = ageBand(age);
+
+      const civ = civilDelictInfo(age);
+      civilBadge.textContent = civ.badge;
+      civilPoints.innerHTML = civ.points.map(p=>`<li>${p}</li>`).join('');
+
+      const cr = criminalInfo(age);
+      crimBadge.textContent = cr.badge;
+      crimPoints.innerHTML = cr.points.map(p=>`<li>${p}</li>`).join('');
+    }
+
+    ageRange.addEventListener('input', renderByAge);
+    toggleCrim.addEventListener('change',()=>{
+      crimWrap.style.display = toggleCrim.checked ? 'block' : 'none';
+    });
+
+    // Tabs
+    const tabs = ['grundlagen','eltern','praxis','quiz'];
+    document.querySelectorAll('.tabBtn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        tabs.forEach(t=>{
+          document.getElementById('tab-'+t).classList.toggle('active', t===btn.dataset.tab);
+        });
+      });
+    });
+
+    // Quiz Render
+    const quizHost = document.getElementById('quiz-cases');
+    const countOut = document.getElementById('count');
+    const totalOut = document.getElementById('total');
+    const progress = document.getElementById('progress');
+
+    let answers = {};
+
+    function renderQuiz(){
+      totalOut.textContent = String(cases.length);
+      quizHost.innerHTML = '';
+      cases.forEach(c=>{
+        const card = document.createElement('div');
+        card.className = 'card';
+        const head = document.createElement('div');
+        head.className = 'head';
+        head.innerHTML = `<div class="title">${c.title}</div><p class="muted">${c.text}</p>`;
+        const body = document.createElement('div');
+        body.className = 'body';
+        const list = document.createElement('div');
+        list.className = 'grid';
+        list.style.gap = '8px';
+
+        c.options.forEach((opt, idx)=>{
+          const b = document.createElement('button');
+          b.className = 'opt';
+          b.textContent = opt;
+          b.addEventListener('click',()=>{
+            answers[c.id] = idx;
+            updateProgress();
+            // Markierung
+            [...list.children].forEach(ch=>ch.classList.remove('correct','wrong'));
+            if (idx === c.answer) b.classList.add('correct'); else b.classList.add('wrong');
+            hint.style.display = 'block';
+          });
+          list.appendChild(b);
+        });
+
+        const hint = document.createElement('div');
+        hint.className = 'hint';
+        hint.style.display = 'none';
+        hint.innerHTML = `<b>Lösungshinweis:</b> ${c.law}`;
+
+        body.appendChild(list);
+        body.appendChild(hint);
+        card.appendChild(head);
+        card.appendChild(body);
+        quizHost.appendChild(card);
+      });
+      updateProgress();
+
+      // Reset‑Button
+      const resetWrap = document.createElement('div');
+      resetWrap.style.display='flex';
+      resetWrap.style.gap='8px';
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'btn secondary';
+      resetBtn.textContent = 'Zurücksetzen';
+      resetBtn.addEventListener('click',()=>{
+        answers = {}; renderQuiz();
+      });
+      resetWrap.appendChild(resetBtn);
+      quizHost.appendChild(resetWrap);
+    }
+
+    function updateProgress(){
+      const solved = Object.keys(answers).length;
+      countOut.textContent = String(solved);
+      const pct = (solved / cases.length) * 100;
+      progress.style.width = pct + '%';
+    }
+
+    // Initial
+    renderByAge();
+    renderQuiz();
+
+    // Praxis: Nummernfeld synchron mit Slider
+    document.getElementById('age-input').addEventListener('input', (e)=>{
+      const v = Math.max(1, Math.min(21, Number(e.target.value||0)));
+      ageRange.value = v; ageOut.textContent = v; renderByAge();
+    });
+  </script>
+</body>
+</html>

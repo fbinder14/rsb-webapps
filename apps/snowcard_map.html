@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snow Card Tirol 2025/2026 – Skigebiete</title>
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    .leaflet-popup-content .coords { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9rem; opacity: 0.8; }
+    .titlebar { position: absolute; z-index: 999; left: 12px; top: 10px; background: rgba(255,255,255,0.9); padding: 8px 10px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+    .titlebar h1 { font-size: 1rem; margin: 0; }
+    .legend { position: absolute; z-index: 999; right: 12px; bottom: 12px; background: rgba(255,255,255,0.9); padding: 8px 10px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .legend p { margin: 0; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="titlebar">
+    <h1>Snow Card Tirol 2025/2026 – Skigebiete</h1>
+  </div>
+  <div class="legend">
+    <p>Klick auf Marker → Name & Koordinaten</p>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+
+  <script>
+    // Data
+    const spots = [
+  {
+    "name": "Sölden",
+    "lat": 46.9579,
+    "lng": 11.0444
+  },
+  {
+    "name": "Fügen - Spieljoch",
+    "lat": 47.3225,
+    "lng": 11.8534
+  },
+  {
+    "name": "Hochfügen",
+    "lat": 47.2679,
+    "lng": 11.784
+  },
+  {
+    "name": "Hochzillertal",
+    "lat": 47.2637,
+    "lng": 11.8358
+  },
+  {
+    "name": "Mittersill - Paß Thurn - Kitzbühel",
+    "lat": 47.3722,
+    "lng": 12.446
+  },
+  {
+    "name": "Kössen",
+    "lat": 47.6548,
+    "lng": 12.4204
+  },
+  {
+    "name": "Alpbachtal - Ski Juwel Alpbachtal Wildschönau",
+    "lat": 47.395,
+    "lng": 11.8925
+  },
+  {
+    "name": "Neunerköpfle - Tannheim",
+    "lat": 47.4906,
+    "lng": 10.5168
+  },
+  {
+    "name": "Füssener Jöchle - Grän/Tannheimer Tal",
+    "lat": 47.5046,
+    "lng": 10.5618
+  },
+  {
+    "name": "Kühtai",
+    "lat": 47.2139,
+    "lng": 11.0129
+  },
+  {
+    "name": "Nesselwängle im Tannheimer Tal",
+    "lat": 47.4925,
+    "lng": 10.6273
+  },
+  {
+    "name": "Schattwald - Zöblen im Tannheimertal",
+    "lat": 47.5015,
+    "lng": 10.4558
+  },
+  {
+    "name": "Hopfgarten-Itter-Kelchsau - SkiWelt",
+    "lat": 47.4518,
+    "lng": 12.1227
+  },
+  {
+    "name": "Söll - SkiWelt",
+    "lat": 47.5117,
+    "lng": 12.1994
+  },
+  {
+    "name": "Kitzbühel",
+    "lat": 47.4326,
+    "lng": 12.3914
+  },
+  {
+    "name": "Rangger Köpfl",
+    "lat": 47.2489,
+    "lng": 11.2077
+  },
+  {
+    "name": "Jöchelspitze - Lechtal",
+    "lat": 47.2555,
+    "lng": 10.3819
+  },
+  {
+    "name": "Stubaital 11er Lifte Neustift",
+    "lat": 47.1129,
+    "lng": 11.3067
+  },
+  {
+    "name": "Bichllifte Prägraten",
+    "lat": 47.0088,
+    "lng": 12.349
+  },
+  {
+    "name": "Wildschönau - Ski Juwel Alpbachtal Wildschönau",
+    "lat": 47.4083,
+    "lng": 12.0479
+  },
+  {
+    "name": "Niederthai",
+    "lat": 47.1289,
+    "lng": 10.9268
+  },
+  {
+    "name": "Königsleiten - Zillertal Arena",
+    "lat": 47.2465,
+    "lng": 12.1212
+  },
+  {
+    "name": "Hüttegglift Weerberg",
+    "lat": 47.3169,
+    "lng": 11.6426
+  },
+  {
+    "name": "Skilifte Lärchenhof",
+    "lat": 47.5672,
+    "lng": 12.4393
+  },
+  {
+    "name": "Vögelsberg Aktivpark",
+    "lat": 47.3593,
+    "lng": 11.6901
+  },
+  {
+    "name": "Spieljochbahn Fügen",
+    "lat": 47.3225,
+    "lng": 11.8534
+  },
+  {
+    "name": "Amberglift Walchsee",
+    "lat": 47.6536,
+    "lng": 12.3203
+  },
+  {
+    "name": "Bergbahnen Pillersee - Buchensteinwand - St. Ulrich",
+    "lat": 47.5215,
+    "lng": 12.595
+  },
+  {
+    "name": "Bergeralm",
+    "lat": 47.0449,
+    "lng": 11.4512
+  },
+  {
+    "name": "Bergwelt Hahnenkamm",
+    "lat": 47.4068,
+    "lng": 10.7252
+  },
+  {
+    "name": "Berwang",
+    "lat": 47.4068,
+    "lng": 10.7167
+  },
+  {
+    "name": "Brixen im Thale - SkiWelt",
+    "lat": 47.4471,
+    "lng": 12.2469
+  },
+  {
+    "name": "Dorfberg Kartitsch",
+    "lat": 46.7406,
+    "lng": 12.4766
+  },
+  {
+    "name": "Eggalmbahnen",
+    "lat": 47.1508,
+    "lng": 11.7596
+  },
+  {
+    "name": "Ehrwalder Alm",
+    "lat": 47.3918,
+    "lng": 10.9469
+  },
+  {
+    "name": "Ehrwalder Wettersteinbahnen",
+    "lat": 47.4084,
+    "lng": 10.94
+  },
+  {
+    "name": "Elferbahnen Neustift",
+    "lat": 47.1047,
+    "lng": 11.3079
+  },
+  {
+    "name": "Ellmau-Going - SkiWelt",
+    "lat": 47.5139,
+    "lng": 12.3142
+  },
+  {
+    "name": "Finkenberger Almbahnen",
+    "lat": 47.15,
+    "lng": 11.8032
+  },
+  {
+    "name": "Fiss-Ladis",
+    "lat": 47.0588,
+    "lng": 10.6165
+  },
+  {
+    "name": "Gerlos - Zillertal Arena",
+    "lat": 47.2251,
+    "lng": 12.0561
+  },
+  {
+    "name": "Gerlosstein - Zillertal Arena",
+    "lat": 47.2136,
+    "lng": 11.8818
+  },
+  {
+    "name": "Glungezer",
+    "lat": 47.2163,
+    "lng": 11.5198
+  },
+  {
+    "name": "Großglockner Resort Kals-Matrei",
+    "lat": 46.9991,
+    "lng": 12.5684
+  },
+  {
+    "name": "Gschwandtkopflifte",
+    "lat": 47.3276,
+    "lng": 11.1882
+  },
+  {
+    "name": "Hintertuxer Gletscher",
+    "lat": 47.0728,
+    "lng": 11.6616
+  },
+  {
+    "name": "Hochalmlifte Christlum - Achenkirch",
+    "lat": 47.4983,
+    "lng": 11.7046
+  },
+  {
+    "name": "Hochkrimml - Zillertal Arena",
+    "lat": 47.2401,
+    "lng": 12.1651
+  },
+  {
+    "name": "Hochoetz - Oetz",
+    "lat": 47.2133,
+    "lng": 10.9311
+  },
+  {
+    "name": "Hochzeiger - Jerzens",
+    "lat": 47.1659,
+    "lng": 10.7748
+  },
+  {
+    "name": "Hochzeiger - Pitztal",
+    "lat": 47.1659,
+    "lng": 10.7748
+  },
+  {
+    "name": "Hochzillertal-Kaltenbach",
+    "lat": 47.2637,
+    "lng": 11.8358
+  },
+  {
+    "name": "Hopfgarten - Itter - SkiWelt",
+    "lat": 47.4518,
+    "lng": 12.1227
+  },
+  {
+    "name": "Imst",
+    "lat": 47.2254,
+    "lng": 10.718
+  },
+  {
+    "name": "Ischgl - Silvretta Arena",
+    "lat": 46.9928,
+    "lng": 10.2913
+  },
+  {
+    "name": "Kappl",
+    "lat": 47.0642,
+    "lng": 10.3784
+  },
+  {
+    "name": "Kaunertaler Gletscher",
+    "lat": 46.8663,
+    "lng": 10.7185
+  },
+  {
+    "name": "Kellerjochbahn Schwaz-Pill",
+    "lat": 47.3218,
+    "lng": 11.7411
+  },
+  {
+    "name": "Landeck - Zams - Fliess (Venet)",
+    "lat": 47.1421,
+    "lng": 10.5721
+  },
+  {
+    "name": "Lermoos-Grubigstein",
+    "lat": 47.403,
+    "lng": 10.8747
+  },
+  {
+    "name": "Lienz Zettersfeld Hochstein",
+    "lat": 46.8398,
+    "lng": 12.8027
+  },
+  {
+    "name": "Mayrhofen",
+    "lat": 47.1643,
+    "lng": 11.8619
+  },
+  {
+    "name": "Muttereralm",
+    "lat": 47.2061,
+    "lng": 11.3167
+  },
+  {
+    "name": "Nauders",
+    "lat": 46.8723,
+    "lng": 10.5067
+  },
+  {
+    "name": "Neukirchen - Bramberg - Wildkogel",
+    "lat": 47.2507,
+    "lng": 12.3325
+  },
+  {
+    "name": "Obergurgl-Hochgurgl",
+    "lat": 46.8775,
+    "lng": 11.0408
+  },
+  {
+    "name": "Obertilliacher Bergbahnen",
+    "lat": 46.6922,
+    "lng": 12.5732
+  },
+  {
+    "name": "Patscherkofel",
+    "lat": 47.2083,
+    "lng": 11.4573
+  },
+  {
+    "name": "Pitztaler Gletscher - Rifflsee",
+    "lat": 46.9737,
+    "lng": 10.8764
+  },
+  {
+    "name": "Rastkogelbahnen",
+    "lat": 47.1732,
+    "lng": 11.7695
+  },
+  {
+    "name": "Rosshütte Seefeld",
+    "lat": 47.3461,
+    "lng": 11.1947
+  },
+  {
+    "name": "Schattwald - Zöblen",
+    "lat": 47.5015,
+    "lng": 10.4558
+  },
+  {
+    "name": "Scheffau - SkiWelt",
+    "lat": 47.5212,
+    "lng": 12.2517
+  },
+  {
+    "name": "Schlick 2000",
+    "lat": 47.1367,
+    "lng": 11.3118
+  },
+  {
+    "name": "Schneeberglifte Thiersee",
+    "lat": 47.5898,
+    "lng": 12.118
+  },
+  {
+    "name": "Schwannerlifte Weerberg",
+    "lat": 47.3113,
+    "lng": 11.6885
+  },
+  {
+    "name": "See i. Paznauntal",
+    "lat": 47.0749,
+    "lng": 10.4836
+  },
+  {
+    "name": "Serfaus",
+    "lat": 47.0385,
+    "lng": 10.5971
+  },
+  {
+    "name": "Serlesbahnen Mieders",
+    "lat": 47.1667,
+    "lng": 11.3619
+  },
+  {
+    "name": "Skilifte Kirchdorf",
+    "lat": 47.5613,
+    "lng": 12.4245
+  },
+  {
+    "name": "Skilifte Knittel",
+    "lat": 47.3469,
+    "lng": 10.7241
+  },
+  {
+    "name": "Skizentrum Sillian/Hochpustertal",
+    "lat": 46.7469,
+    "lng": 12.4374
+  },
+  {
+    "name": "Skizentrum St. Jakob",
+    "lat": 46.9985,
+    "lng": 12.3499
+  },
+  {
+    "name": "St. Johann in Tirol",
+    "lat": 47.5272,
+    "lng": 12.4345
+  },
+  {
+    "name": "Steinplatte-Waidring",
+    "lat": 47.5776,
+    "lng": 12.5793
+  },
+  {
+    "name": "Stubaier Gletscher",
+    "lat": 46.9971,
+    "lng": 11.1358
+  },
+  {
+    "name": "Tiroler Zugspitzbahn",
+    "lat": 47.4105,
+    "lng": 10.9705
+  },
+  {
+    "name": "Tirolina - Aktivberg Thiersee",
+    "lat": 47.6011,
+    "lng": 12.0992
+  },
+  {
+    "name": "Venter Seilbahnen",
+    "lat": 46.8604,
+    "lng": 10.9152
+  },
+  {
+    "name": "Westendorf - SkiWelt",
+    "lat": 47.43,
+    "lng": 12.2162
+  },
+  {
+    "name": "Zell am Ziller - Zillertal Arena",
+    "lat": 47.2287,
+    "lng": 11.8862
+  }
+];
+
+    // Init map
+    const map = L.map('map', { zoomControl: true });
+
+    // Try to load online tiles (OSM). If offline, markers will still display on a blank background.
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> Mitwirkende'
+    }).addTo(map);
+
+    // Markers
+    const markerGroup = L.featureGroup().addTo(map);
+    spots.forEach(s => {
+      const m = L.marker([s.lat, s.lng]).addTo(markerGroup);
+      m.bindPopup(`
+        <strong>${s.name}</strong><br>
+        <span class="coords">${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}</span>
+      `);
+    });
+
+    // Fit to bounds
+    map.fitBounds(markerGroup.getBounds().pad(0.1));
+
+    // Keyboard and touch UX improvements
+    map.keyboard.enable();
+    map.scrollWheelZoom.enable();
+  </script>
+</body>
+</html>

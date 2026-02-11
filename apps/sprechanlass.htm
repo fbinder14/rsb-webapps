@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A Day in London — Classroom Dashboard</title>
+<style>
+  :root{
+    --bg:#0f1420;
+    --panel:#121a29cc;
+    --glass:#1b2436aa;
+    --accent:#7cf7d4;
+    --accent-2:#8ab6ff;
+    --ink:#e9f3ff;
+    --muted:#bcd0e9;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius:18px;
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 800px at 120% -10%, #1a2440 0%, transparent 60%),
+      radial-gradient(900px 600px at -20% 110%, #12253a 0%, transparent 60%),
+      linear-gradient(180deg, #0e1320, #0b101b 60%, #0a0f19);
+    color:var(--ink);
+    font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    overflow-x:hidden;
+  }
+
+  /* Top bar */
+  .appbar{
+    position:sticky; top:0; z-index:1000;
+    background:linear-gradient(180deg, #0f1523ee, #0c1220cc);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid #1f2c4b;
+  }
+  .bar-inner{
+    max-width:1100px; margin:auto; padding:10px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  }
+  .brand{
+    font-weight:800; letter-spacing:.2px; font-size:20px; display:flex; align-items:center; gap:10px;
+  }
+  .brand-badge{
+    width:28px; height:28px; border-radius:8px;
+    background: conic-gradient(from 210deg, var(--accent), #b4ffea, var(--accent-2), #d0d6ff, var(--accent));
+    box-shadow: 0 0 0 2px #0b1326, 0 8px 20px rgba(124,247,212,.2);
+  }
+
+  /* Controls */
+  .controls{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto}
+  .btn{
+    border:1px solid #22314f; color:var(--ink); background:#0f182d; padding:10px 14px;
+    border-radius:12px; cursor:pointer; transition:.2s ease; font-weight:600;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .btn:hover{ transform: translateY(-1px); background:#14203a; }
+  .btn.secondary{ background:#0e162a; color:var(--muted);}
+  .btn.accent{ background:linear-gradient(180deg, #1b2f4f, #12233f); border-color:#2a3c63;}
+  .btn.active, .scene-tab.active{ outline:2px solid var(--accent); box-shadow:0 0 0 3px rgba(124,247,212,.22) inset; }
+
+  /* Layout */
+  .wrap{max-width:1100px; margin:22px auto 80px; padding:0 16px;}
+  .grid{
+    display:grid; gap:16px;
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .left{grid-column: span 12;}
+  .right{grid-column: span 12;}
+
+  /* Tabs like Replit files sidebar */
+  .tabbar{
+    display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  .scene-tab{
+    user-select:none;
+    background:#0e162a; color:var(--muted);
+    padding:10px 12px; border-radius:12px; border:1px solid #1d2a45; cursor:pointer; transition:.2s;
+    display:flex; align-items:center; gap:8px;
+  }
+  .scene-tab .dot{
+    width:8px; height:8px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 3px rgba(124,247,212,.15);
+    opacity:.85;
+  }
+  .scene-tab:hover{ background:#13213a; color:var(--ink); }
+
+  /* Cards */
+  .card{
+    background: linear-gradient(180deg, #0f172a, #0b1324);
+    border:1px solid #1b2a49;
+    box-shadow: var(--shadow);
+    border-radius:var(--radius);
+    padding:18px;
+    position:relative; overflow:hidden;
+  }
+  .card::after{
+    content:"";
+    position:absolute; inset:-1px; border-radius:inherit;
+    background:
+      radial-gradient(600px 120px at 20% -10%, rgba(124,247,212,.08), transparent 50%),
+      radial-gradient(400px 100px at 120% 50%, rgba(138,182,255,.10), transparent 60%);
+    pointer-events:none;
+  }
+
+  .scene-title{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;
+  }
+  .scene-title h2{margin:0; font-size:20px}
+  .tag{font-size:12px; color:#bcd0e9; background:#122039; padding:6px 10px; border-radius:999px; border:1px solid #22345a;}
+
+  .kw{
+    display:flex; flex-wrap:wrap; gap:10px; margin:8px 0 2px;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:7px;
+    background:linear-gradient(180deg,#102341,#0c1830);
+    color:#d9e8ff; border:1px solid #22345a; padding:8px 12px; border-radius:999px; font-weight:600; font-size:14px;
+    transition:.15s ease; position:relative;
+  }
+  .pill[data-tooltip]{ cursor:help; }
+  .pill:active{ transform:scale(.98) }
+  .pill .hint{
+    font-size:11px; color:#9bb8e4; opacity:.8;
+  }
+
+  .ideas{
+    margin:14px 0 2px; padding-left:18px;
+  }
+  .ideas li{margin:6px 0}
+  .muted{color:var(--muted)}
+
+  /* Presenter (focus) mode */
+  .focus .scene{ display:none; }
+  .focus .scene.active{ display:block; }
+  .scene{ animation:pop .28s ease both; }
+  @keyframes pop{ from{ transform: translateY(6px); opacity:0 } to{transform:none; opacity:1} }
+
+  /* Tooltip bubble */
+  .tooltip{
+    position:fixed; z-index:2000; max-width:min(86vw, 360px);
+    background:linear-gradient(180deg, #0d1a30, #0a1528);
+    border:1px solid #2a3e67; color:var(--ink);
+    padding:10px 12px; border-radius:14px; box-shadow: var(--shadow);
+    transform-origin: top left; animation: bubble .12s ease-out;
+    font-size:14px;
+  }
+  .tooltip .t-head{font-weight:700; color:#bfefff; margin-bottom:4px}
+  .tooltip .t-note{color:#9fc4ff; font-size:12px; opacity:.95}
+  @keyframes bubble{ from{ transform:scale(.96); opacity:0 } to{ transform:scale(1); opacity:1 } }
+
+  /* Footer */
+  .foot{opacity:.8; font-size:13px; margin-top:18px}
+
+  /* Mobile first columns */
+  @media (min-width:820px){
+    .left{grid-column: span 4;}
+    .right{grid-column: span 8;}
+  }
+
+  /* Big touch */
+  .scene-actions{display:flex; gap:8px; flex-wrap:wrap}
+  .scene-actions .btn{padding:8px 10px; font-size:14px}
+</style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="bar-inner">
+      <div class="brand"><span class="brand-badge" aria-hidden="true"></span> A Day in London — Scenes Dashboard</div>
+      <div class="controls">
+        <button class="btn accent" id="toggleFocus" aria-pressed="false" title="Show one scene at a time">Focus: Off</button>
+        <button class="btn secondary" id="toggleTheme" title="Toggle high-contrast theme">High Contrast</button>
+        <button class="btn" id="fullscreenBtn" title="Enter full screen for presentation">Full Screen</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid">
+      <!-- Sidebar -->
+      <aside class="left">
+        <div class="card">
+          <div class="scene-title">
+            <h2>Scenes</h2>
+            <span class="tag">Tap a tab to show the scene</span>
+          </div>
+          <div class="tabbar" role="tablist" aria-label="Scene tabs">
+            <button class="scene-tab active" data-target="s1" role="tab" aria-selected="true"><span class="dot"></span> Scene 1</button>
+            <button class="scene-tab" data-target="s2" role="tab" aria-selected="false"><span class="dot"></span> Scene 2</button>
+            <button class="scene-tab" data-target="s3" role="tab" aria-selected="false"><span class="dot"></span> Scene 3</button>
+            <button class="scene-tab" data-target="s4" role="tab" aria-selected="false"><span class="dot"></span> Scene 4</button>
+            <button class="scene-tab" data-target="s5" role="tab" aria-selected="false"><span class="dot"></span> Scene 5</button>
+          </div>
+          <div class="foot muted">Tip: Turn on <strong>Focus</strong> to keep only the selected scene visible while acting it out.</div>
+        </div>
+      </aside>
+
+      <!-- Main panel -->
+      <section class="right" id="scenesHost">
+
+        <!-- Scene 1 -->
+        <article id="s1" class="scene card active" aria-labelledby="s1-title">
+          <div class="scene-title">
+            <h2 id="s1-title">Scene 1 — At the beginning of the day</h2>
+            <div class="scene-actions">
+              <button class="btn solo-btn" data-id="s1">Only this</button>
+              <span class="tag">Create your own dialogue</span>
+            </div>
+          </div>
+          <div class="muted">Key Words — tap a word for a quick explanation.</div>
+          <div class="kw" aria-label="Key words">
+            <span class="pill" data-tooltip="An online diary or website where someone regularly posts short texts, photos, or videos."><strong>blog</strong></span>
+            <span class="pill" data-tooltip="Something interesting to see, e.g., a famous building or view."><strong>sight</strong></span>
+            <span class="pill" data-tooltip="A tall building or part of a building, often for bells or views."><strong>tower</strong></span>
+            <span class="pill" data-tooltip="A metal instrument that makes a ringing sound, often in a tower."><strong>bell</strong></span>
+            <span class="pill" data-tooltip="A special or fun name that people use for a person or thing. ‘Big Ben’ is a nickname for the great bell."><strong>nickname</strong></span>
+            <span class="pill" data-tooltip="Paper or digital pass that lets you enter or travel."><strong>ticket</strong></span>
+          </div>
+          <ul class="ideas">
+            <li>Where are you? What do you want to visit?</li>
+            <li>What do you know about Big Ben and its nickname?</li>
+            <li>How and where do you get your tickets?</li>
+            <li>One student writes a <em>blog</em> about the day.</li>
+          </ul>
+        </article>
+
+        <!-- Scene 2 -->
+        <article id="s2" class="scene card" aria-labelledby="s2-title">
+          <div class="scene-title">
+            <h2 id="s2-title">Scene 2 — Around the city</h2>
+            <div class="scene-actions">
+              <button class="btn solo-btn" data-id="s2">Only this</button>
+              <span class="tag">Create your own dialogue</span>
+            </div>
+          </div>
+          <div class="muted">Key Words — tap a word for a quick explanation.</div>
+          <div class="kw">
+            <span class="pill" data-tooltip="A structure that allows you to cross over water, a road, or a railway."><strong>bridge</strong></span>
+            <span class="pill" data-tooltip="From one side to the other side."><strong>across</strong></span>
+            <span class="pill" data-tooltip="Costing a lot of money."><strong>expensive</strong></span>
+            <span class="pill" data-tooltip="A circular object that turns. In London, ‘the wheel’ often means the London Eye."><strong>wheel</strong></span>
+            <span class="pill" data-tooltip="One more; a different one."><strong>another</strong></span>
+            <span class="pill" data-tooltip="In the past; a long time before now."><strong>ago</strong></span>
+          </div>
+          <ul class="ideas">
+            <li>Walk <em>across</em> the river — what can you see?</li>
+            <li>Are the souvenirs <em>expensive</em>?</li>
+            <li>What was built many years <em>ago</em>?</li>
+            <li>Do you ride the big <em>wheel</em> today or on <em>another</em> day?</li>
+          </ul>
+        </article>
+
+        <!-- Scene 3 -->
+        <article id="s3" class="scene card" aria-labelledby="s3-title">
+          <div class="scene-title">
+            <h2 id="s3-title">Scene 3 — On the sightseeing bus</h2>
+            <div class="scene-actions">
+              <button class="btn solo-btn" data-id="s3">Only this</button>
+              <span class="tag">Create your own dialogue</span>
+            </div>
+          </div>
+          <div class="muted">Key Words — tap a word for a quick explanation.</div>
+          <div class="kw">
+            <span class="pill" data-tooltip="A bus service where you can get on and off many times along the route."><strong>hop-on hop-off</strong></span>
+            <span class="pill" data-tooltip="The person who drives a bus, taxi, etc."><strong>driver</strong></span>
+            <span class="pill" data-tooltip="Enter a bus/train/car."><strong>to get on</strong></span>
+            <span class="pill" data-tooltip="Leave a bus/train/car."><strong>to get off</strong></span>
+            <span class="pill" data-tooltip="Something said to make people laugh."><strong>joke</strong></span>
+            <span class="pill" data-tooltip="A small metal object that opens a lock."><strong>key</strong></span>
+            <span class="pill" data-tooltip="The following place, time, or step."><strong>next</strong></span>
+          </div>
+          <ul class="ideas">
+            <li>Talk to the <em>driver</em> when you <em>get on</em> the bus.</li>
+            <li>Someone tells a <em>joke</em> on the bus.</li>
+            <li>Which place do you visit <em>next</em>?</li>
+            <li>Oh no — a lost <em>key</em>! Who finds it before you <em>get off</em>?</li>
+          </ul>
+        </article>
+
+        <!-- Scene 4 -->
+        <article id="s4" class="scene card" aria-labelledby="s4-title">
+          <div class="scene-title">
+            <h2 id="s4-title">Scene 4 — At the circus or theatre</h2>
+            <div class="scene-actions">
+              <button class="btn solo-btn" data-id="s4">Only this</button>
+              <span class="tag">Create your own dialogue</span>
+            </div>
+          </div>
+          <div class="muted">Key Words — tap a word for a quick explanation.</div>
+          <div class="kw">
+            <span class="pill" data-tooltip="A show with acrobats, clowns, and animals (in some countries)."><strong>circus</strong></span>
+            <span class="pill" data-tooltip="A big round or pointed cover used at a circus or for camping."><strong>tent</strong></span>
+            <span class="pill" data-tooltip="A place where plays are performed. UK spelling: ‘theatre’."><strong>theatre</strong></span>
+            <span class="pill" data-tooltip="A story performed by actors on a stage."><strong>play</strong></span>
+            <span class="pill" data-tooltip="A person who writes books, articles, or plays."><strong>writer</strong></span>
+            <span class="pill" data-tooltip="Feeling when something happens that you did not expect."><strong>surprised</strong></span>
+          </div>
+          <ul class="ideas">
+            <li>What happens in the <em>circus</em> tent?</li>
+            <li>You go to a <em>theatre</em> — what <em>play</em> is it?</li>
+            <li>Who is <em>surprised</em> and why?</li>
+            <li>Talk about the <em>writer</em> of the play.</li>
+          </ul>
+        </article>
+
+        <!-- Scene 5 -->
+        <article id="s5" class="scene card" aria-labelledby="s5-title">
+          <div class="scene-title">
+            <h2 id="s5-title">Scene 5 — At the end of the day</h2>
+            <div class="scene-actions">
+              <button class="btn solo-btn" data-id="s5">Only this</button>
+              <span class="tag">Create your own dialogue</span>
+            </div>
+          </div>
+          <div class="muted">Key Words — tap a word for a quick explanation.</div>
+          <div class="kw">
+            <span class="pill" data-tooltip="A movement you make when you put one foot in front of the other."><strong>step</strong></span>
+            <span class="pill" data-tooltip="To choose or carry; also to take photos or transport."><strong>to take</strong></span>
+            <span class="pill" data-tooltip="Above or across something to the other side."><strong>over</strong></span>
+            <span class="pill" data-tooltip="To speak very quietly."><strong>to whisper</strong></span>
+            <span class="pill" data-tooltip="A place where criminals are kept as a punishment."><strong>prison</strong></span>
+            <span class="pill" data-tooltip="The British crown’s precious jewels kept in the Tower of London."><strong>Crown Jewels</strong></span>
+          </div>
+          <ul class="ideas">
+            <li>Take your last <em>steps</em> back to the hotel.</li>
+            <li><em>Whisper</em> about your favourite moment.</li>
+            <li>Did you see the old <em>prison</em> area at the Tower?</li>
+            <li>Talk about the <em>Crown Jewels</em>. What did you <em>take</em> photos of from <em>over</em> the day?</li>
+          </ul>
+        </article>
+
+      </section>
+    </section>
+
+    <section class="card">
+      <h2>How to use in class</h2>
+      <ol>
+        <li>Students work in pairs or groups of 2–3.</li>
+        <li>Teacher (you) selects a tab. Turn <strong>Focus</strong> on to hide the other scenes.</li>
+        <li>Students create their own sentences and questions using the key words. 3–6 lines per person.</li>
+        <li>Tap any key word to show a quick explanation (works on iPad & phones).</li>
+        <li>Groups rehearse and act out their scenes for the class.</li>
+      </ol>
+      <p class="foot muted">Built for mobile: large tap targets, offline single-file, and fast animations. </p>
+    </section>
+  </main>
+
+<script>
+  // Scene tab switching
+  const host = document.getElementById('scenesHost');
+  const tabs = Array.from(document.querySelectorAll('.scene-tab'));
+  const scenes = Array.from(document.querySelectorAll('.scene'));
+  const focusBtn = document.getElementById('toggleFocus');
+  const fullBtn = document.getElementById('fullscreenBtn');
+  const themeBtn = document.getElementById('toggleTheme');
+  let focusOn = false;
+
+  function setActiveScene(id){
+    scenes.forEach(s => s.classList.toggle('active', s.id === id));
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.target === id));
+    tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.target === id ? 'true' : 'false'));
+    if(focusOn){
+      document.body.classList.add('focus');
+    }
+  }
+
+  tabs.forEach(tab=>{
+    tab.addEventListener('click', ()=> setActiveScene(tab.dataset.target));
+  });
+
+  // "Only this" button inside each scene (convenient for teacher)
+  document.querySelectorAll('.solo-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      setActiveScene(btn.dataset.id);
+      focusOn = true;
+      document.body.classList.add('focus');
+      focusBtn.classList.add('active');
+      focusBtn.setAttribute('aria-pressed','true');
+      focusBtn.textContent = 'Focus: On';
+    });
+  });
+
+  // Focus mode toggle
+  focusBtn.addEventListener('click', ()=>{
+    focusOn = !focusOn;
+    focusBtn.classList.toggle('active', focusOn);
+    focusBtn.setAttribute('aria-pressed', String(focusOn));
+    focusBtn.textContent = focusOn ? 'Focus: On' : 'Focus: Off';
+    document.body.classList.toggle('focus', focusOn);
+  });
+
+  // Fullscreen for presenter use
+  fullBtn.addEventListener('click', ()=>{
+    if (!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  // High-contrast theme (slightly brighter text)
+  themeBtn.addEventListener('click', ()=>{
+    const high = document.body.dataset.theme === 'high';
+    document.body.dataset.theme = high ? '' : 'high';
+    themeBtn.classList.toggle('active', !high);
+  });
+
+  // Tooltips (tap or hover)
+  let tipEl = null;
+  function closeTip(){ if(tipEl){ tipEl.remove(); tipEl = null; } }
+  function openTip(target, text){
+    closeTip();
+    tipEl = document.createElement('div');
+    tipEl.className = 'tooltip';
+    tipEl.innerHTML = `<div class="t-head">${target.textContent}</div><div class="t-body">${text}</div><div class="t-note">Tap outside to close</div>`;
+    document.body.appendChild(tipEl);
+
+    const rect = target.getBoundingClientRect();
+    const pad = 10;
+    let x = rect.left + window.scrollX;
+    let y = rect.bottom + window.scrollY + 8;
+
+    // Keep inside viewport
+    const tw = tipEl.offsetWidth || 260;
+    const th = tipEl.offsetHeight || 120;
+    if(x + tw > window.scrollX + document.documentElement.clientWidth - pad){
+      x = window.scrollX + document.documentElement.clientWidth - tw - pad;
+    }
+    if(y + th > window.scrollY + document.documentElement.clientHeight - pad){
+      y = rect.top + window.scrollY - th - 8;
+    }
+
+    tipEl.style.left = `${x}px`;
+    tipEl.style.top = `${y}px`;
+  }
+
+  // Delegate tooltip events
+  document.addEventListener('click', (e)=>{
+    const el = e.target.closest('[data-tooltip]');
+    if(el){
+      e.stopPropagation();
+      openTip(el, el.getAttribute('data-tooltip'));
+    }else{
+      closeTip();
+    }
+  });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeTip(); });
+
+  // Initialize default scene
+  setActiveScene('s1');
+
+  // Reduce motion preference
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('*').forEach(el=> el.style.animation = 'none');
+  }
+
+  // High-contrast tweak
+  const style = document.createElement('style');
+  style.textContent = `
+    body[data-theme="high"]{ --ink:#ffffff; --muted:#e0eeff; }
+    body[data-theme="high"] .card{ border-color:#2f477a; }
+    body[data-theme="high"] .pill{ border-color:#3a5e9e; background:#0f2345; }
+  `;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>

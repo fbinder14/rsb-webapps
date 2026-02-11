@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Meine Wanderung – GPX Webapp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- iOS PWA / Add to Home Screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Wanderung">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-1w7xoH1qK9G3G3y28qkP2Cw5vJ7h0f9vQyH8mQ8H3r4n2QpQeK9fT9j2kGQ8fK3wQ2nKkH3m0mM0q0P2p2cZNg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { margin:0; padding:0; height:100%; background:#0b0b0c; font-family:-apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    .app { display:flex; flex-direction:column; height:100%; }
+    header {
+      padding:10px 14px; background:#111; color:#fff; position:sticky; top:0; z-index:1000;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    header h1 { font-size:16px; margin:0; font-weight:600; }
+    header .stats { font-size:12px; opacity:0.9; }
+    #map { height:48vh; }
+    #elevContainer { padding:10px 12px; background:#0f0f10; }
+    #elevCanvas { width:100%; height:22vh; display:block; background:#0a0a0b; border-radius:8px; }
+    .panels { display:flex; gap:10px; padding:10px 12px; }
+    .card {
+      flex:1; background:#121214; color:#eee; border-radius:10px; padding:12px;
+      display:flex; align-items:center; justify-content:space-between;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .card h3 { margin:0 0 6px 0; font-size:13px; font-weight:600; color:#b5b5b5; }
+    .card .val { font-size:20px; font-weight:700; }
+    #progressRing { width:64px; height:64px; }
+    .install-hint {
+      position:fixed; left:12px; right:12px; bottom:12px; background:#1b1b1d; color:#fff;
+      padding:12px; border-radius:10px; font-size:13px; display:none; z-index:2000;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+    .hint-close { float:right; background:#2b2b2e; color:#fff; border:none; border-radius:8px; padding:6px 8px; }
+    .legend { padding:0 12px 12px; color:#aaa; font-size:12px; }
+    .waypoint-popup { font-size:13px; line-height:1.3; }
+    .consent {
+      position:fixed; left:12px; right:12px; bottom:12px; background:#1b1b1d; color:#fff;
+      padding:12px; border-radius:10px; font-size:13px; z-index:2100; display:none;
+    }
+    .consent button { margin-top:8px; margin-right:8px; padding:8px 10px; border:none; border-radius:8px; }
+    .btn-primary { background:#2a7fff; color:#fff; }
+    .btn-secondary { background:#2b2b2e; color:#fff; }
+    @media (orientation:landscape) {
+      #map { height:52vh; }
+      #elevCanvas { height:20vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Meine Wanderung</h1>
+      <div class="stats" id="headerStats">Lade GPX…</div>
+    </header>
+
+    <div id="map" aria-label="Karte der Route"></div>
+
+    <div id="elevContainer">
+      <canvas id="elevCanvas" width="800" height="220" aria-label="Höhenprofil"></canvas>
+    </div>
+
+    <div class="panels">
+      <div class="card" aria-live="polite">
+        <div>
+          <h3>Fortschritt Anstieg</h3>
+          <div class="val" id="climbPct">–%</div>
+        </div>
+        <svg id="progressRing" viewBox="0 0 36 36">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#2a7fff"/>
+              <stop offset="100%" stop-color="#41d1ff"/>
+            </linearGradient>
+          </defs>
+          <path d="M18 2 a16 16 0 1 1 0 32 a16 16 0 1 1 0 -32" fill="none" stroke="#2b2b2e" stroke-width="4"/>
+          <path id="ring" d="M18 2 a16 16 0 1 1 0 32 a16 16 0 1 1 0 -32" fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round" stroke-dasharray="0 100"/>
+          <text x="18" y="21" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" id="ringText">0%</text>
+        </svg>
+      </div>
+      <div class="card">
+        <div>
+          <h3>Rest zum Gipfel</h3>
+          <div class="val" id="toSummit">–</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">Tippe auf Marker für kurze Beschreibungen (z.B. Almen, Aussichtspunkte, Gipfel).</div>
+  </div>
+
+  <div class="consent" id="consentBox">
+    Diese App kann nach Einverständnis den Standort nutzen, um den Fortschritt deines Anstiegs zu zeigen. Erlauben?
+    <div>
+      <button class="btn-primary" id="consentYes">Erlauben</button>
+      <button class="btn-secondary" id="consentNo">Nicht jetzt</button>
+    </div>
+  </div>
+
+  <div class="install-hint" id="installHint">
+    Auf iPhone: Über das Teilen-Icon „Zum Home-Bildschirm“ hinzufügen, um Vollbild zu nutzen.
+    <button class="hint-close" id="hintClose">OK</button>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
+  <!-- leaflet-gpx -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js" defer></script>
+
+  <script>
+    // Wait for libs
+    window.addEventListener('load', () => {
+      // Create map
+      const map = L.map('map', {
+        zoomControl: true,
+        tap: false
+      });
+
+      // Base layer (OSM)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap-Mitwirkende'
+      }).addTo(map);
+
+      // Fetch GPX (same directory, filename 'GPX.gpx')
+      const GPX_URL = 'LWC_15_Staudacher_Almenrunde.gpx';
+
+      // icons for start/end/waypoints (CDN refs recommended for leaflet-gpx icons)
+      const markerOptions = {
+        startIconUrl: 'https://cdn.jsdelivr.net/npm/leaflet-gpx@1.7.0/pin-icon-start.png',
+        endIconUrl: 'https://cdn.jsdelivr.net/npm/leaflet-gpx@1.7.0/pin-icon-end.png',
+        shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet-gpx@1.7.0/pin-shadow.png'
+      };
+
+      const gpxLayer = new L.GPX(GPX_URL, {
+        async: true,
+        marker_options: markerOptions,
+        polyline_options: {
+          color: '#2a7fff',
+          weight: 4,
+          opacity: 0.9
+        },
+        gpx_options: {
+          joinTrackSegments: true,
+          parseElements: ['track', 'route', 'waypoint']
+        }
+      });
+
+      let elevPoints = []; // [{dist, ele, lat, lon}]
+      let totalClimb = 0, totalDescent = 0, minEle = null, maxEle = null, totalDist = 0;
+      let ascentSegments = []; // cumulative ascent mapping for progress
+      let trackLatLngs = [];
+
+      gpxLayer.on('loaded', (e) => {
+        const g = e.target;
+        map.fitBounds(g.getBounds());
+
+        // Stats via leaflet-gpx accessors
+        const dist = g.get_distance(); // meters
+        totalDist = dist || 0;
+        const ele = g.get_elevation_data(); // array of {dist, elevation, lat, lon}
+        elevPoints = (ele || []).map(p => ({
+          dist: p.dist,
+          ele: p.elevation,
+          lat: p.lat,
+          lon: p.lon
+        }));
+
+        // compute ascent/descent + min/max
+        totalClimb = 0; totalDescent = 0;
+        minEle = null; maxEle = null;
+        for (let i=0;i<elevPoints.length;i++){
+          const h = elevPoints[i].ele;
+          if (minEle===null || h<minEle) minEle = h;
+          if (maxEle===null || h>maxEle) maxEle = h;
+          if (i>0){
+            const dh = h - elevPoints[i-1].ele;
+            if (dh>0) totalClimb += dh;
+            else totalDescent += -dh;
+          }
+        }
+
+        // track latlngs for distance to summit
+        try {
+          const layer = g.getLayers().find(l => l instanceof L.Polyline);
+          if (layer) trackLatLngs = layer.getLatLngs().flat ? layer.getLatLngs().flat() : layer.getLatLngs();
+        } catch(_) {}
+
+        updateHeader(dist, totalClimb, minEle, maxEle);
+        drawElevation(elevPoints, minEle, maxEle);
+        attachWaypointPopups(g);
+        maybeAskLocation();
+      });
+
+      gpxLayer.addTo(map);
+
+      function updateHeader(dist, climb, minE, maxE){
+        const km = (dist/1000).toFixed(1);
+        const up = Math.round(climb);
+        const span = (minE!=null && maxE!=null) ? `${Math.round(minE)}–${Math.round(maxE)}m` : '–';
+        document.getElementById('headerStats').textContent = `${km} km • +${up} m • ${span}`;
+      }
+
+      function drawElevation(points, minE, maxE){
+        const cvs = document.getElementById('elevCanvas');
+        const ctx = cvs.getContext('2d');
+        // scale to device pixel ratio
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = cvs.clientWidth;
+        const cssH = cvs.clientHeight;
+        cvs.width = Math.round(cssW * dpr);
+        cvs.height = Math.round(cssH * dpr);
+        ctx.scale(dpr, dpr);
+
+        ctx.clearRect(0,0,cssW,cssH);
+
+        if (!points || points.length<2) {
+          ctx.fillStyle = '#666';
+          ctx.fillText('Kein Höhenprofil verfügbar', 10, 20);
+          return;
+        }
+
+        const pad = 14;
+        const w = cssW - pad*2;
+        const h = cssH - pad*2;
+        const minY = minE, maxY = maxE;
+        const distMax = points[points.length-1].dist;
+
+        // grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        for (let i=0;i<=4;i++){
+          const y = pad + (h/4)*i;
+          ctx.beginPath();
+          ctx.moveTo(pad, y);
+          ctx.lineTo(pad+w, y);
+          ctx.stroke();
+        }
+
+        // path
+        ctx.lineWidth = 2;
+        const grad = ctx.createLinearGradient(pad, pad, pad, pad+h);
+        grad.addColorStop(0, '#41d1ff');
+        grad.addColorStop(1, '#2a7fff');
+        ctx.strokeStyle = grad;
+
+        ctx.beginPath();
+        for (let i=0;i<points.length;i++){
+          const x = pad + (points[i].dist/distMax)*w;
+          const y = pad + (1 - (points[i].ele - minY)/(maxY - minY || 1))*h;
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+
+        // fill under curve subtle
+        const fillGrad = ctx.createLinearGradient(0, pad, 0, pad+h);
+        fillGrad.addColorStop(0, 'rgba(65,209,255,0.20)');
+        fillGrad.addColorStop(1, 'rgba(42,127,255,0.05)');
+        ctx.lineTo(pad+w, pad+h);
+        ctx.lineTo(pad, pad+h);
+        ctx.closePath();
+        ctx.fillStyle = fillGrad;
+        ctx.fill();
+
+        // build ascent mapping for progress
+        ascentSegments = buildAscentSegments(points);
+      }
+
+      function buildAscentSegments(points){
+        const segs = [];
+        let cumAscent = 0;
+        for (let i=1;i<points.length;i++){
+          const dh = points[i].ele - points[i-1].ele;
+          const dd = points[i].dist - points[i-1].dist;
+          const lat = points[i].lat, lon = points[i].lon;
+          if (dh>0) {
+            cumAscent += dh;
+          }
+          segs.push({ dist: points[i].dist, cumAscent, lat, lon, dh, dd });
+        }
+        return segs;
+      }
+
+      // Waypoint Popups mit knappen Beschreibungen (Auto+Heuristik)
+      function attachWaypointPopups(g){
+        const layers = g.getLayers();
+        layers.forEach(l => {
+          if (l instanceof L.Marker && l.options && !l._isStartEnd) {
+            const name = (l.options && l.options.title) || 'Wegpunkt';
+            const content = classifyWaypoint(name);
+            l.bindPopup(`<div class="waypoint-popup"><strong>${escapeHtml(name)}</strong><br>${content}</div>`);
+          }
+          // Markiere Start/Ende: leaflet-gpx setzt spezielle Icons; hier nur Schutz
+          if (l instanceof L.Marker && l.options && (l.options.icon===markerOptions.startIconUrl || l.options.icon===markerOptions.endIconUrl)) {
+            l._isStartEnd = true;
+          }
+        });
+      }
+
+      function classifyWaypoint(name){
+        const n = (name||'').toLowerCase();
+        if (/\balm\b|\balpe\b|\balmhaus\b/.test(n)) return 'Almwirtschaft – Einkehrmöglichkeit, regionale Küche.';
+        if (/\b(gipfel|peak|summit|kreuz)\b/.test(n)) return 'Gipfelpunkt – Panorama, idealer Fotostopp.';
+        if (/\baussicht|view|blick\b/.test(n)) return 'Aussichtspunkt – weiter Blick ins Voralpenland.';
+        if (/\brast|hütte|hut|shelter\b/.test(n)) return 'Rastplatz – kurze Pause und Energie tanken.';
+        if (/\bquelle|brunnen|wasser\b/.test(n)) return 'Wasserstelle – Flaschen auffüllen möglich.';
+        return 'Interessanter Punkt entlang der Route.';
+      }
+
+      // Standort-Einverständnis-Flow
+      function maybeAskLocation(){
+        if (!('geolocation' in navigator)) return;
+        if (sessionStorage.getItem('locConsent')==='yes') startWatch();
+        else showConsent();
+      }
+
+      const consentBox = document.getElementById('consentBox');
+      document.getElementById('consentYes').addEventListener('click', () => {
+        sessionStorage.setItem('locConsent','yes');
+        consentBox.style.display='none';
+        startWatch();
+      });
+      document.getElementById('consentNo').addEventListener('click', () => {
+        sessionStorage.setItem('locConsent','no');
+        consentBox.style.display='none';
+      });
+      function showConsent(){ consentBox.style.display='block'; }
+
+      let watchId = null;
+      function startWatch(){
+        if (watchId!=null) return;
+        watchId = navigator.geolocation.watchPosition(onPos, err => {
+          console.warn(err);
+        }, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
+      }
+
+      function onPos(pos){
+        if (!elevPoints.length) return;
+        const { latitude, longitude } = pos.coords;
+        // Nähersten Punkt auf dem Track finden
+        let bestIdx = 0, bestD = Infinity;
+        for (let i=0;i<elevPoints.length;i++){
+          const d = haversine(latitude, longitude, elevPoints[i].lat, elevPoints[i].lon);
+          if (d<bestD){ bestD = d; bestIdx = i; }
+        }
+        // Cum ascent bis dorthin
+        const ascAt = ascentAtDistance(elevPoints[bestIdx].dist);
+        const pct = totalClimb>0 ? Math.max(0, Math.min(100, Math.round(ascAt/totalClimb*100))) : 0;
+        setProgress(pct);
+
+        // Distanz zum höchsten Punkt (als "Gipfel" Proxy)
+        const peakIdx = indexOfMaxElevation(elevPoints);
+        const distRemain = Math.max(0, (elevPoints[peakIdx].dist - elevPoints[bestIdx].dist));
+        document.getElementById('toSummit').textContent = (distRemain/1000).toFixed(2) + ' km';
+      }
+
+      function ascentAtDistance(d){
+        if (!ascentSegments.length) return 0;
+        // binary search
+        let lo=0, hi=ascentSegments.length-1, idx=0;
+        while (lo<=hi){
+          const mid = (lo+hi)>>1;
+          if (ascentSegments[mid].dist<=d){ idx=mid; lo=mid+1; } else hi=mid-1;
+        }
+        return ascentSegments[idx].cumAscent || 0;
+      }
+
+      function indexOfMaxElevation(points){
+        let idx = 0, max = -Infinity;
+        for (let i=0;i<points.length;i++){
+          if (points[i].ele>max){ max = points[i].ele; idx = i; }
+        }
+        return idx;
+      }
+
+      function setProgress(pct){
+        document.getElementById('climbPct').textContent = pct + '%';
+        document.getElementById('ringText').textContent = pct + '%';
+        const len = 100;
+        const filled = (pct/100)*len;
+        document.getElementById('ring').setAttribute('stroke-dasharray', `${filled} ${len-filled}`);
+      }
+
+      // Haversine (in Metern)
+      function haversine(lat1, lon1, lat2, lon2){
+        const R = 6371000;
+        const toRad = x => x*Math.PI/180;
+        const dLat = toRad(lat2-lat1);
+        const dLon = toRad(lon2-lon1);
+        const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+        return 2*R*Math.asin(Math.sqrt(a));
+      }
+
+      // Simple iOS "Add to Home Screen" Hinweis
+      const installHint = document.getElementById('installHint');
+      const hintClose = document.getElementById('hintClose');
+      hintClose.addEventListener('click', ()=> installHint.style.display='none');
+
+      function isIos(){
+        const ua = navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(ua);
+      }
+      function isStandalone(){
+        return ('standalone' in window.navigator) && window.navigator.standalone;
+      }
+      if (isIos() && !isStandalone()){
+        installHint.style.display='block';
+      }
+
+      // Utility
+      function escapeHtml(s){
+        return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      }
+
+      // Handle resize for crisp canvas
+      window.addEventListener('resize', () => {
+        if (elevPoints.length) drawElevation(elevPoints, minEle, maxEle);
+      });
+    });
+  </script>
+</body>
+</html>

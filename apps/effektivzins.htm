@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+	<title>Effektiver Zinssatz Rechner</title>
+	<!-- Bootstrap CSS einbinden -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<div class="container">
+		<h1 class="text-center">Effektiver Zinssatz</h1>
+		<form>
+			<div class="form-group row">
+				<label for="kreditsumme" class="col-sm-3 col-form-label">Kreditsumme in Euro:</label>
+				<div class="col-sm-9">
+					<input type="number" id="kreditsumme" name="kreditsumme" class="form-control" required>
+				</div>
+			</div>
+
+			<div class="form-group row">
+				<label for="disagio" class="col-sm-3 col-form-label">Disagio in Prozent:</label>
+				<div class="col-sm-9">
+					<input type="number" id="disagio" name="disagio" class="form-control" required>
+				</div>
+			</div>
+
+			<div class="form-group row">
+				<label for="zeitraum" class="col-sm-3 col-form-label">Zeitraum in Tagen:</label>
+				<div class="col-sm-9">
+					<input type="number" id="zeitraum" name="zeitraum" class="form-control" required>
+				</div>
+			</div>
+
+			<div class="form-group row">
+				<label for="zinssatz" class="col-sm-3 col-form-label">Zinssatz p.a.:</label>
+				<div class="col-sm-9">
+					<input type="number" id="zinssatz" name="zinssatz" class="form-control" required>
+				</div>
+			</div>
+
+			<div class="form-group row">
+				<div class="col-sm-9 offset-sm-3">
+					<button type="button" class="btn btn-primary" onclick="berechneEffektivenZinssatz()">Berechnen</button>
+					<button type="reset" class="btn btn-secondary">Zur&uuml;cksetzen</button>
+				</div>
+			</div>
+		</form>
+
+		<div id="ergebnis-container" class="d-none">
+			<h2>Ergebnis:</h2>
+			<div id="auszahlungsbetrag"></div>
+			<div id="zinsen"></div>
+			<div id="kreditkosten"></div>
+			<div id="effektiver-zinssatz"></div>
+		</div>
+	</div>
+
+	<!-- Bootstrap JavaScript und jQuery einbinden -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-91465215-1"></script>
+	<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quarterly Data Entry</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #spreadsheet {
+            border: 1px solid #ccc;
+            background-color: white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        #data {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="spreadsheet" width="240" height="480"></canvas>
+    <div id="data">B22: 0</div>
+    <script>
+        const canvas = document.getElementById('spreadsheet');
+        const context = canvas.getContext('2d');
+
+        const cellSize = 24;
+        const cols = 10;
+        const rows = 20;
+        const colors = [
+            null,            // 0: empty
+            '#d9edf7',       // 1: I (light blue)
+            '#fcf8e3',       // 2: O (light yellow)
+            '#e6e6fa',       // 3: T (lavender)
+            '#dff0d8',       // 4: S (light green)
+            '#f2dede',       // 5: Z (light red)
+            '#cce5ff',       // 6: J (soft blue)
+            '#fff3e6'        // 7: L (soft orange)
+        ];
+
+        const shapes = [
+            [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], // I
+            [[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]], // O
+            [[0,1,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]], // T
+            [[0,1,1,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]], // S
+            [[1,1,0,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]], // Z
+            [[1,0,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]], // J
+            [[0,0,1,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]]  // L
+        ];
+
+        let board = createBoard();
+        let score = 0;
+        let currentPiece;
+        let isPaused = false;
+
+        function createBoard() {
+            return Array.from({length: rows}, () => Array(cols).fill(0));
+        }
+
+        function rotateClockwise(shape) {
+            const newShape = Array.from({length: 4}, () => Array(4).fill(0));
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    newShape[j][3 - i] = shape[i][j];
+                }
+            }
+            return newShape;
+        }
+
+        function collides(piece) {
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (piece.shape[i][j]) {
+                        let boardRow = piece.row + i;
+                        let boardCol = piece.col + j;
+                        if (boardRow >= rows || boardCol < 0 || boardCol >= cols || 
+                            (boardRow >= 0 && board[boardRow][boardCol] !== 0)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function drawGrid() {
+            context.strokeStyle = '#e0e0e0';
+            for (let i = 1; i < cols; i++) {
+                context.beginPath();
+                context.moveTo(i * cellSize, 0);
+                context.lineTo(i * cellSize, canvas.height);
+                context.stroke();
+            }
+            for (let j = 1; j < rows; j++) {
+                context.beginPath();
+                context.moveTo(0, j * cellSize);
+                context.lineTo(canvas.width, j * cellSize);
+                context.stroke();
+            }
+        }
+
+        function drawBoard() {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    if (board[row][col] !== 0) {
+                        context.fillStyle = colors[board[row][col]];
+                        context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                        context.strokeStyle = '#b0b0b0';
+                        context.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+        }
+
+        function drawPiece(piece) {
+            context.fillStyle = colors[piece.type + 1];
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (piece.shape[i][j]) {
+                        let x = (piece.col + j) * cellSize;
+                        let y = (piece.row + i) * cellSize;
+                        if (piece.row + i >= 0) {
+                            context.fillRect(x, y, cellSize, cellSize);
+                            context.strokeStyle = '#b0b0b0';
+                            context.strokeRect(x, y, cellSize, cellSize);
+                        }
+                    }
+                }
+            }
+        }
+
+        function moveLeft() {
+            if (!isPaused) {
+                currentPiece.col--;
+                if (collides(currentPiece)) {
+                    currentPiece.col++;
+                }
+            }
+        }
+
+        function moveRight() {
+            if (!isPaused) {
+                currentPiece.col++;
+                if (collides(currentPiece)) {
+                    currentPiece.col--;
+                }
+            }
+        }
+
+        function moveDown() {
+            if (!isPaused) {
+                currentPiece.row++;
+                if (collides(currentPiece)) {
+                    currentPiece.row--;
+                    fixPiece();
+                    clearLines();
+                    spawnNewPiece();
+                }
+            }
+        }
+
+        function rotate() {
+            if (!isPaused) {
+                const newShape = rotateClockwise(currentPiece.shape);
+                const oldShape = currentPiece.shape;
+                currentPiece.shape = newShape;
+                if (collides(currentPiece)) {
+                    currentPiece.shape = oldShape;
+                }
+            }
+        }
+
+        function fixPiece() {
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (currentPiece.shape[i][j]) {
+                        let boardRow = currentPiece.row + i;
+                        let boardCol = currentPiece.col + j;
+                        if (boardRow >= 0 && boardRow < rows && boardCol >= 0 && boardCol < cols) {
+                            board[boardRow][boardCol] = currentPiece.type + 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            for (let row = rows - 1; row >= 0; row--) {
+                if (board[row].every(cell => cell !== 0)) {
+                    board.splice(row, 1);
+                    board.unshift(Array(cols).fill(0));
+                    linesCleared++;
+                    row++;
+                }
+            }
+            if (linesCleared > 0) {
+                score += linesCleared * 100;
+                document.getElementById('data').textContent = `B22: ${score}`;
+            }
+        }
+
+        function spawnPiece() {
+            const type = Math.floor(Math.random() * 7);
+            const shape = shapes[type];
+            return {type, shape, row: 0, col: 3};
+        }
+
+        function spawnNewPiece() {
+            currentPiece = spawnPiece();
+            if (collides(currentPiece)) {
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            board = createBoard();
+            score = 0;
+            document.getElementById('data').textContent = `B22: ${score}`;
+            spawnNewPiece();
+            isPaused = false;
+        }
+
+        function drawPaused() {
+            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = '#fff';
+            context.font = '14px Arial';
+            context.textAlign = 'center';
+            context.fillText('Session Locked', canvas.width / 2, canvas.height / 2);
+            context.fillText('Press Esc to Resume', canvas.width / 2, canvas.height / 2 + 20);
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                isPaused = !isPaused;
+                return;
+            }
+            if (!isPaused) {
+                switch (event.key) {
+                    case 'ArrowLeft':
+                        if (event.ctrlKey) moveLeft();
+                        break;
+                    case 'ArrowRight':
+                        if (event.ctrlKey) moveRight();
+                        break;
+                    case 'ArrowDown':
+                        if (event.ctrlKey) moveDown();
+                        break;
+                    case 'ArrowUp':
+                        if (event.ctrlKey) rotate();
+                        break;
+                }
+            }
+        });
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            if (isPaused) {
+                drawPaused();
+            } else {
+                drawBoard();
+                drawPiece(currentPiece);
+                drawGrid();
+            }
+            requestAnimationFrame(draw);
+        }
+
+        resetGame();
+        setInterval(moveDown, 1000);
+        draw();
+    </script>
+</body>
+</html>

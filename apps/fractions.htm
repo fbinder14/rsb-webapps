@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Brüche Kürzen & Erweitern – Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --timer-bg: #fef3c7;
+            --timer-text: #92400e;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-secondary: #1e293b;
+                --bg-card: #1e293b;
+                --text-primary: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --accent: #60a5fa;
+                --accent-hover: #3b82f6;
+                --success: #34d399;
+                --error: #f87171;
+                --border: #334155;
+                --shadow: rgba(0, 0, 0, 0.3);
+                --timer-bg: #451a03;
+                --timer-text: #fef3c7;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: env(safe-area-inset-top, 1rem) env(safe-area-inset-right, 1rem) env(safe-area-inset-bottom, 1rem) env(safe-area-inset-left, 1rem);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: clamp(1.5rem, 4vw, 2.5rem);
+            box-shadow: 0 4px 24px var(--shadow);
+            transition: background 0.3s;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: clamp(0.875rem, 3vw, 1rem);
+        }
+
+        .setup-screen {
+            text-align: center;
+        }
+
+        .setup-description {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .time-selector {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .time-selector label {
+            display: block;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .time-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .time-option {
+            padding: 1rem 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-card);
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+
+        .time-option:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .time-option.selected {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .custom-time-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .custom-time-wrapper label {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .custom-time-input {
+            width: 100px;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-align: center;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .custom-time-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .progress-bar-wrapper {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 999px;
+        }
+
+        .timer {
+            background: var(--timer-bg);
+            color: var(--timer-text);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .timer.warning {
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .fraction-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .task-type {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .fraction-display {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 700;
+            margin: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .fraction-line {
+            width: 80%;
+            max-width: 200px;
+            height: 3px;
+            background: white;
+            border-radius: 999px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        label {
+            font-weight: 600;
+            min-width: 80px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-align: center;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        input[type="number"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-restart {
+            background: var(--text-secondary);
+            color: white;
+            margin-top: 1rem;
+        }
+
+        .btn-restart:hover {
+            background: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+
+        .feedback {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .feedback.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+            border: 2px solid var(--error);
+        }
+
+        .result-screen {
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .result-score {
+            font-size: clamp(3rem, 10vw, 5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .result-message {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 480px) {
+            .input-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            label {
+                min-width: auto;
+            }
+
+            .time-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Brüche Kürzen & Erweitern</h1>
+        <p class="subtitle">Trainiere deine Rechenfähigkeiten – 10 Aufgaben</p>
+
+        <div id="setupScreen" class="setup-screen">
+            <p class="setup-description">
+                Wähle die Zeit pro Aufgabe. Du kannst eine vorgegebene Zeit auswählen oder eine eigene eingeben.
+            </p>
+
+            <div class="time-selector">
+                <label>Zeit pro Aufgabe (Sekunden)</label>
+                <div class="time-options">
+                    <div class="time-option" data-time="5">5</div>
+                    <div class="time-option selected" data-time="8">8</div>
+                    <div class="time-option" data-time="10">10</div>
+                    <div class="time-option" data-time="12">12</div>
+                    <div class="time-option" data-time="15">15</div>
+                    <div class="time-option" data-time="20">20</div>
+                </div>
+
+                <div class="custom-time-wrapper">
+                    <label for="customTime">Oder eigene Zeit:</label>
+                    <input type="number" id="customTime" class="custom-time-input" min="3" max="60" placeholder="z.B. 10">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="startBtn">Training starten</button>
+        </div>
+
+        <div id="gameScreen" class="hidden">
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="timer" id="timer">8 Sekunden</div>
+
+            <div class="fraction-card">
+                <div class="task-type" id="taskType">Bruch kürzen</div>
+                <div class="fraction-display">
+                    <div id="numerator">12</div>
+                    <div class="fraction-line"></div>
+                    <div id="denominator">16</div>
+                </div>
+            </div>
+
+            <div id="feedbackBox" class="hidden"></div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label for="answerNum">Zähler:</label>
+                    <input type="number" id="answerNum" placeholder="?">
+                </div>
+                <div class="input-wrapper">
+                    <label for="answerDen">Nenner:</label>
+                    <input type="number" id="answerDen" placeholder="?">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="submitBtn">Weiter</button>
+        </div>
+
+        <div id="resultScreen" class="result-screen hidden">
+            <div class="result-icon" id="resultIcon">🎉</div>
+            <h2 class="result-title">Ergebnis</h2>
+            <div class="result-score" id="resultScore">0/10</div>
+            <p class="result-message" id="resultMessage">Du warst großartig!</p>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="statCorrect">0</div>
+                    <div class="stat-label">Richtig</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statWrong">0</div>
+                    <div class="stat-label">Falsch</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statTimeout">0</div>
+                    <div class="stat-label">Zeit abgelaufen</div>
+                </div>
+            </div>
+
+            <button class="btn btn-restart" id="restartBtn">Nochmal trainieren</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let currentTask = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let timeoutAnswers = 0;
+        let timeLeft = 8;
+        let timerInterval;
+        let tasks = [];
+        let selectedTime = 8;
+
+        const TOTAL_TASKS = 10;
+
+        // DOM Elements
+        const setupScreen = document.getElementById('setupScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const startBtn = document.getElementById('startBtn');
+        const timeOptions = document.querySelectorAll('.time-option');
+        const customTimeInput = document.getElementById('customTime');
+        const progressBar = document.getElementById('progressBar');
+        const timer = document.getElementById('timer');
+        const taskType = document.getElementById('taskType');
+        const numerator = document.getElementById('numerator');
+        const denominator = document.getElementById('denominator');
+        const answerNum = document.getElementById('answerNum');
+        const answerDen = document.getElementById('answerDen');
+        const submitBtn = document.getElementById('submitBtn');
+        const feedbackBox = document.getElementById('feedbackBox');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Setup Screen Event Listeners
+        timeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                timeOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedTime = parseInt(option.dataset.time);
+                customTimeInput.value = '';
+            });
+        });
+
+        customTimeInput.addEventListener('input', () => {
+            if (customTimeInput.value) {
+                timeOptions.forEach(opt => opt.classList.remove('selected'));
+                const value = parseInt(customTimeInput.value);
+                if (value >= 3 && value <= 60) {
+                    selectedTime = value;
+                }
+            }
+        });
+
+        startBtn.addEventListener('click', () => {
+            if (customTimeInput.value) {
+                const value = parseInt(customTimeInput.value);
+                if (value < 3 || value > 60) {
+                    alert('Bitte wähle eine Zeit zwischen 3 und 60 Sekunden.');
+                    return;
+                }
+                selectedTime = value;
+            }
+            
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            generateTasks();
+            displayTask();
+        });
+
+        // Utility Functions
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        function generateSimplifyTask() {
+            const gcdValue = [2, 3, 4, 5, 6][Math.floor(Math.random() * 5)];
+            const simpleNum = Math.floor(Math.random() * 10) + 1;
+            const simpleDen = Math.floor(Math.random() * 10) + 2;
+            
+            if (simpleNum >= simpleDen) return generateSimplifyTask();
+            if (gcd(simpleNum, simpleDen) !== 1) return generateSimplifyTask();
+
+            const num = simpleNum * gcdValue;
+            const den = simpleDen * gcdValue;
+
+            return {
+                type: 'simplify',
+                numerator: num,
+                denominator: den,
+                correctNum: simpleNum,
+                correctDen: simpleDen,
+                description: 'Bruch kürzen'
+            };
+        }
+
+        function generateExpandTask() {
+            const num = Math.floor(Math.random() * 9) + 1;
+            const den = Math.floor(Math.random() * 9) + 2;
+            
+            if (num >= den) return generateExpandTask();
+            if (gcd(num, den) !== 1) return generateExpandTask();
+
+            const factor = [2, 3, 4, 5][Math.floor(Math.random() * 4)];
+            const correctNum = num * factor;
+            const correctDen = den * factor;
+
+            return {
+                type: 'expand',
+                numerator: num,
+                denominator: den,
+                correctNum: correctNum,
+                correctDen: correctDen,
+                description: `Bruch mit ${factor} erweitern`
+            };
+        }
+
+        function generateFullSimplifyTask() {
+            const gcdValue = [6, 8, 10, 12, 15][Math.floor(Math.random() * 5)];
+            const simpleNum = Math.floor(Math.random() * 5) + 1;
+            const simpleDen = Math.floor(Math.random() * 5) + 2;
+            
+            if (simpleNum >= simpleDen) return generateFullSimplifyTask();
+            if (gcd(simpleNum, simpleDen) !== 1) return generateFullSimplifyTask();
+
+            const num = simpleNum * gcdValue;
+            const den = simpleDen * gcdValue;
+
+            return {
+                type: 'full-simplify',
+                numerator: num,
+                denominator: den,
+                correctNum: simpleNum,
+                correctDen: simpleDen,
+                description: 'Bruch vollständig kürzen'
+            };
+        }
+
+        function generateTasks() {
+            tasks = [];
+            const types = ['simplify', 'expand', 'full-simplify'];
+            
+            for (let i = 0; i < TOTAL_TASKS; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                if (type === 'simplify') {
+                    tasks.push(generateSimplifyTask());
+                } else if (type === 'expand') {
+                    tasks.push(generateExpandTask());
+                } else {
+                    tasks.push(generateFullSimplifyTask());
+                }
+            }
+        }
+
+        function displayTask() {
+            if (currentTask >= TOTAL_TASKS) {
+                showResults();
+                return;
+            }
+
+            const task = tasks[currentTask];
+            taskType.textContent = task.description;
+            numerator.textContent = task.numerator;
+            denominator.textContent = task.denominator;
+            answerNum.value = '';
+            answerDen.value = '';
+            answerNum.disabled = false;
+            answerDen.disabled = false;
+            answerNum.focus();
+            feedbackBox.classList.add('hidden');
+
+            updateProgress();
+            startTimer();
+        }
+
+        function updateProgress() {
+            const percentage = (currentTask / TOTAL_TASKS) * 100;
+            progressBar.style.width = percentage + '%';
+        }
+
+        function startTimer() {
+            timeLeft = selectedTime;
+            timer.textContent = `${timeLeft} Sekunde${timeLeft !== 1 ? 'n' : ''}`;
+            timer.classList.remove('warning');
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timer.textContent = `${timeLeft} Sekunde${timeLeft !== 1 ? 'n' : ''}`;
+                
+                if (timeLeft <= 3) {
+                    timer.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            timeoutAnswers++;
+            answerNum.disabled = true;
+            answerDen.disabled = true;
+            showFeedback(false, 'Zeit abgelaufen! ⏰');
+            
+            setTimeout(() => {
+                currentTask++;
+                displayTask();
+            }, 1500);
+        }
+
+        function checkAnswer() {
+            clearInterval(timerInterval);
+            
+            const task = tasks[currentTask];
+            const userNum = parseInt(answerNum.value);
+            const userDen = parseInt(answerDen.value);
+
+            if (isNaN(userNum) || isNaN(userDen)) {
+                showFeedback(false, 'Bitte beide Felder ausfüllen!');
+                setTimeout(() => feedbackBox.classList.add('hidden'), 1000);
+                startTimer();
+                return;
+            }
+
+            const isCorrect = (userNum === task.correctNum && userDen === task.correctDen);
+
+            if (isCorrect) {
+                correctAnswers++;
+                showFeedback(true, `Richtig! ✓ (${task.correctNum}/${task.correctDen})`);
+            } else {
+                wrongAnswers++;
+                showFeedback(false, `Falsch! ✗ Richtig wäre: ${task.correctNum}/${task.correctDen}`);
+            }
+
+            answerNum.disabled = true;
+            answerDen.disabled = true;
+
+            setTimeout(() => {
+                currentTask++;
+                displayTask();
+            }, 1800);
+        }
+
+        function showFeedback(isCorrect, message) {
+            feedbackBox.className = 'feedback ' + (isCorrect ? 'success' : 'error');
+            feedbackBox.textContent = message;
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            document.getElementById('resultScore').textContent = `${correctAnswers}/${TOTAL_TASKS}`;
+            document.getElementById('statCorrect').textContent = correctAnswers;
+            document.getElementById('statWrong').textContent = wrongAnswers;
+            document.getElementById('statTimeout').textContent = timeoutAnswers;
+
+            const percentage = (correctAnswers / TOTAL_TASKS) * 100;
+            let message = '';
+            let icon = '';
+
+            if (percentage === 100) {
+                message = 'Perfekt! Du beherrschst Brüche perfekt! 🌟';
+                icon = '🏆';
+            } else if (percentage >= 80) {
+                message = 'Sehr gut! Du bist fast ein Bruch-Profi! 💪';
+                icon = '🎉';
+            } else if (percentage >= 60) {
+                message = 'Gut gemacht! Mit etwas Übung wirst du noch besser! 👍';
+                icon = '😊';
+            } else if (percentage >= 40) {
+                message = 'Noch Übung nötig, aber du bist auf dem richtigen Weg! 📚';
+                icon = '💡';
+            } else {
+                message = 'Weiter üben! Jeder fängt mal klein an! 🌱';
+                icon = '📖';
+            }
+
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('resultIcon').textContent = icon;
+        }
+
+        function restartGame() {
+            currentTask = 0;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            timeoutAnswers = 0;
+            
+            resultScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+            
+            // Reset time selection
+            timeOptions.forEach(opt => opt.classList.remove('selected'));
+            timeOptions[1].classList.add('selected'); // Select 8 seconds by default
+            selectedTime = 8;
+            customTimeInput.value = '';
+        }
+
+        // Game Screen Event Listeners
+        submitBtn.addEventListener('click', checkAnswer);
+
+        answerNum.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                answerDen.focus();
+            }
+        });
+
+        answerDen.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        restartBtn.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>

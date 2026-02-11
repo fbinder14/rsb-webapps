@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlen ausschreiben</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0e4d7; /* Pastellfarben-Hintergrund */
+            color: #5d4954; /* Schriftfarbe */
+        }
+        .container {
+            padding-top: 20px;
+        }
+        #feedback {
+            font-size: 2em;
+            height: 1em;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Zahlen ausschreiben</h1>
+        <p class="text-center">Heute ist: <span id="aktuellesDatum"></span></p>
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-6 text-center">
+                <div id="zahlInWorten" class="h3"></div>
+                <input type="number" id="zahlEingabe" class="form-control" placeholder="Zahl eingeben" min="10" max="100">
+                <button id="ueberpruefenBtn" class="btn btn-primary mt-3">ok</button>
+                <div id="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const aktuellesDatum = document.getElementById('aktuellesDatum');
+            const zahlInWorten = document.getElementById('zahlInWorten');
+            const zahlEingabe = document.getElementById('zahlEingabe');
+            const ueberpruefenBtn = document.getElementById('ueberpruefenBtn');
+            const feedback = document.getElementById('feedback');
+
+          const zahlenInWorten = {
+    10: 'zehn', 11: 'elf', 12: 'zwölf', 13: 'dreizehn', 14: 'vierzehn', 15: 'fünfzehn',
+    16: 'sechzehn', 17: 'siebzehn', 18: 'achtzehn', 19: 'neunzehn', 20: 'zwanzig',
+    21: 'einundzwanzig', 22: 'zweiundzwanzig', 23: 'dreiundzwanzig', 24: 'vierundzwanzig',
+    25: 'fünfundzwanzig', 26: 'sechsundzwanzig', 27: 'siebenundzwanzig', 28: 'achtundzwanzig', 29: 'neunundzwanzig',
+    30: 'dreißig', 31: 'einunddreißig', 32: 'zweiunddreißig', 33: 'dreiunddreißig', 34: 'vierunddreißig',
+    35: 'fünfunddreißig', 36: 'sechsunddreißig', 37: 'siebenunddreißig', 38: 'achtunddreißig', 39: 'neununddreißig',
+    40: 'vierzig', 41: 'einundvierzig', 42: 'zweiundvierzig', 43: 'dreiundvierzig', 44: 'vierundvierzig',
+    45: 'fünfundvierzig', 46: 'sechsundvierzig', 47: 'siebenundvierzig', 48: 'achtundvierzig', 49: 'neunundvierzig',
+    50: 'fünfzig', 51: 'einundfünfzig', 52: 'zweiundfünfzig', 53: 'dreiundfünfzig', 54: 'vierundfünfzig',
+    55: 'fünfundfünfzig', 56: 'sechsundfünfzig', 57: 'siebenundfünfzig', 58: 'achtundfünfzig', 59: 'neunundfünfzig',
+    60: 'sechzig', 61: 'einundsechzig', 62: 'zweiundsechzig', 63: 'dreiundsechzig', 64: 'vierundsechzig',
+    65: 'fünfundsechzig', 66: 'sechsundsechzig', 67: 'siebenundsechzig', 68: 'achtundsechzig', 69: 'neunundsechzig',
+    70: 'siebzig', 71: 'einundsiebzig', 72: 'zweiundsiebzig', 73: 'dreiundsiebzig', 74: 'vierundsiebzig',
+    75: 'fünfundsiebzig', 76: 'sechsundsiebzig', 77: 'siebenundsiebzig', 78: 'achtundsiebzig', 79: 'neunundsiebzig',
+    80: 'achtzig', 81: 'einundachtzig', 82: 'zweiundachtzig', 83: 'dreiundachtzig', 84: 'vierundachtzig',
+    85: 'fünfundachtzig', 86: 'sechsundachtzig', 87: 'siebenundachtzig', 88: 'achtundachtzig', 89: 'neunundachtzig',
+    90: 'neunzig', 91: 'einundneunzig', 92: 'zweiundneunzig', 93: 'dreiundneunzig', 94: 'vierundneunzig',
+    95: 'fünfundneunzig', 96: 'sechsundneunzig', 97: 'siebenundneunzig', 98: 'achtundneunzig', 99: 'neunundneunzig',
+    100: 'hundert'
+};
+
+            function neueZahlGenerieren() {
+                const zahlenKeys = Object.keys(zahlenInWorten);
+                const zufallsIndex = Math.floor(Math.random() * zahlenKeys.length);
+                const zufallsZahl = zahlenKeys[zufallsIndex];
+                zahlInWorten.textContent = zahlenInWorten[zufallsZahl];
+            }
+
+            function aktuellesDatumAnzeigen() {
+                const heute = new Date();
+                aktuellesDatum.textContent = heute.toLocaleDateString('de-DE');
+            }
+
+            function pruefeEingabe() {
+                const eingegebeneZahl = parseInt(zahlEingabe.value);
+                const aktuelleZahl = Object.keys(zahlenInWorten).find(key => zahlenInWorten[key] === zahlInWorten.textContent);
+                if (eingegebeneZahl === parseInt(aktuelleZahl)) {
+                    feedback.textContent = '😊';
+                    setTimeout(neueZahlGenerieren, 1000);
+                } else {
+                    feedback.textContent = '😢';
+                }
+                zahlEingabe.value = '';
+            }
+
+            ueberpruefenBtn.addEventListener('click', pruefeEingabe);
+            aktuellesDatumAnzeigen();
+            neueZahlGenerieren();
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

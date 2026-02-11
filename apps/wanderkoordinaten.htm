@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>WB Leichte Wanderungen Chiemgau – Startpunkte (Google Maps)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #222; background: #f8f9fb; }
+    header {
+      padding: 10px 12px;
+      background: #ffffff;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 0; z-index: 1000;
+    }
+    h1 { font-size: 18px; margin: 6px 0 10px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .controls input[type="search"] {
+      flex: 1 1 260px; padding: 8px 10px; font-size: 14px;
+      border: 1px solid #d0d7de; border-radius: 6px; outline: none; background: #fff;
+    }
+    .controls button {
+      padding: 8px 12px; font-size: 14px; border: 1px solid #d0d7de;
+      border-radius: 6px; background: #ffffff; cursor: pointer;
+    }
+    .controls button:hover { background: #f0f2f5; }
+    .meta { font-size: 12px; color: #555; }
+    #map { height: calc(100% - 110px); width: 100%; }
+    .result-info { font-size: 12px; color: #333; margin-left: 6px; }
+    @media (max-width: 640px) { #map { height: calc(100% - 134px); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WB Leichte Wanderungen Chiemgau – Startpunkte (WGS84, Dezimalgrad)</h1>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Suchen: Nr., Name oder Ort … (z.B. 'Hintersee', 'Kranzhorn', '27')" />
+      <button id="btnClear">Suche löschen</button>
+      <button id="btnFit">Auf alle zoomen</button>
+      <span class="result-info" id="resultInfo"></span>
+    </div>
+    <div class="meta">Quelle: Koordinaten aus bereitgestellter PDF • Bezugs­system: WGS84 • Kartenquelle: Google Maps</div>
+  </header>
+
+  <div id="map"></div>
+
+  <!-- MarkerClusterer (offizielles Google-Beispielpaket über CDN) -->
+  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
+  <script>
+    // Alle Punkte aus der PDF (WGS84, Dezimalgrad)
+    const spots = [
+      {id:1, name:"Kranzhorn", place:"Parkplatz", lat:47.695577, lon:12.204586},
+      {id:2, name:"Heuberg", place:"Schweibern", lat:47.738471, lon:12.204179},
+      {id:3, name:"Feichteck", place:"Gammern", lat:47.732870, lon:12.211518},
+      {id:4, name:"Hofalm", place:"Hohenaschau", lat:47.766747, lon:12.322452},
+      {id:5, name:"Steinlingalm", place:"Hintergschwendt", lat:47.780463, lon:12.361164},
+      {id:6, name:"Spitzstein", place:"Sachrang", lat:47.692196, lon:12.266925},
+      {id:7, name:"Wandberg_Priener_Huette", place:"Sachrang", lat:47.692852, lon:12.268122},
+      {id:8, name:"Walchsee", place:"Walchsee, Pfarrkirche", lat:47.650206, lon:12.318696},
+      {id:9, name:"Klobenstein_Streichen", place:"Wagrain", lat:47.705823, lon:12.396281},
+      {id:10, name:"Sonnenalm_Hofbauernalm", place:"Mühlau", lat:47.728643, lon:12.392132},
+      {id:11, name:"Weitwies-Runde", place:"Raiten", lat:47.740408, lon:12.429630},
+      {id:12, name:"Friedenrath_Hochplatte", place:"Talstation Niedernfels", lat:47.761351, lon:12.434962},
+      {id:13, name:"Westerbuchberg_Kendlmuehlfilz", place:"Grassau", lat:47.784154, lon:12.463366},
+      {id:14, name:"Grabenstaett_Chieming", place:"Grabenstätt", lat:47.843613, lon:12.541859},
+      {id:15, name:"Staudacher_Almenrunde", place:"Staudach", lat:47.774759, lon:12.484929},
+      {id:16, name:"Jochbergalm_Rechenbergalm", place:"Unterwössen", lat:47.734887, lon:12.474889},
+      {id:17, name:"Taubensee", place:"Hinterwössen", lat:47.707622, lon:12.455865},
+      {id:18, name:"Rund_um_Reit_im_Winkl", place:"Gasteig", lat:47.669778, lon:12.476552},
+      {id:19, name:"Straubinger_Haus", place:"Seegatterl", lat:47.657253, lon:12.539219},
+      {id:20, name:"Duerrnbachhorn", place:"Winklmoosalm", lat:47.657741, lon:12.579300},
+      {id:21, name:"Vier_Seen_Wanderung", place:"Seehaus", lat:47.711289, lon:12.622654},
+      {id:22, name:"Roethelmoosalm", place:"Urschlau", lat:47.728263, lon:12.581571},
+      {id:23, name:"Hochfelln", place:"Steinbergalm", lat:47.768490, lon:12.592499},
+      {id:24, name:"Rauschberg_Streicher", place:"Talstation Rauschbergbahn", lat:47.738077, lon:12.666571},
+      {id:25, name:"Kaitlalm", place:"Laubau", lat:47.723494, lon:12.659265},
+      {id:26, name:"Falkenstein-Runde", place:"Inzell, Eisstadion", lat:47.752161, lon:12.750974},
+      {id:27, name:"Stoißer_Alm", place:"Adlgaß", lat:47.774157, lon:12.796578},
+      {id:28, name:"Frillensee_Steiner_Alm", place:"Adlgaß", lat:47.774178, lon:12.796718},
+      {id:29, name:"Zwiesel", place:"Jochberg", lat:47.737226, lon:12.805337},
+      {id:30, name:"Harbachalm_Reiteralm", place:"Weißbach", lat:47.726371, lon:12.757765},
+      {id:31, name:"Sellarnalm", place:"Melleck", lat:47.674261, lon:12.764360},
+      {id:32, name:"Sonntagshorn", place:"P2 Heutal", lat:47.662671, lon:12.664365},
+      {id:33, name:"Heutal_Winklmoosalm", place:"P4 Heutal", lat:47.661457, lon:12.651091},
+      {id:34, name:"Schwarzeck", place:"Daxbauer", lat:47.634339, lon:12.690395},
+      {id:35, name:"Seisenbergklamm", place:"Weißbach", lat:47.523527, lon:12.754954},
+      {id:36, name:"Kallbrunnalm", place:"Waltlmühlsäge", lat:47.537860, lon:12.795024},
+      {id:37, name:"Litzlalm", place:"Obsthurn", lat:47.552193, lon:12.725048},
+      {id:38, name:"Aschauer_Klamm", place:"Oberjettenberg", lat:47.669587, lon:12.797482},
+      {id:39, name:"Weitschartenkopf", place:"Oberjettenberg", lat:47.668968, lon:12.805785},
+      {id:40, name:"Karlstein_Thumsee", place:"Karlstein", lat:47.720930, lon:12.850409},
+      {id:41, name:"Muellnerberg-Runde", place:"Bad Reichenhall", lat:47.716743, lon:12.871704},
+      {id:42, name:"Karkopf", place:"Bad Reichenhall", lat:47.716648, lon:12.872092},
+      {id:43, name:"Doetzenkopf", place:"Bad Reichenhall", lat:47.716155, lon:12.874023},
+      {id:44, name:"Steinerne_Agnes", place:"Hallthurm", lat:47.696705, lon:12.935369},
+      {id:45, name:"Maximilians-Reitweg", place:"Hallthurm", lat:47.702165, lon:12.933563},
+      {id:46, name:"Toter_Mann", place:"Götschen", lat:47.648816, lon:12.936437},
+      {id:47, name:"Soleleitungsweg", place:"Kaltbachlehen", lat:47.624070, lon:12.879686},
+      {id:48, name:"Mordaualm_Moosenalm", place:"Taubensee", lat:47.630941, lon:12.870597},
+      {id:49, name:"Ramsauer_Malerweg", place:"Ramsau", lat:47.607566, lon:12.896668},
+      {id:50, name:"Halsalm", place:"Hintersee", lat:47.604365, lon:12.849475},
+      {id:51, name:"Bindalm_Hirschbichl", place:"Klausbachhaus", lat:47.598774, lon:12.842986},
+      {id:52, name:"Blaueishuette", place:"Seeklause", lat:47.604360, lon:12.858445},
+      {id:53, name:"Wimbachgrieshuette", place:"Wimbachbrücke", lat:47.602647, lon:12.924731},
+      {id:54, name:"Gruenstein_Archenkanzel", place:"Dorf Königssee", lat:47.591507, lon:12.988500},
+      {id:55, name:"Eiskapelle", place:"St. Bartholomä", lat:47.544021, lon:12.972364},
+      {id:56, name:"Obersee_Roethbachfall", place:"Salet", lat:47.525181, lon:12.973287},
+      {id:57, name:"Gotzenalm_Feuerpalfen", place:"Kessel", lat:47.560114, lon:12.987277},
+      {id:58, name:"Rund_um_den_Jenner", place:"Hinterbrand", lat:47.595365, lon:13.023277},
+      {id:59, name:"Schneibstein", place:"Dorf Königssee", lat:47.591071, lon:12.994796},
+      {id:60, name:"Obersalzberg", place:"Berchtesgaden", lat:47.630349, lon:13.005999},
+      {id:61, name:"Gerner_Hoehenweg", place:"Maria Gern", lat:47.654375, lon:13.001850},
+      {id:62, name:"Kneifelspitze", place:"Maria Gern", lat:47.653569, lon:13.002792},
+      {id:63, name:"Almbachklamm", place:"Kugelmühle", lat:47.670342, lon:13.031490},
+      {id:64, name:"Scheibenkaser", place:"Rossboden", lat:47.682703, lon:13.013865},
+      {id:65, name:"Untersberg-Überschreitung", place:"Talstation St. Leonhard", lat:47.725660, lon:13.042080}
+    ];
+
+    let map;
+    let markers = [];
+    let clusterer;
+    let infoWindow;
+    const markerById = new Map();
+
+    function initMap() {
+      // Initiale Karte (Zentrum grob im Chiemgau/Berchtesgadener Land)
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 47.75, lng: 12.75 },
+        zoom: 9,
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true
+      });
+
+      infoWindow = new google.maps.InfoWindow();
+
+      const bounds = new google.maps.LatLngBounds();
+
+      // Marker erzeugen
+      markers = spots.map(s => {
+        const marker = new google.maps.Marker({
+          position: { lat: s.lat, lng: s.lon },
+          title: `${s.id} ${s.name} (${s.place})`
+        });
+        const html = `
+          <div style="min-width:220px">
+            <div style="font-weight:600">#${s.id} ${s.name}</div>
+            <div>Ort: ${s.place}</div>
+            <div>Koordinaten: ${s.lat.toFixed(6)}, ${s.lon.toFixed(6)}</div>
+          </div>
+        `;
+        marker.addListener('click', () => {
+          infoWindow.setContent(html);
+          infoWindow.open({ anchor: marker, map });
+        });
+        markerById.set(s.id, { marker, data: s });
+        bounds.extend(marker.getPosition());
+        return marker;
+      });
+
+      // Clusterer initialisieren
+      clusterer = new markerClusterer.MarkerClusterer({
+        map,
+        markers,
+        algorithmOptions: { maxZoom: 14 }
+      });
+
+      // Auf alle zoomen
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+      }
+
+      // Suche und Buttons verdrahten
+      setupSearchAndControls(bounds);
+    }
+
+    function setupSearchAndControls(bounds) {
+      const searchInput = document.getElementById('search');
+      const resultInfo = document.getElementById('resultInfo');
+      const btnClear = document.getElementById('btnClear');
+      const btnFit = document.getElementById('btnFit');
+
+      const normalize = (str) => (str || '').toString().toLowerCase();
+
+      function searchAndZoom(q) {
+        const query = normalize(q);
+        if (!query) {
+          resultInfo.textContent = '';
+          return;
+        }
+        const spot = spots.find(s =>
+          String(s.id) === query ||
+          normalize(s.name).includes(query) ||
+          normalize(s.place).includes(query)
+        );
+        if (spot) {
+          const rec = markerById.get(spot.id);
+          if (rec) {
+            const m = rec.marker;
+            const pos = m.getPosition();
+            map.setCenter(pos);
+            map.setZoom(Math.max(map.getZoom(), 13));
+            google.maps.event.trigger(m, 'click');
+            resultInfo.textContent = `Gefunden: #${spot.id} ${spot.name} (${spot.place})`;
+          }
+        } else {
+          resultInfo.textContent = 'Kein Treffer';
+        }
+      }
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchAndZoom(searchInput.value);
+      });
+
+      btnClear.addEventListener('click', () => {
+        searchInput.value = '';
+        resultInfo.textContent = '';
+        // Clusterer neu setzen (öffnet geschlossene Marker wieder, falls nötig)
+        clusterer.clearMarkers();
+        clusterer.addMarkers(markers);
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+        }
+      });
+
+      btnFit.addEventListener('click', () => {
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+        }
+      });
+    }
+  </script>
+
+  <!-- Google Maps JS API: eigenen Key eintragen -->
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBlfEIktHPtI4bJg6EiFsBEk_xluobB-JU&callback=initMap">
+  </script>
+</body>
+</html>

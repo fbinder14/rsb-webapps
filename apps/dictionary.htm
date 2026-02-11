@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESL Dictionary</title>
+    <!-- Google Font: Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Apply the Roboto font globally */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px; /* Ensure padding on small screens */
+        }
+        .container-custom {
+            background-color: #ffffff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        .definition-title {
+            font-weight: 700;
+            color: #343a40;
+            font-size: 2.25rem; /* Increased from 1.75rem */
+        }
+        .field-title {
+            font-weight: 700;
+            color: #495057;
+            font-size: 1.3rem; /* Increased from 1.1rem */
+        }
+        .field-content {
+            margin-bottom: 15px;
+            font-size: 1.1rem; /* Increased from 1rem */
+        }
+        .example-sentence, .idiom-item {
+            margin-left: 20px;
+            color: #6c757d;
+            font-size: 1rem; /* Increased from 0.95rem */
+        }
+        /* Button styling */
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            padding: 14px;
+            font-size: 1.1rem; /* Increased from 1rem */
+            border-radius: 8px;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        /* Input field styling */
+        #term-input {
+            font-size: 1.2rem; /* Increased from 1.1rem */
+            padding: 14px; /* Increased from 12px */
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+        }
+        /* Loading spinner size */
+        .spinner-border {
+            width: 3.5rem; /* Increased from 3rem */
+            height: 3.5rem; /* Increased from 3rem */
+        }
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .container-custom {
+                padding: 25px 20px; /* Adjusted padding for smaller screens */
+            }
+            .definition-title {
+                font-size: 2rem; /* Increased from 1.5rem */
+            }
+            .field-title {
+                font-size: 1.2rem; /* Increased from 1rem */
+            }
+            .field-content {
+                font-size: 1rem; /* Increased from 0.95rem */
+            }
+            #term-input {
+                font-size: 1.1rem; /* Increased from 1rem */
+                padding: 12px; /* Increased from 10px */
+            }
+            .btn-primary {
+                font-size: 1rem; /* Increased from 0.95rem */
+                padding: 12px; /* Increased from 10px */
+            }
+            .spinner-border {
+                width: 3rem; /* Increased from 2.5rem */
+                height: 3rem; /* Increased from 2.5rem */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-custom">
+        <h1 class="text-center mb-4 text-primary">ESL Dictionary</h1>
+        <form id="dictionary-form">
+            <div class="mb-4">
+                <input type="text" class="form-control" id="term-input" placeholder="Enter a term" required maxlength="50">
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+        <div id="definition-container" class="mt-4"></div>
+        <div id="error-container" class="mt-2 text-danger"></div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const termInput = document.getElementById('term-input');
+
+        document.getElementById('dictionary-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const term = termInput.value.trim();
+            const definitionContainer = document.getElementById('definition-container');
+            const errorContainer = document.getElementById('error-container');
+            
+            // Clear previous results and errors
+            definitionContainer.innerHTML = "";
+            errorContainer.textContent = "";
+
+            if (term === "") {
+                errorContainer.textContent = "Please enter a term.";
+                return;
+            }
+
+            // Display a loading spinner
+            definitionContainer.innerHTML = `
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('define.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ term: term })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.headword) {
+                    // Format the definition with HTML
+                    let content = `<h3 class="definition-title">${data.headword}</h3>`;
+                    if (data.part_of_speech) {
+                        content += `<p class="field-title">Part of Speech:</p><p class="field-content">${data.part_of_speech}</p>`;
+                    }
+                    if (data.pronunciation) {
+                        content += `<p class="field-title">Pronunciation:</p><p class="field-content">${data.pronunciation}</p>`;
+                    }
+                    if (data.definitions && data.definitions.length > 0) {
+                        content += `<p class="field-title">Definitions:</p><ol>`;
+                        data.definitions.forEach(def => {
+                            content += `<li>${def}</li>`;
+                        });
+                        content += `</ol>`;
+                    }
+                    if (data.examples && data.examples.length > 0) {
+                        content += `<p class="field-title">Examples:</p><ul>`;
+                        data.examples.forEach(ex => {
+                            content += `<li class="example-sentence">${ex}</li>`;
+                        });
+                        content += `</ul>`;
+                    }
+                    if (data.synonyms && data.synonyms.length > 0) {
+                        content += `<p class="field-title">Synonyms:</p><p class="field-content">${data.synonyms.join(', ')}</p>`;
+                    }
+                    if (data.antonyms && data.antonyms.length > 0) {
+                        content += `<p class="field-title">Antonyms:</p><p class="field-content">${data.antonyms.join(', ')}</p>`;
+                    }
+                    if (data.word_forms && data.word_forms.length > 0) {
+                        content += `<p class="field-title">Word Forms:</p><p class="field-content">${data.word_forms.join(', ')}</p>`;
+                    }
+                    if (data.usage_notes) {
+                        content += `<p class="field-title">Usage Notes:</p><p class="field-content">${data.usage_notes}</p>`;
+                    }
+                    if (data.idioms_and_phrasal_verbs && data.idioms_and_phrasal_verbs.length > 0) {
+                        content += `<p class="field-title">Idioms and Phrasal Verbs:</p><ul>`;
+                        data.idioms_and_phrasal_verbs.forEach(idiom => {
+                            content += `<li class="idiom-item">${idiom}</li>`;
+                        });
+                        content += `</ul>`;
+                    }
+
+                    definitionContainer.innerHTML = content;
+                } else {
+                    definitionContainer.innerHTML = `<p>Definition not found.</p>`;
+                    if (data.error) {
+                        errorContainer.textContent = data.error;
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                definitionContainer.innerHTML = `<p>There was an error fetching the definition.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

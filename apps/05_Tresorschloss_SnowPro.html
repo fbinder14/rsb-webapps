@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SnowPro Tresorschloss</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Schneefall-Animation */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.5rem;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .logo span {
+            color: #90caf9;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .safe {
+            background: linear-gradient(145deg, #37474f, #263238);
+            border-radius: 30px;
+            padding: 40px 30px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.4),
+                inset 0 2px 10px rgba(255,255,255,0.1),
+                inset 0 -5px 20px rgba(0,0,0,0.3);
+            border: 4px solid #455a64;
+            max-width: 380px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .safe::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        .display-container {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);
+            border: 2px solid #37474f;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff1744;
+            box-shadow: 0 0 10px #ff1744, 0 0 20px #ff1744;
+            animation: pulse 2s infinite;
+        }
+
+        .led.success {
+            background: #00e676;
+            box-shadow: 0 0 10px #00e676, 0 0 20px #00e676, 0 0 30px #00e676;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: #ff1744;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-text.success {
+            color: #00e676;
+        }
+
+        .display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .digit-box {
+            width: 55px;
+            height: 70px;
+            background: #0d1117;
+            border: 2px solid #30363d;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #4fc3f7;
+            text-shadow: 0 0 10px #4fc3f7;
+            transition: all 0.2s;
+        }
+
+        .digit-box.active {
+            border-color: #4fc3f7;
+            box-shadow: 0 0 15px rgba(79, 195, 247, 0.3);
+        }
+
+        .digit-box.filled {
+            color: #4fc3f7;
+        }
+
+        .digit-box.error {
+            animation: shake 0.5s;
+            border-color: #ff1744;
+            color: #ff1744;
+            text-shadow: 0 0 10px #ff1744;
+        }
+
+        .digit-box.success {
+            border-color: #00e676;
+            color: #00e676;
+            text-shadow: 0 0 15px #00e676;
+            animation: successPulse 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .key {
+            height: 65px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .key.number {
+            background: linear-gradient(145deg, #546e7a, #37474f);
+            color: white;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .key.number:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .key.clear {
+            background: linear-gradient(145deg, #ff5252, #d32f2f);
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .key.enter {
+            background: linear-gradient(145deg, #69f0ae, #00e676);
+            color: #1a1a2e;
+            font-size: 1.2rem;
+        }
+
+        .key:active {
+            transform: scale(0.95);
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 0;
+            border-radius: 30px;
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            box-shadow: 0 0 100px rgba(0, 230, 118, 0.5);
+        }
+
+        .message.show {
+            display: block;
+            animation: zoomIn 0.5s ease-out;
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.3);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .success-content {
+            padding: 50px 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .checkmark-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00e676, #69f0ae);
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounceIn 0.6s 0.3s both;
+            box-shadow: 0 0 50px rgba(0, 230, 118, 0.6);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .checkmark {
+            font-size: 60px;
+            color: white;
+            animation: drawCheck 0.5s 0.6s both;
+        }
+
+        @keyframes drawCheck {
+            from { opacity: 0; transform: scale(0) rotate(-45deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .success-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00e676, #69f0ae);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            animation: fadeInUp 0.5s 0.8s both;
+        }
+
+        .success-subtitle {
+            font-size: 1.3rem;
+            color: #90caf9;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.5s 1s both;
+        }
+
+        .success-message {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+            animation: fadeInUp 0.5s 1.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Konfetti */
+        .confetti {
+            position: fixed;
+            width: 15px;
+            height: 15px;
+            top: -20px;
+            animation: confettiFall 3s linear forwards;
+            z-index: 1001;
+        }
+
+        @keyframes confettiFall {
+            to {
+                top: 100vh;
+                transform: rotate(720deg);
+            }
+        }
+
+        /* Feuerwerk */
+        .firework {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: explode 1s ease-out forwards;
+            z-index: 1001;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .retry-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #1565c0, #1976d2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            animation: fadeInUp 0.5s 1.4s both;
+        }
+
+        .retry-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Snowboard-Icon im Erfolg */
+        .snowboard-icon {
+            font-size: 40px;
+            animation: snowboardSlide 1s 1.5s both;
+        }
+
+        @keyframes snowboardSlide {
+            from {
+                transform: translateX(-100px) rotate(-30deg);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Snow<span>Pro</span></div>
+        <div class="subtitle">Firmenzentrale Bad Reichenhall</div>
+
+        <div class="safe">
+            <div class="display-container">
+                <div class="status-indicator">
+                    <div class="led" id="led"></div>
+                    <span class="status-text" id="statusText">Gesperrt</span>
+                </div>
+                <div class="display">
+                    <div class="digit-box" id="digit0">_</div>
+                    <div class="digit-box" id="digit1">_</div>
+                    <div class="digit-box" id="digit2">_</div>
+                    <div class="digit-box" id="digit3">_</div>
+                </div>
+            </div>
+
+            <div class="keypad">
+                <button class="key number" onclick="pressKey('1')">1</button>
+                <button class="key number" onclick="pressKey('2')">2</button>
+                <button class="key number" onclick="pressKey('3')">3</button>
+                <button class="key number" onclick="pressKey('4')">4</button>
+                <button class="key number" onclick="pressKey('5')">5</button>
+                <button class="key number" onclick="pressKey('6')">6</button>
+                <button class="key number" onclick="pressKey('7')">7</button>
+                <button class="key number" onclick="pressKey('8')">8</button>
+                <button class="key number" onclick="pressKey('9')">9</button>
+                <button class="key clear" onclick="clearCode()">⌫</button>
+                <button class="key number" onclick="pressKey('0')">0</button>
+                <button class="key enter" onclick="checkCode()">✓</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="message" id="successMessage">
+        <div class="success-content">
+            <div class="checkmark-circle">
+                <span class="checkmark">✓</span>
+            </div>
+            <div class="success-title">TRESOR GEÖFFNET!</div>
+            <div class="success-subtitle">🏂 Mission erfolgreich! 🏂</div>
+            <div class="success-message">
+                Glückwunsch! Du hast alle Rätsel gelöst<br>
+                und den Tresor von SnowPro geknackt.<br><br>
+                <strong>Inhaber Max Winter dankt dir!</strong>
+            </div>
+            <button class="retry-btn" onclick="resetGame()">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_CODE = '4276';
+        let currentCode = '';
+        let isLocked = false;
+
+        // Schneefall erzeugen
+        function createSnowflakes() {
+            const snowflakes = ['❄', '❅', '❆', '✻', '✼'];
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const snowflake = document.createElement('div');
+                    snowflake.className = 'snowflake';
+                    snowflake.textContent = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+                    snowflake.style.left = Math.random() * 100 + 'vw';
+                    snowflake.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                    snowflake.style.opacity = Math.random() * 0.5 + 0.5;
+                    snowflake.style.fontSize = (Math.random() * 1 + 0.8) + 'rem';
+                    document.body.appendChild(snowflake);
+
+                    setTimeout(() => snowflake.remove(), 7000);
+                }, i * 500);
+            }
+        }
+
+        // Konfetti-Effekt
+        function createConfetti() {
+            const colors = ['#00e676', '#69f0ae', '#4fc3f7', '#90caf9', '#fff', '#ffd54f', '#ff7043'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    if (Math.random() > 0.5) {
+                        confetti.style.borderRadius = '50%';
+                    }
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+
+        // Feuerwerk-Effekt
+        function createFirework(x, y) {
+            const colors = ['#00e676', '#4fc3f7', '#ffd54f', '#ff7043', '#e040fb'];
+            const particles = 20;
+
+            for (let i = 0; i < particles; i++) {
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = x + 'px';
+                firework.style.top = y + 'px';
+                firework.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                const angle = (i / particles) * 360;
+                const velocity = 100 + Math.random() * 100;
+                const vx = Math.cos(angle * Math.PI / 180) * velocity;
+                const vy = Math.sin(angle * Math.PI / 180) * velocity;
+
+                firework.style.boxShadow = `0 0 6px ${firework.style.background}`;
+                firework.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${vx}px, ${vy}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 1000,
+                    easing: 'ease-out'
+                });
+
+                document.body.appendChild(firework);
+                setTimeout(() => firework.remove(), 1000);
+            }
+        }
+
+        function pressKey(num) {
+            if (isLocked || currentCode.length >= 4) return;
+
+            currentCode += num;
+            updateDisplay();
+
+            // Vibration auf mobilen Geräten
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        function updateDisplay() {
+            for (let i = 0; i < 4; i++) {
+                const digitBox = document.getElementById('digit' + i);
+                digitBox.classList.remove('active', 'filled', 'error', 'success');
+
+                if (i < currentCode.length) {
+                    digitBox.textContent = currentCode[i];
+                    digitBox.classList.add('filled');
+                } else if (i === currentCode.length) {
+                    digitBox.textContent = '_';
+                    digitBox.classList.add('active');
+                } else {
+                    digitBox.textContent = '_';
+                }
+            }
+        }
+
+        function clearCode() {
+            if (isLocked) return;
+
+            if (currentCode.length > 0) {
+                currentCode = currentCode.slice(0, -1);
+                updateDisplay();
+            }
+        }
+
+        function checkCode() {
+            if (isLocked || currentCode.length !== 4) return;
+
+            isLocked = true;
+
+            if (currentCode === CORRECT_CODE) {
+                // Erfolg!
+                const led = document.getElementById('led');
+                const statusText = document.getElementById('statusText');
+
+                led.classList.add('success');
+                statusText.classList.add('success');
+                statusText.textContent = 'Entsperrt';
+
+                for (let i = 0; i < 4; i++) {
+                    setTimeout(() => {
+                        document.getElementById('digit' + i).classList.add('success');
+                    }, i * 150);
+                }
+
+                setTimeout(() => {
+                    document.getElementById('overlay').classList.add('show');
+                    document.getElementById('successMessage').classList.add('show');
+                    createConfetti();
+
+                    // Mehrere Feuerwerke
+                    setTimeout(() => createFirework(window.innerWidth * 0.3, window.innerHeight * 0.3), 500);
+                    setTimeout(() => createFirework(window.innerWidth * 0.7, window.innerHeight * 0.4), 800);
+                    setTimeout(() => createFirework(window.innerWidth * 0.5, window.innerHeight * 0.2), 1100);
+                    setTimeout(() => createFirework(window.innerWidth * 0.2, window.innerHeight * 0.5), 1400);
+                    setTimeout(() => createFirework(window.innerWidth * 0.8, window.innerHeight * 0.3), 1700);
+                }, 800);
+
+            } else {
+                // Fehler
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById('digit' + i).classList.add('error');
+                }
+
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100, 50, 100]);
+                }
+
+                setTimeout(() => {
+                    currentCode = '';
+                    updateDisplay();
+                    isLocked = false;
+                }, 1000);
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('successMessage').classList.remove('show');
+
+            const led = document.getElementById('led');
+            const statusText = document.getElementById('statusText');
+
+            led.classList.remove('success');
+            statusText.classList.remove('success');
+            statusText.textContent = 'Gesperrt';
+
+            currentCode = '';
+            isLocked = false;
+            updateDisplay();
+        }
+
+        // Tastatur-Support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                pressKey(e.key);
+            } else if (e.key === 'Backspace') {
+                clearCode();
+            } else if (e.key === 'Enter') {
+                checkCode();
+            }
+        });
+
+        // Schneefall starten
+        createSnowflakes();
+        setInterval(createSnowflakes, 15000);
+    </script>
+</body>
+</html>

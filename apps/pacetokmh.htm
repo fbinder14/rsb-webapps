@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+		<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pace Konverter</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    body {
+      padding: 2em;
+    }
+    .result {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Pace zu km/h Konverter</h1>
+    <form id="paceConverter">
+      <div class="form-group">
+        <label for="pace">Pace:</label>
+        <input type="range" id="pace" min="1" max="600" step="1" value="300" class="form-control-range">
+        <output id="paceValue">5:00</output>
+      </div>
+      <button type="submit" class="btn btn-primary">Umwandeln</button>
+    </form>
+    <div class="result alert alert-success mt-3">
+      <h2>Ergebnis: <span id="result">0</span> km/h</h2>
+    </div>
+	  <a href="http://seminarlehrer.com/playground/kmhtopace.htm">km/h to pace</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#paceConverter').on('submit', function(e) {
+        e.preventDefault();
+
+        var pace = parseFloat($('#pace').val());
+
+        var minutes = Math.floor(pace / 60);
+        var seconds = Math.floor(pace % 60);
+
+        var paceFormatted = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+
+        $('#paceValue').text(paceFormatted);
+
+        var speed = 60 / (pace / 60); // da 1km / Zeit
+
+        $('#result').text(speed.toFixed(2));
+        $('.result').fadeIn(500);
+      });
+
+      $('#pace').on('input', function() {
+        var pace = parseFloat($(this).val());
+
+        var minutes = Math.floor(pace / 60);
+        var seconds = Math.floor(pace % 60);
+
+        var paceFormatted = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+
+        $('#paceValue').text(paceFormatted);
+      });
+    });
+  </script>
+</body>
+</html>

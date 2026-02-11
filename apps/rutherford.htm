@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gold Foil Experiment Simulation</title>
+  <style>
+    /* Base styles following Apple HIG principles */
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+
+    /* Header styled like a Stripe dashboard header */
+    .header {
+      background-color: #6772e5;
+      padding: 20px 40px;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Main container for the simulation card */
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    /* Card element with a clean, minimal look */
+    .card {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      padding: 20px 30px;
+    }
+
+    /* Canvas container styling */
+    .simulation-container {
+      position: relative;
+      margin-top: 20px;
+    }
+
+    canvas {
+      display: block;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Controls styling */
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .slider {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    Gold Foil Experiment Simulation
+  </div>
+  <div class="container">
+    <div class="card">
+      <p>
+        Explore how the famous gold foil experiment revealed the nuclear structure of the atom. Adjust the particle speed to see how alpha particles scatter when they pass near the nucleus!
+      </p>
+      <div class="simulation-container">
+        <canvas id="simulationCanvas" width="800" height="400"></canvas>
+      </div>
+      <div class="controls">
+        <label for="speedRange">Particle Speed:</label>
+        <input id="speedRange" type="range" min="1" max="5" step="0.1" value="2" class="slider">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simulationCanvas');
+    const ctx = canvas.getContext('2d');
+    const speedSlider = document.getElementById('speedRange');
+
+    // Define the nucleus (gold) at the center-right
+    const nucleus = {
+      x: canvas.width * 0.7,
+      y: canvas.height / 2,
+      radius: 8 // Small circle representing the nucleus
+    };
+
+    // Particle class representing an alpha particle
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = 0;
+        // Start particles near the vertical center with slight randomness
+        this.y = canvas.height / 2 + (Math.random() - 0.5) * 50;
+        this.speed = parseFloat(speedSlider.value);
+        this.vx = this.speed;
+        this.vy = 0;
+        this.affected = false; // Flag to ensure each particle is deflected once
+      }
+      update() {
+        // Calculate distance to the nucleus
+        let dx = nucleus.x - this.x;
+        let dy = nucleus.y - this.y;
+        let dist = Math.hypot(dx, dy);
+        // If within influence range and not yet deflected, apply a repulsive force
+        if (dist < 100 && !this.affected) {
+          // Simplified inverse square law for repulsion
+          let force = 1000 / (dist * dist);
+          // Normalize distance vector
+          let norm = Math.hypot(dx, dy);
+          let fx = force * (dx / norm);
+          let fy = force * (dy / norm);
+          // To simulate scattering, apply force perpendicular to the current velocity
+          let perpX = -this.vy;
+          let perpY = this.vx;
+          let perpNorm = Math.hypot(perpX, perpY);
+          perpX /= perpNorm;
+          perpY /= perpNorm;
+          // Adjust velocity slightly based on the computed force
+          this.vx += perpX * force * 0.05;
+          this.vy += perpY * force * 0.05;
+          this.affected = true; // Only deflect once per pass
+        }
+        this.x += this.vx;
+        this.y += this.vy;
+      }
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#f66'; // Red color for the alpha particles
+        ctx.fill();
+      }
+    }
+
+    // Create a set of particles for the simulation
+    let particles = [];
+    const maxParticles = 50;
+    for (let i = 0; i < maxParticles; i++) {
+      particles.push(new Particle());
+    }
+
+    // Function to draw the nucleus (gold-colored)
+    function drawNucleus() {
+      ctx.beginPath();
+      ctx.arc(nucleus.x, nucleus.y, nucleus.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffd700'; // Gold color
+      ctx.fill();
+    }
+
+    // Main animation loop
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawNucleus();
+      particles.forEach(p => {
+        p.update();
+        p.draw(ctx);
+        // Reset particle if it goes out of view
+        if (p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+          Object.assign(p, new Particle());
+        }
+      });
+      requestAnimationFrame(animate);
+    }
+
+    // Update particle speed when the slider value changes
+    speedSlider.addEventListener('input', () => {
+      particles.forEach(p => {
+        p.speed = parseFloat(speedSlider.value);
+        // Reset horizontal velocity while preserving current direction
+        p.vx = p.vx < 0 ? -parseFloat(speedSlider.value) : parseFloat(speedSlider.value);
+      });
+    });
+
+    // Start the simulation animation
+    animate();
+  </script>
+</body>
+</html>

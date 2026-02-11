@@ -1,0 +1,110 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+</head>
+<body>
+<script>
+let partikel = [];
+let untertitel = "";
+let untertitelTimer = 0;
+const UNTERTITEL_DAUER = 200; // Frames pro Untertitel (~3,3 Sekunden bei 60fps)
+
+function setup() {
+  createCanvas(800, 400);
+  textSize(20);
+  textAlign(CENTER);
+}
+
+function draw() {
+  background(220);
+  
+  // Goldfolie
+  fill(200, 180, 0);
+  rect(350, 0, 20, height);
+  
+  // Goldatome (vereinfacht)
+  fill(255, 215, 0);
+  for (let i = 50; i < height; i += 100) {
+    ellipse(360, i, 10, 10);
+  }
+  
+  // Neues Partikel gelegentlich erzeugen
+  if (frameCount % 20 === 0) {
+    partikel.push(new Partikel());
+  }
+  
+  // Partikel aktualisieren und anzeigen
+  for (let i = partikel.length - 1; i >= 0; i--) {
+    partikel[i].aktualisieren();
+    partikel[i].anzeigen();
+    if (partikel[i].x > width) {
+      partikel.splice(i, 1);
+    }
+  }
+  
+  // Untertitel
+  untertitelAktualisieren();
+  fill(0);
+  text(untertitel, width/2, height - 30);
+}
+
+// Partikel-Klasse
+class Partikel {
+  constructor() {
+    this.x = 0;
+    this.y = random(height);
+    this.vx = 5;
+    this.abgelenkt = false;
+    this.ablenkungsWinkel = 0;
+  }
+  
+  aktualisieren() {
+    // Auf Ablenkung in der Nähe der Folie prüfen
+    if (!this.abgelenkt && this.x > 340 && this.x < 380) {
+      // 1% Chance auf starke Ablenkung
+      if (random(1) < 0.01) {
+        this.abgelenkt = true;
+        this.ablenkungsWinkel = random(-PI/2, PI/2);
+        this.vx = cos(this.ablenkungsWinkel) * 5;
+        this.vy = sin(this.ablenkungsWinkel) * 5;
+      }
+    }
+    this.x += this.vx;
+    if (this.abgelenkt) {
+      this.y += this.vy;
+    }
+  }
+  
+  anzeigen() {
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(this.x, this.y, 5, 5);
+  }
+}
+
+function untertitelAktualisieren() {
+  let zeit = floor(frameCount / UNTERTITEL_DAUER);
+  switch(zeit) {
+    case 0:
+      untertitel = "Rutherfords Goldfolien-Experiment (1909)";
+      break;
+    case 1:
+      untertitel = "Alpha-Partikel (rot) werden auf dünne Goldfolie geschossen";
+      break;
+    case 2:
+      untertitel = "Die meisten Partikel durchdringen mit geringer Ablenkung";
+      break;
+    case 3:
+      untertitel = "Einige Partikel werden in großen Winkeln abgelenkt";
+      break;
+    case 4:
+      untertitel = "Zeigt: Atom ist meist leerer Raum mit dichtem Kern";
+      break;
+    default:
+      untertitel = "Führte zum Kernmodell des Atoms";
+  }
+}
+</script>
+</body>
+</html>

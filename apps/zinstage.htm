@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HP9C3N40VT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HP9C3N40VT');
+</script>
+	<title>Zinstage berechnen</title>
+</head>
+<body>
+	
+
+	<h2>Zinstage berechnen (30/360)</h2>
+	<label for="start_date">Startdatum:</label>
+	<input type="date" id="start_date"><br><br>
+	<label for="end_date">Enddatum:</label>
+	<input type="date" id="end_date"><br><br>
+	<button onclick="calculateInterestDays()">Berechnen</button>
+	<p id="result"></p>
+
+	<script>
+		function calculateInterestDays() {
+			var startDate = new Date(document.getElementById("start_date").value);
+			var endDate = new Date(document.getElementById("end_date").value);
+
+			if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+				// Fehlermeldung, wenn ein ungültiges Datum eingegeben wurde
+				document.getElementById("result").innerHTML = "Bitte geben Sie gültige Daten ein.";
+				return;
+			}
+
+			// Anzahl der Tage zwischen den Daten
+			var days = (endDate - startDate) / (1000 * 3600 * 24);
+
+			// Berücksichtigung der deutschen Zinsmethode (30/360)
+			var startDay = startDate.getDate();
+			var startMonth = startDate.getMonth() + 1;
+			var startYear = startDate.getFullYear();
+
+			var endDay = endDate.getDate();
+			var endMonth = endDate.getMonth() + 1;
+			var endYear = endDate.getFullYear();
+
+			if (startDay === 31) {
+				startDay = 30;
+			}
+
+			if (endDay === 31 && (startDay === 30 || startDay === 31)) {
+				endDay = 30;
+			}
+
+			var days30 = 0;
+			if (startMonth === 2 && startDay === 28 && endMonth === 2 && endDay === 28) {
+				days30 = 30;
+			} else {
+				if (startMonth === 2 && startDay >= 28) {
+					startDay = 30;
+				}
+
+				if (endMonth === 2 && endDay >= 28) {
+					if (endDay === 28 && startDay === 30) {
+						endDay = 30;
+					} else {
+						endDay = 30;
+					}
+				}
+
+				days30 = ((endYear - startYear) * 12 + (endMonth - startMonth)) * 30 + (endDay - startDay);
+			}
+
+			// Berechnung der Zinstage
+			var interestDays = days30;
+
+			// Anzeige des Ergebnisses
+			document.getElementById("result").innerHTML = "Anzahl der Zinstage: " + interestDays;
+		}
+	</script>
+</body>
+</html>

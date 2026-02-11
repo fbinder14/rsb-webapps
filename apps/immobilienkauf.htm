@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnowPro - Grundstückskauf Nebenkosten</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #89a8e8 100%);
+            min-height: 100vh;
+            touch-action: none;
+        }
+        .ice-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(230,240,255,0.9));
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.7);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .drop-zone {
+            background: linear-gradient(145deg, rgba(200,220,255,0.3), rgba(180,210,255,0.2));
+            border: 3px dashed rgba(100,140,255,0.5);
+            transition: all 0.3s ease;
+            min-height: 70px;
+        }
+        .drop-zone.drag-over {
+            background: rgba(100,180,255,0.4);
+            border-color: rgba(100,140,255,0.9);
+            transform: scale(1.05);
+        }
+        .card-item {
+            cursor: grab;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #ffffff, #e8f4ff);
+            border: 2px solid rgba(100,140,255,0.3);
+            touch-action: none;
+            user-select: none;
+        }
+        .card-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .card-item.dragging {
+            opacity: 0.5;
+            z-index: 1000;
+            position: fixed;
+            pointer-events: none;
+        }
+        .card-item.locked {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 9999;
+            user-select: none;
+            pointer-events: none;
+            color: white;
+            font-size: 1.5em;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+        .success-glow {
+            animation: glow 1.5s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(100,200,255,0.5); }
+            50% { box-shadow: 0 0 40px rgba(100,200,255,0.9); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 ice-card rounded-2xl p-6">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                ❄️ SnowPro Immobilienkauf ❄️
+            </h1>
+            <p class="text-gray-700 text-lg">Bringe die Nebenkosten in die richtige Reihenfolge!</p>
+        </div>
+
+        <!-- Cards Pool -->
+        <div id="cardsPool" class="ice-card rounded-2xl p-6 mb-6">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4">📋 Verfügbare Begriffe</h2>
+            <div id="availableCards" class="flex flex-wrap gap-3 min-h-[80px]"></div>
+        </div>
+
+        <!-- Drop Zones -->
+        <div class="ice-card rounded-2xl p-6 mb-6">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4">🎯 Richtige Reihenfolge (1-5)</h2>
+            <div class="space-y-3">
+                <div class="drop-zone rounded-lg p-4 flex items-center" data-position="1">
+                    <span class="text-blue-600 font-bold mr-3">1.</span>
+                    <span class="text-gray-400">Hier ablegen...</span>
+                </div>
+                <div class="drop-zone rounded-lg p-4 flex items-center" data-position="2">
+                    <span class="text-blue-600 font-bold mr-3">2.</span>
+                    <span class="text-gray-400">Hier ablegen...</span>
+                </div>
+                <div class="drop-zone rounded-lg p-4 flex items-center" data-position="3">
+                    <span class="text-blue-600 font-bold mr-3">3.</span>
+                    <span class="text-gray-400">Hier ablegen...</span>
+                </div>
+                <div class="drop-zone rounded-lg p-4 flex items-center" data-position="4">
+                    <span class="text-blue-600 font-bold mr-3">4.</span>
+                    <span class="text-gray-400">Hier ablegen...</span>
+                </div>
+                <div class="drop-zone rounded-lg p-4 flex items-center" data-position="5">
+                    <span class="text-blue-600 font-bold mr-3">5.</span>
+                    <span class="text-gray-400">Hier ablegen...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check Button -->
+        <div class="text-center mb-6">
+            <button id="checkBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-bold text-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                ✓ Prüfen
+            </button>
+            <p id="feedback" class="mt-4 text-lg font-semibold"></p>
+        </div>
+
+        <!-- Definitions Section (hidden initially) -->
+        <div id="definitionsSection" class="ice-card rounded-2xl p-6 hidden fade-in">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4">📚 Wähle die richtigen Definitionen</h2>
+            <div id="definitionsContainer" class="space-y-4"></div>
+            <div class="text-center mt-6">
+                <button id="checkDefinitionsBtn" class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-3 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-700 transform hover:scale-105 transition-all shadow-lg">
+                    ✓ Definitionen prüfen
+                </button>
+                <p id="defFeedback" class="mt-4 text-lg font-semibold"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // KORREKTE REIHENFOLGE
+        const correctOrder = [
+            'Makler',
+            'Vermessungsgebühren',
+            'Grundbuchgebühren',
+            'Notariatskosten',
+            'Grunderwerbsteuer'
+        ];
+
+        const cardData = [
+            { term: 'Makler', icon: '🏢' },
+            { term: 'Vermessungsgebühren', icon: '📐' },
+            { term: 'Grundbuchgebühren', icon: '📖' },
+            { term: 'Notariatskosten', icon: '✍️' },
+            { term: 'Grunderwerbsteuer', icon: '💰' }
+        ];
+
+        const definitions = {
+            'Makler': {
+                correct: 'Vermittler zwischen Verkäufer und Käufer; Provision wird meist nach erfolgreicher Vermittlung fällig.',
+                wrong: [
+                    'Behörde, die Steuern auf Grundstückskäufe erhebt.',
+                    'Stelle, die Eigentumsverhältnisse im Grundbuch einträgt.',
+                    'Fachperson, die Verträge rechtlich beurkundet.'
+                ]
+            },
+            'Vermessungsgebühren': {
+                correct: 'Kosten für die amtliche Vermessung und Festlegung der genauen Grundstücksgrenzen.',
+                wrong: [
+                    'Gebühren für die Eintragung ins Grundbuch.',
+                    'Steuer auf den Kauf von Immobilien.',
+                    'Kosten für die notarielle Beurkundung.'
+                ]
+            },
+            'Grundbuchgebühren': {
+                correct: 'Gebühren für die Eintragung des neuen Eigentümers ins Grundbuch; gehören zu den Notarkosten.',
+                wrong: [
+                    'Kosten für die Vermittlung durch den Makler.',
+                    'Steuer, die beim Grundstückskauf anfällt.',
+                    'Gebühren für die Vermessung der Grundstücksgrenzen.'
+                ]
+            },
+            'Notariatskosten': {
+                correct: 'Kosten für die rechtliche Beurkundung des Kaufvertrags durch den Notar; ca. 1,5% des Kaufpreises.',
+                wrong: [
+                    'Gebühren für die Vermittlung der Immobilie.',
+                    'Kosten für die Vermessung des Grundstücks.',
+                    'Steuer auf den Erwerb von Grundstücken.'
+                ]
+            },
+            'Grunderwerbsteuer': {
+                correct: 'Einmalige Steuer beim Grundstücks- oder Immobilienkauf; Höhe variiert je nach Bundesland (3,5-6,5%).',
+                wrong: [
+                    'Jährliche Steuer, die Grundstückseigentümer zahlen müssen.',
+                    'Gebühr für die notarielle Beurkundung des Kaufvertrags.',
+                    'Kosten für die Eintragung ins Grundbuch.'
+                ]
+            }
+        };
+
+        let draggedElement = null;
+        let orderLocked = false;
+        let definitionsLocked = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let originalParent = null;
+
+        // Zufällige Reihenfolge der Karten erstellen
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Karten in zufälliger Reihenfolge erstellen
+        function initializeCards() {
+            const availableCards = document.getElementById('availableCards');
+            const shuffledCards = shuffleArray(cardData);
+            
+            shuffledCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card-item px-6 py-3 rounded-lg font-semibold text-gray-800';
+                cardElement.setAttribute('data-term', card.term);
+                cardElement.innerHTML = `${card.icon} ${card.term}`;
+                availableCards.appendChild(cardElement);
+                
+                // Desktop Drag Events
+                cardElement.addEventListener('dragstart', handleDragStart);
+                cardElement.addEventListener('dragend', handleDragEnd);
+                cardElement.setAttribute('draggable', 'true');
+                
+                // Touch Events für Mobile
+                cardElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+                cardElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+                cardElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+            });
+        }
+
+        // Desktop Drag and Drop
+        function handleDragStart(e) {
+            if (orderLocked) return;
+            draggedElement = this;
+            originalParent = this.parentElement;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (orderLocked) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this.classList.contains('drop-zone')) {
+                this.classList.add('drag-over');
+            }
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            if (this.classList.contains('drop-zone')) {
+                this.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            if (orderLocked) return;
+            e.stopPropagation();
+            e.preventDefault();
+            
+            this.classList.remove('drag-over');
+            
+            const existingCard = this.querySelector('.card-item');
+            if (existingCard) {
+                document.getElementById('availableCards').appendChild(existingCard);
+            }
+            
+            this.appendChild(draggedElement);
+            return false;
+        }
+
+        function handleDropToPool(e) {
+            if (orderLocked) return;
+            e.stopPropagation();
+            e.preventDefault();
+            
+            if (draggedElement) {
+                this.appendChild(draggedElement);
+            }
+            return false;
+        }
+
+        // Touch Events für iPhone/Mobile
+        function handleTouchStart(e) {
+            if (orderLocked) return;
+            e.preventDefault();
+            
+            draggedElement = this;
+            originalParent = this.parentElement;
+            
+            const touch = e.touches[0];
+            touchStartX = touch.pageX;
+            touchStartY = touch.pageY;
+            
+            this.classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            if (orderLocked || !draggedElement) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const currentX = touch.pageX;
+            const currentY = touch.pageY;
+            
+            // Element an Finger-Position bewegen
+            draggedElement.style.position = 'fixed';
+            draggedElement.style.left = currentX - (draggedElement.offsetWidth / 2) + 'px';
+            draggedElement.style.top = currentY - (draggedElement.offsetHeight / 2) + 'px';
+            draggedElement.style.zIndex = '1000';
+            
+            // Drop-Zone unter dem Finger finden
+            const elementBelow = document.elementFromPoint(currentX, currentY);
+            const dropZone = elementBelow?.closest('.drop-zone');
+            
+            // Alle Drop-Zones zurücksetzen
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('drag-over');
+            });
+            
+            // Aktuelle Drop-Zone hervorheben
+            if (dropZone) {
+                dropZone.classList.add('drag-over');
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (orderLocked || !draggedElement) return;
+            e.preventDefault();
+            
+            const touch = e.changedTouches[0];
+            const currentX = touch.pageX;
+            const currentY = touch.pageY;
+            
+            // Element zurücksetzen
+            draggedElement.style.position = '';
+            draggedElement.style.left = '';
+            draggedElement.style.top = '';
+            draggedElement.style.zIndex = '';
+            draggedElement.classList.remove('dragging');
+            
+            // Drop-Zone unter dem Finger finden
+            const elementBelow = document.elementFromPoint(currentX, currentY);
+            const dropZone = elementBelow?.closest('.drop-zone');
+            const availableCardsZone = elementBelow?.closest('#availableCards');
+            
+            if (dropZone) {
+                // In Drop-Zone ablegen
+                const existingCard = dropZone.querySelector('.card-item');
+                if (existingCard) {
+                    document.getElementById('availableCards').appendChild(existingCard);
+                }
+                dropZone.appendChild(draggedElement);
+                dropZone.classList.remove('drag-over');
+            } else if (availableCardsZone) {
+                // Zurück in verfügbare Karten
+                document.getElementById('availableCards').appendChild(draggedElement);
+            } else {
+                // Zurück zum ursprünglichen Ort
+                if (originalParent) {
+                    originalParent.appendChild(draggedElement);
+                }
+            }
+            
+            // Alle Highlights entfernen
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('drag-over');
+            });
+            
+            draggedElement = null;
+            originalParent = null;
+        }
+
+        // Event Listeners für Desktop
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCards();
+            
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+
+            document.getElementById('availableCards').addEventListener('dragover', handleDragOver);
+            document.getElementById('availableCards').addEventListener('drop', handleDropToPool);
+        });
+
+        // Check Order
+        document.getElementById('checkBtn').addEventListener('click', () => {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let currentOrder = [];
+            let allFilled = true;
+            
+            dropZones.forEach(zone => {
+                const card = zone.querySelector('.card-item');
+                if (card) {
+                    currentOrder.push(card.dataset.term);
+                } else {
+                    allFilled = false;
+                }
+            });
+            
+            if (!allFilled) {
+                document.getElementById('feedback').textContent = '❌ Bitte alle Felder ausfüllen!';
+                document.getElementById('feedback').className = 'mt-4 text-lg font-semibold text-red-600';
+                return;
+            }
+            
+            const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+            
+            if (isCorrect) {
+                document.getElementById('feedback').textContent = '✅ Perfekt! Die Reihenfolge stimmt!';
+                document.getElementById('feedback').className = 'mt-4 text-lg font-semibold text-green-600';
+                orderLocked = true;
+                
+                document.querySelectorAll('.card-item').forEach(card => {
+                    card.classList.add('locked');
+                    card.setAttribute('draggable', 'false');
+                });
+                
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.add('success-glow');
+                });
+                
+                setTimeout(() => {
+                    showDefinitionsSection();
+                }, 1000);
+            } else {
+                document.getElementById('feedback').textContent = '❌ Nicht ganz richtig. Versuche es nochmal!';
+                document.getElementById('feedback').className = 'mt-4 text-lg font-semibold text-red-600';
+            }
+        });
+
+        function showDefinitionsSection() {
+            const section = document.getElementById('definitionsSection');
+            const container = document.getElementById('definitionsContainer');
+            container.innerHTML = '';
+            
+            correctOrder.forEach((term, index) => {
+                const options = [definitions[term].correct, ...definitions[term].wrong];
+                shuffleArray(options);
+                
+                const defDiv = document.createElement('div');
+                defDiv.className = 'bg-white bg-opacity-60 p-4 rounded-lg';
+                defDiv.innerHTML = `
+                    <h3 class="font-bold text-blue-800 mb-2">${index + 1}. ${term}</h3>
+                    <select class="definition-select w-full p-2 border-2 border-blue-300 rounded-lg" data-term="${term}">
+                        <option value="">-- Wähle die richtige Definition --</option>
+                        ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                `;
+                container.appendChild(defDiv);
+            });
+            
+            section.classList.remove('hidden');
+        }
+
+        // Check Definitions
+        document.getElementById('checkDefinitionsBtn').addEventListener('click', () => {
+            if (definitionsLocked) return;
+            
+            const selects = document.querySelectorAll('.definition-select');
+            let allCorrect = true;
+            let allFilled = true;
+            
+            selects.forEach(select => {
+                const term = select.dataset.term;
+                const selected = select.value;
+                
+                if (!selected) {
+                    allFilled = false;
+                } else if (selected !== definitions[term].correct) {
+                    allCorrect = false;
+                }
+            });
+            
+            if (!allFilled) {
+                document.getElementById('defFeedback').textContent = '❌ Bitte alle Definitionen auswählen!';
+                document.getElementById('defFeedback').className = 'mt-4 text-lg font-semibold text-red-600';
+                return;
+            }
+            
+            if (allCorrect) {
+                document.getElementById('defFeedback').textContent = '🎉 Hervorragend! Alle Definitionen sind korrekt!';
+                document.getElementById('defFeedback').className = 'mt-4 text-lg font-semibold text-green-600';
+                definitionsLocked = true;
+                
+                selects.forEach(select => {
+                    select.disabled = true;
+                    select.classList.add('opacity-60');
+                });
+                
+                createSnowfall();
+            } else {
+                document.getElementById('defFeedback').textContent = '❌ Einige Definitionen sind nicht korrekt. Versuche es nochmal!';
+                document.getElementById('defFeedback').className = 'mt-4 text-lg font-semibold text-red-600';
+            }
+        });
+
+        function createSnowfall() {
+            const snowflakeChars = ['❄', '❅', '❆'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const snowflake = document.createElement('div');
+                    snowflake.className = 'snowflake';
+                    snowflake.textContent = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
+                    snowflake.style.left = Math.random() * 100 + '%';
+                    snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    snowflake.style.opacity = Math.random();
+                    snowflake.style.fontSize = (Math.random() * 1 + 1) + 'em';
+                    
+                    document.body.appendChild(snowflake);
+                    
+                    setTimeout(() => {
+                        snowflake.remove();
+                    }, 5000);
+                }, i * 100);
+            }
+        }
+    </script>
+</body>
+</html>
