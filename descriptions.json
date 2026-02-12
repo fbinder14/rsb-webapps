@@ -517,5 +517,11 @@
     "beschreibung": "Schritte des Insolvenzverfahrens in richtige Reihenfolge bringen",
     "kategorie": "BWR",
     "lernbereich": "BwR9-II-5"
+  },
+  "abfrage.html": {
+    "fach": "Fächerübergreifend",
+    "stufe": "5–10",
+    "beschreibung": "Zufällige Schülerabfrage per Roulette-Prinzip",
+    "kategorie": "Sonstiges"
   }
 }
