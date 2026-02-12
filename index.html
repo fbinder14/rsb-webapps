@@ -620,15 +620,6 @@
 
         .deploy-success-url a:hover { text-decoration: underline; }
 
-        .deploy-success-popup-hint {
-            font-size: 0.8rem;
-            color: #b45309;
-            background: #fef3c7;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            margin-bottom: 0.8rem;
-        }
-
         .deploy-success-actions {
             display: flex;
             gap: 0.5rem;
@@ -844,9 +835,6 @@
         <p class="deploy-success-filename" id="deploySuccessFilename"></p>
         <div class="deploy-success-qr" id="deploySuccessQR"></div>
         <div class="deploy-success-url" id="deploySuccessUrl"></div>
-        <p class="deploy-success-popup-hint" id="deployPopupHint" style="display:none;">
-            Popup-Blocker hat den neuen Tab verhindert. Bitte die URL manuell &ouml;ffnen.
-        </p>
         <div class="deploy-success-actions">
             <button class="btn btn-primary btn-sm" onclick="copyDeployUrl()">URL kopieren</button>
             <button class="btn btn-secondary btn-sm" onclick="enlargeDeployQR()">QR vergr&ouml;&szlig;ern</button>
@@ -1770,14 +1758,6 @@
         new QRCode(qrDiv, { text: url, width: 150, height: 150 });
 
         document.getElementById('deploySuccessUrl').innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
-
-        // Auto-open in new tab
-        const newTab = window.open(url, '_blank');
-        if (!newTab) {
-            document.getElementById('deployPopupHint').style.display = 'block';
-        } else {
-            document.getElementById('deployPopupHint').style.display = 'none';
-        }
 
         document.getElementById('deploySuccessModal').classList.add('active');
     }
