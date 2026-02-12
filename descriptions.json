@@ -517,5 +517,11 @@
     "stufe": "5–10",
     "beschreibung": "Zufällige Schülerabfrage per Roulette-Prinzip",
     "kategorie": "Sonstiges"
+  },
+  "terminal.html": {
+    "fach": "Mathematik",
+    "stufe": "5–7",
+    "beschreibung": "Terminal-Trainer für Grundrechenarten mit zufälligen Aufgaben",
+    "kategorie": "Mathematik"
   }
 }
