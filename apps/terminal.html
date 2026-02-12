@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathe CLI</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .prompt {
+            margin-right: 10px;
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            flex-grow: 1;
+            outline: none;
+        }
+
+        /* Scrollbar styling für Chrome/Safari/Edge */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d1117; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cc33; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="terminal"></div>
+    <div class="input-line">
+        <span class="prompt">user@mathe:~$</span>
+        <input type="text" id="commandInput" autofocus autocomplete="off">
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const input = document.getElementById('commandInput');
+        
+        let currentResult = 0;
+        let isWaitingForAnswer = false;
+
+        // Hilfsfunktion: Text ins Terminal schreiben
+        function printLine(text, isUser = false) {
+            const line = document.createElement('div');
+            if (isUser) {
+                line.textContent = `user@mathe:~$ ${text}`;
+                line.style.color = '#fff'; // User Eingabe etwas heller/weißer
+            } else {
+                line.textContent = text;
+            }
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Zufallszahl generieren
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Neue Aufgabe stellen
+        function generateProblem() {
+            const types = ['+', '-', '*', '/'];
+            const type = types[rand(0, 3)];
+            let a, b, text;
+
+            switch (type) {
+                case '+':
+                    a = rand(1, 50);
+                    b = rand(1, 50);
+                    currentResult = a + b;
+                    text = `${a} + ${b}`;
+                    break;
+                case '-':
+                    a = rand(10, 50);
+                    b = rand(1, a); // Keine negativen Ergebnisse für den Anfang
+                    currentResult = a - b;
+                    text = `${a} - ${b}`;
+                    break;
+                case '*':
+                    a = rand(2, 12);
+                    b = rand(2, 12);
+                    currentResult = a * b;
+                    // Dein Wunsch: Punkt für Multiplikation
+                    text = `${a} . ${b}`;
+                    break;
+                case '/':
+                    b = rand(2, 10);
+                    currentResult = rand(2, 10); // Ergebnis festlegen
+                    a = b * currentResult; // a berechnen, damit es glatt aufgeht
+                    // Dein Wunsch: Doppelpunkt für Division
+                    text = `${a} : ${b}`;
+                    break;
+            }
+
+            printLine(`Berechne: ${text}`);
+            isWaitingForAnswer = true;
+        }
+
+        // Startnachricht
+        function init() {
+            printLine("Wilkommen im Mathe-Terminal v1.0.");
+            printLine("Gebe 'start' ein, um zu beginnen, oder 'help' für Hilfe.");
+            printLine("-------------------------------------------------------");
+        }
+
+        // Eingabe verarbeiten
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const val = input.value.trim();
+                if (!val) return;
+
+                printLine(val, true); // User Eingabe anzeigen
+                input.value = '';
+
+                if (isWaitingForAnswer) {
+                    const num = parseInt(val);
+                    if (isNaN(num)) {
+                        printLine("Fehler: Bitte eine Zahl eingeben.");
+                    } else {
+                        if (num === currentResult) {
+                            printLine(">> Richtig! ✔");
+                            printLine(" "); // Leerzeile
+                            setTimeout(generateProblem, 500);
+                        } else {
+                            printLine(`>> Falsch. Das richtige Ergebnis war ${currentResult}. ✘`);
+                            printLine(" ");
+                            setTimeout(generateProblem, 500);
+                        }
+                    }
+                    isWaitingForAnswer = false; // Kurz sperren bis zur nächsten Aufgabe (durch setTimeout gelöst)
+                    // Wir setzen isWaitingForAnswer im generateProblem wieder auf true
+                    // Hier lassen wir es kurz false, damit man nicht spammen kann
+                } else {
+                    // Kommando-Modus
+                    const cmd = val.toLowerCase();
+                    if (cmd === 'start') {
+                        generateProblem();
+                    } else if (cmd === 'help') {
+                        printLine("Befehle:");
+                        printLine("  start - Startet das Training");
+                        printLine("  clear - Löscht den Bildschirm");
+                    } else if (cmd === 'clear') {
+                        terminal.innerHTML = '';
+                        init();
+                    } else {
+                        printLine(`Befehl nicht gefunden: ${cmd}`);
+                    }
+                }
+            }
+        });
+
+        // Klick irgendwohin fokussiert immer das Input-Feld
+        document.addEventListener('click', () => {
+            input.focus();
+        });
+
+        init();
+    </script>
+</body>
+</html>
