@@ -1,0 +1,1011 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher's Roulette Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --highlight-color: #03dac6;
+            --danger-color: #cf6679;
+            --success-color: #4caf50;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        select {
+            flex-grow: 1;
+            background: var(--card-bg);
+            color: white;
+            border: 1px solid #444;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 1px solid #444;
+            color: var(--accent-color);
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .icon-btn:active { transform: scale(0.95); }
+        .icon-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+
+        .controls {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 50;
+        }
+
+        input[type="number"] {
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 60px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .main-btn {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            flex-grow: 1;
+            transition: 0.2s;
+        }
+        .main-btn:disabled { background: #555; color: #888; cursor: default; }
+        .main-btn:focus-visible { outline: 2px solid var(--highlight-color); outline-offset: 2px; }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 8px;
+            width: 100%;
+            max-width: 600px;
+            padding-bottom: 50px;
+        }
+
+        .student-card {
+            background: var(--card-bg);
+            padding: 12px 5px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            word-break: break-word;
+            cursor: pointer;
+        }
+
+        .student-card:hover:not(.winner):not(.active-spotlight) {
+            border-color: #666;
+        }
+
+        .student-card.active-spotlight {
+            background: var(--accent-color);
+            color: black;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-color);
+            z-index: 10;
+            border-color: var(--accent-color);
+        }
+
+        .student-card.winner {
+            background: var(--highlight-color);
+            color: black;
+            transform: scale(1.15);
+            box-shadow: 0 0 20px var(--highlight-color);
+            font-weight: bold;
+            z-index: 20;
+            border-color: white;
+        }
+
+        .student-card.eliminated {
+            opacity: 0.25;
+            transform: scale(0.95);
+            filter: grayscale(100%);
+        }
+
+        .student-card.excluded {
+            opacity: 0.35;
+            border: 2px dashed var(--danger-color);
+            text-decoration: line-through;
+        }
+
+        .status-text {
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.85rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* --- Modal (Popup) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #444;
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.visible .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal h2 { color: var(--accent-color); margin-bottom: 15px; font-size: 1.2rem; }
+
+        .modal label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
+
+        .modal input[type="text"],
+        .modal textarea {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .modal textarea { height: 150px; resize: vertical; }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+        .btn-cancel { background: transparent; border: 1px solid #666; color: #ccc; }
+        .btn-save { background: var(--success-color); color: white; border: none; }
+        .btn-delete { background: var(--danger-color); color: white; border: none; margin-top: 20px; width: 100%; }
+
+        .modal button { padding: 10px; border-radius: 6px; flex-grow: 1; cursor: pointer; font-weight: bold; }
+
+        /* --- Winner Overlay --- */
+        .winner-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 900;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            cursor: pointer;
+        }
+
+        .winner-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .winner-overlay .winner-name {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--highlight-color);
+            text-align: center;
+            text-shadow: 0 0 30px var(--highlight-color);
+            animation: pulse-winner 1s ease-in-out infinite alternate;
+            margin: 10px 0;
+        }
+
+        .winner-overlay .winner-hint {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+
+        @keyframes pulse-winner {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        /* --- Confirm Modal --- */
+        .confirm-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .confirm-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .confirm-box {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid #444;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .confirm-overlay.visible .confirm-box {
+            transform: scale(1);
+        }
+
+        .confirm-box p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .confirm-actions .btn-confirm-yes {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+        }
+
+        .confirm-actions .btn-confirm-no {
+            background: transparent;
+            border: 1px solid #666;
+            color: #ccc;
+        }
+
+        /* --- History Modal --- */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .history-entry {
+            padding: 8px 10px;
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-entry .history-name {
+            color: var(--highlight-color);
+            font-weight: bold;
+        }
+
+        .history-entry .history-time {
+            color: #777;
+            font-size: 0.8rem;
+        }
+
+        .history-empty {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .kbd-hint {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            color: #444;
+            font-size: 0.75rem;
+        }
+
+        .kbd-hint kbd {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <select id="classSelector"></select>
+        <button class="icon-btn" id="btnEditClass" title="Klasse bearbeiten">&#9998;</button>
+        <button class="icon-btn" id="btnHistory" title="Aufrufe-Historie">&#128337;</button>
+        <button class="icon-btn" id="btnNewClass" title="Neue Klasse" style="font-weight:bold;">+</button>
+    </header>
+
+    <div class="controls">
+        <button class="icon-btn" id="btnReset" title="Abfrage zurücksetzen" style="color: var(--highlight-color);">&#8634;</button>
+        <input type="number" id="countInput" value="1" min="1" max="5">
+        <button id="actionBtn" class="main-btn">Auswählen!</button>
+    </div>
+
+    <div id="statusDisplay" class="status-text">Lade Daten...</div>
+    <div class="grid-container" id="studentGrid"></div>
+
+    <!-- Edit/Create Class Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">Klasse bearbeiten</h2>
+
+            <label>Klassenname:</label>
+            <input type="text" id="modalClassName" placeholder="z.B. 8b Mathematik">
+
+            <label>Schülernamen (einer pro Zeile):</label>
+            <textarea id="modalStudentList" placeholder="Max Mustermann&#10;Anna Müller&#10;..."></textarea>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btnModalCancel">Abbrechen</button>
+                <button class="btn-save" id="btnModalSave">Speichern</button>
+            </div>
+
+            <button id="btnDeleteClass" class="btn-delete" style="display:none;">Klasse löschen</button>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="historyOverlay">
+        <div class="modal">
+            <h2>Aufrufe-Historie</h2>
+            <div class="history-list" id="historyList"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btnHistoryClose">Schließen</button>
+                <button class="btn-delete" id="btnHistoryClear" style="margin-top:0;">Historie löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <p id="confirmMessage">Bist du sicher?</p>
+            <div class="confirm-actions">
+                <button class="btn-confirm-no" id="btnConfirmNo">Abbrechen</button>
+                <button class="btn-confirm-yes" id="btnConfirmYes">Ja</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Overlay -->
+    <div class="winner-overlay" id="winnerOverlay">
+        <div id="winnerNames"></div>
+        <div class="winner-hint">Klick zum Schließen</div>
+    </div>
+
+    <div class="kbd-hint"><kbd>Leertaste</kbd> = Auswählen</div>
+
+    <script>
+        // --- STATE ---
+        let appData = { classes: {}, currentId: null };
+        let isAnimating = false;
+        let isEditMode = false;
+        let confirmCallback = null;
+
+        // --- DOM REFS ---
+        const $ = id => document.getElementById(id);
+        const classSelector = $('classSelector');
+        const countInput = $('countInput');
+        const actionBtn = $('actionBtn');
+        const statusDisplay = $('statusDisplay');
+        const studentGrid = $('studentGrid');
+        const modalOverlay = $('modalOverlay');
+        const modalTitle = $('modalTitle');
+        const inpName = $('modalClassName');
+        const inpList = $('modalStudentList');
+        const btnDelete = $('btnDeleteClass');
+        const historyOverlay = $('historyOverlay');
+        const historyList = $('historyList');
+        const confirmOverlayEl = $('confirmOverlay');
+        const confirmMessage = $('confirmMessage');
+        const winnerOverlay = $('winnerOverlay');
+        const winnerNames = $('winnerNames');
+
+        // --- LOCAL STORAGE (with try/catch) ---
+        function loadData() {
+            try {
+                const stored = localStorage.getItem('teacherRouletteData_v2');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && typeof parsed === 'object' && parsed.classes) {
+                        appData = parsed;
+                        // Ensure excluded arrays exist (migration)
+                        for (const id of Object.keys(appData.classes)) {
+                            if (!Array.isArray(appData.classes[id].excluded)) {
+                                appData.classes[id].excluded = [];
+                            }
+                            if (!Array.isArray(appData.classes[id].history)) {
+                                appData.classes[id].history = [];
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('LocalStorage laden fehlgeschlagen:', e);
+                appData = { classes: {}, currentId: null };
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('teacherRouletteData_v2', JSON.stringify(appData));
+            } catch (e) {
+                console.warn('LocalStorage speichern fehlgeschlagen:', e);
+            }
+            renderSelector();
+            updateCountMax();
+            updateStatus();
+        }
+
+        // --- INIT ---
+        function init() {
+            loadData();
+            if (Object.keys(appData.classes).length === 0) {
+                createClass("Beispielklasse 7a", ["Anna", "Ben", "Clara", "David", "Emil", "Felix", "Greta"]);
+            }
+            renderSelector();
+            renderGrid();
+            bindEvents();
+        }
+
+        // --- EVENT BINDING (no inline onclick) ---
+        function bindEvents() {
+            classSelector.addEventListener('change', switchClass);
+            $('btnEditClass').addEventListener('click', openEditModal);
+            $('btnNewClass').addEventListener('click', openNewClassModal);
+            $('btnReset').addEventListener('click', resetCurrentList);
+            actionBtn.addEventListener('click', startSelection);
+            $('btnModalCancel').addEventListener('click', () => closeOverlay(modalOverlay));
+            $('btnModalSave').addEventListener('click', saveClassFromModal);
+            btnDelete.addEventListener('click', deleteCurrentClass);
+            $('btnHistory').addEventListener('click', openHistoryModal);
+            $('btnHistoryClose').addEventListener('click', () => closeOverlay(historyOverlay));
+            $('btnHistoryClear').addEventListener('click', clearHistory);
+            $('btnConfirmNo').addEventListener('click', () => { confirmCallback = null; closeOverlay(confirmOverlayEl); });
+            $('btnConfirmYes').addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmCallback = null; closeOverlay(confirmOverlayEl); });
+            winnerOverlay.addEventListener('click', () => closeOverlay(winnerOverlay));
+
+            // Close modals on overlay background click
+            [modalOverlay, historyOverlay, confirmOverlayEl].forEach(ov => {
+                ov.addEventListener('click', e => { if (e.target === ov) closeOverlay(ov); });
+            });
+
+            // Spacebar = start selection
+            document.addEventListener('keydown', e => {
+                if (e.code === 'Space' && !e.target.matches('input, textarea, select, button')) {
+                    e.preventDefault();
+                    startSelection();
+                }
+            });
+
+            // Escape = close any open overlay
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    if (winnerOverlay.classList.contains('visible')) closeOverlay(winnerOverlay);
+                    else if (confirmOverlayEl.classList.contains('visible')) { confirmCallback = null; closeOverlay(confirmOverlayEl); }
+                    else if (historyOverlay.classList.contains('visible')) closeOverlay(historyOverlay);
+                    else if (modalOverlay.classList.contains('visible')) closeOverlay(modalOverlay);
+                }
+            });
+        }
+
+        // --- OVERLAY HELPERS (fade-in/out) ---
+        function openOverlay(el) {
+            el.classList.add('visible');
+        }
+
+        function closeOverlay(el) {
+            el.classList.remove('visible');
+        }
+
+        // --- CUSTOM CONFIRM DIALOG ---
+        function showConfirm(message, onYes) {
+            confirmMessage.textContent = message;
+            confirmCallback = onYes;
+            openOverlay(confirmOverlayEl);
+        }
+
+        // --- CLASS LOGIC ---
+        function createClass(name, studentsArray) {
+            const id = Date.now().toString();
+            appData.classes[id] = {
+                name: name,
+                all: studentsArray,
+                remaining: [...studentsArray],
+                excluded: [],
+                history: []
+            };
+            appData.currentId = id;
+            saveData();
+            return id;
+        }
+
+        function switchClass() {
+            appData.currentId = classSelector.value;
+            saveData();
+            renderGrid();
+        }
+
+        function deleteCurrentClass() {
+            if (!appData.currentId) return;
+            const className = appData.classes[appData.currentId].name;
+            closeOverlay(modalOverlay);
+            showConfirm(
+                `Möchtest du die Klasse "${className}" wirklich unwiderruflich löschen?`,
+                () => {
+                    delete appData.classes[appData.currentId];
+                    const keys = Object.keys(appData.classes);
+                    appData.currentId = keys.length > 0 ? keys[0] : null;
+                    saveData();
+                    renderSelector();
+                    renderGrid();
+                }
+            );
+        }
+
+        // --- MODAL LOGIC ---
+        function openNewClassModal() {
+            isEditMode = false;
+            modalTitle.innerText = "Neue Klasse erstellen";
+            inpName.value = "";
+            inpList.value = "";
+            btnDelete.style.display = "none";
+            openOverlay(modalOverlay);
+            inpName.focus();
+        }
+
+        function openEditModal() {
+            if (!appData.currentId) return alert("Bitte erst eine Klasse erstellen.");
+            isEditMode = true;
+            const cls = appData.classes[appData.currentId];
+            modalTitle.innerText = "Klasse bearbeiten";
+            inpName.value = cls.name;
+            inpList.value = cls.all.join("\n");
+            btnDelete.style.display = "block";
+            openOverlay(modalOverlay);
+            inpName.focus();
+        }
+
+        function saveClassFromModal() {
+            const name = inpName.value.trim();
+            const rawText = inpList.value.trim();
+
+            if (!name) return alert("Bitte einen Klassennamen eingeben.");
+            if (!rawText) return alert("Bitte Schülernamen eingeben.");
+
+            const students = rawText.split(/\n/).map(s => s.trim()).filter(s => s !== "");
+
+            if (isEditMode && appData.currentId) {
+                const oldData = appData.classes[appData.currentId];
+                const oldAll = oldData.all;
+                const oldRemaining = oldData.remaining;
+
+                // Index-based tracking of eliminated students
+                const eliminatedIndices = new Set();
+                const remainingCopy = [...oldRemaining];
+                for (let i = 0; i < oldAll.length; i++) {
+                    const idx = remainingCopy.indexOf(oldAll[i]);
+                    if (idx === -1) {
+                        eliminatedIndices.add(i);
+                    } else {
+                        remainingCopy.splice(idx, 1);
+                    }
+                }
+
+                // Build new remaining: new students are available,
+                // students that existed before and were eliminated stay eliminated (by name match)
+                const previouslyEliminated = [];
+                for (const i of eliminatedIndices) {
+                    previouslyEliminated.push(oldAll[i]);
+                }
+
+                const newRemaining = [];
+                const elimPool = [...previouslyEliminated];
+                for (const s of students) {
+                    const elimIdx = elimPool.indexOf(s);
+                    if (elimIdx !== -1) {
+                        elimPool.splice(elimIdx, 1);
+                        // This student was eliminated, skip
+                    } else {
+                        newRemaining.push(s);
+                    }
+                }
+
+                appData.classes[appData.currentId].name = name;
+                appData.classes[appData.currentId].all = students;
+                appData.classes[appData.currentId].remaining = newRemaining;
+                // Clean excluded list: keep only valid indices
+                appData.classes[appData.currentId].excluded = [];
+            } else {
+                createClass(name, students);
+            }
+
+            saveData();
+            closeOverlay(modalOverlay);
+            renderGrid();
+        }
+
+        // --- HISTORY ---
+        function addToHistory(winnerNames) {
+            if (!appData.currentId) return;
+            const cls = appData.classes[appData.currentId];
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            for (const name of winnerNames) {
+                cls.history.push({ name, time: timeStr, date: dateStr, ts: now.getTime() });
+            }
+        }
+
+        function openHistoryModal() {
+            historyList.innerHTML = '';
+            if (!appData.currentId) {
+                historyList.innerHTML = '<div class="history-empty">Keine Klasse ausgewählt.</div>';
+                openOverlay(historyOverlay);
+                return;
+            }
+            const cls = appData.classes[appData.currentId];
+            if (!cls.history || cls.history.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">Noch keine Aufrufe in dieser Klasse.</div>';
+                openOverlay(historyOverlay);
+                return;
+            }
+            // Show newest first
+            const entries = [...cls.history].reverse();
+            for (const entry of entries) {
+                const div = document.createElement('div');
+                div.className = 'history-entry';
+                div.innerHTML = `<span class="history-name">${escapeHtml(entry.name)}</span><span class="history-time">${escapeHtml(entry.date)} ${escapeHtml(entry.time)}</span>`;
+                historyList.appendChild(div);
+            }
+            openOverlay(historyOverlay);
+        }
+
+        function clearHistory() {
+            if (!appData.currentId) return;
+            showConfirm('Historie für diese Klasse löschen?', () => {
+                appData.classes[appData.currentId].history = [];
+                saveData();
+                closeOverlay(historyOverlay);
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // --- RENDERING ---
+        function renderSelector() {
+            const prevValue = classSelector.value;
+            classSelector.innerHTML = "";
+
+            const keys = Object.keys(appData.classes);
+            if (keys.length === 0) {
+                const opt = document.createElement('option');
+                opt.text = "-- Keine Klassen --";
+                classSelector.add(opt);
+                return;
+            }
+
+            keys.forEach(id => {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.text = appData.classes[id].name;
+                if (id === appData.currentId) opt.selected = true;
+                classSelector.add(opt);
+            });
+        }
+
+        function renderGrid() {
+            studentGrid.innerHTML = '';
+            updateCountMax();
+            updateStatus();
+
+            if (!appData.currentId || !appData.classes[appData.currentId]) {
+                studentGrid.innerHTML = '<div style="text-align:center; width:100%; color:#666;">Erstelle eine Klasse (+) um zu beginnen.</div>';
+                return;
+            }
+
+            const cls = appData.classes[appData.currentId];
+
+            // Build index-based remaining check
+            const remainingCopy = [...cls.remaining];
+
+            cls.all.forEach((name, index) => {
+                const div = document.createElement('div');
+                div.className = 'student-card';
+                div.textContent = name;
+                div.dataset.index = index;
+
+                // Check if excluded manually
+                if (cls.excluded && cls.excluded.includes(index)) {
+                    div.classList.add('excluded');
+                } else {
+                    // Check if in remaining (index-safe for duplicates)
+                    const rIdx = remainingCopy.indexOf(name);
+                    if (rIdx === -1) {
+                        div.classList.add('eliminated');
+                    } else {
+                        remainingCopy.splice(rIdx, 1);
+                    }
+                }
+
+                // Click to toggle manual exclusion
+                div.addEventListener('click', () => toggleExclude(index));
+
+                studentGrid.appendChild(div);
+            });
+        }
+
+        function toggleExclude(index) {
+            if (isAnimating) return;
+            if (!appData.currentId) return;
+            const cls = appData.classes[appData.currentId];
+            const exIdx = cls.excluded.indexOf(index);
+            if (exIdx !== -1) {
+                // Re-include
+                cls.excluded.splice(exIdx, 1);
+            } else {
+                // Exclude
+                cls.excluded.push(index);
+            }
+            saveData();
+            renderGrid();
+        }
+
+        function updateCountMax() {
+            if (!appData.currentId || !appData.classes[appData.currentId]) {
+                countInput.max = 1;
+                return;
+            }
+            const cls = appData.classes[appData.currentId];
+            const available = getAvailableStudents(cls);
+            const max = Math.max(1, available.length);
+            countInput.max = max;
+            if (parseInt(countInput.value) > max) {
+                countInput.value = max;
+            }
+        }
+
+        function getAvailableStudents(cls) {
+            // Returns list of {name, index} for students that are both remaining and not excluded
+            const remainingCopy = [...cls.remaining];
+            const available = [];
+
+            for (let i = 0; i < cls.all.length; i++) {
+                if (cls.excluded && cls.excluded.includes(i)) continue;
+                const rIdx = remainingCopy.indexOf(cls.all[i]);
+                if (rIdx !== -1) {
+                    available.push({ name: cls.all[i], index: i });
+                    remainingCopy.splice(rIdx, 1);
+                }
+            }
+            return available;
+        }
+
+        function updateStatus() {
+            if (!appData.currentId || !appData.classes[appData.currentId]) {
+                statusDisplay.innerText = "";
+                actionBtn.disabled = true;
+                return;
+            }
+
+            const cls = appData.classes[appData.currentId];
+            const available = getAvailableStudents(cls);
+            const excludedCount = cls.excluded ? cls.excluded.length : 0;
+            let statusParts = [`${available.length} von ${cls.all.length} verfügbar`];
+            if (excludedCount > 0) {
+                statusParts.push(`${excludedCount} ausgeschlossen`);
+            }
+            statusDisplay.innerText = statusParts.join(' · ');
+
+            if (available.length === 0) {
+                actionBtn.innerText = "Alle durch!";
+                actionBtn.disabled = true;
+            } else {
+                actionBtn.innerText = "Auswählen!";
+                actionBtn.disabled = false;
+            }
+        }
+
+        // --- SELECTION LOGIC ---
+        async function startSelection() {
+            if (isAnimating || !appData.currentId) return;
+
+            const cls = appData.classes[appData.currentId];
+            let count = parseInt(countInput.value);
+            const available = getAvailableStudents(cls);
+
+            if (available.length === 0) return;
+
+            if (count > available.length) {
+                count = available.length;
+                countInput.value = count;
+            }
+            if (count < 1) return;
+
+            isAnimating = true;
+            actionBtn.disabled = true;
+            actionBtn.innerText = "Sucht...";
+
+            // Pick winners from available pool
+            const winners = [];
+            const tempPool = [...available];
+
+            for (let i = 0; i < count; i++) {
+                const randomIndex = Math.floor(Math.random() * tempPool.length);
+                winners.push(tempPool[randomIndex]);
+                tempPool.splice(randomIndex, 1);
+            }
+
+            await runSpotlightAnimation();
+            finishSelection(winners);
+        }
+
+        function runSpotlightAnimation() {
+            return new Promise(resolve => {
+                const cards = Array.from(document.querySelectorAll('.student-card:not(.eliminated):not(.excluded)'));
+                if (cards.length === 0) { resolve(); return; }
+
+                let steps = 0;
+                const maxSteps = 20;
+                let speed = 50;
+
+                const interval = () => {
+                    cards.forEach(c => c.classList.remove('active-spotlight'));
+                    const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                    randomCard.classList.add('active-spotlight');
+
+                    steps++;
+                    if (steps < maxSteps) {
+                        speed += 15;
+                        setTimeout(interval, speed);
+                    } else {
+                        cards.forEach(c => c.classList.remove('active-spotlight'));
+                        resolve();
+                    }
+                };
+                interval();
+            });
+        }
+
+        function finishSelection(winners) {
+            const cls = appData.classes[appData.currentId];
+
+            // Highlight winner cards by index
+            winners.forEach(w => {
+                const card = studentGrid.querySelector(`[data-index="${w.index}"]`);
+                if (card) card.classList.add('winner');
+            });
+
+            // Show winner overlay
+            const winnerNamesList = winners.map(w => w.name);
+            winnerNames.innerHTML = winnerNamesList.map(n => `<div class="winner-name">${escapeHtml(n)}</div>`).join('');
+            openOverlay(winnerOverlay);
+
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            // Log to history
+            addToHistory(winnerNamesList);
+
+            setTimeout(() => {
+                // Remove winners from remaining (one at a time for duplicate safety)
+                for (const w of winners) {
+                    const rIdx = cls.remaining.indexOf(w.name);
+                    if (rIdx !== -1) {
+                        cls.remaining.splice(rIdx, 1);
+                    }
+                }
+                saveData();
+                renderGrid();
+                isAnimating = false;
+            }, 3500);
+        }
+
+        function resetCurrentList() {
+            if (!appData.currentId) return;
+            showConfirm('Klasse wirklich zurücksetzen? Alle Schüler kommen wieder in den Topf.', () => {
+                const cls = appData.classes[appData.currentId];
+                cls.remaining = [...cls.all];
+                cls.excluded = [];
+                saveData();
+                renderGrid();
+            });
+        }
+
+        // --- START ---
+        init();
+    </script>
+</body>
+</html>
