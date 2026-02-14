@@ -523,5 +523,11 @@
     "stufe": "5–7",
     "beschreibung": "Terminal-Trainer für Grundrechenarten mit zufälligen Aufgaben",
     "kategorie": "Mathematik"
+  },
+  "ki-memory.html": {
+    "fach": "Tool",
+    "stufe": "5–10",
+    "beschreibung": "KI Memory - Ein digitales Gedächtnisspiel für zwei Spieler",
+    "kategorie": "Tools"
   }
 }
