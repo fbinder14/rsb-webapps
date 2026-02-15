@@ -1,0 +1,865 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>~*~ WiLLkoMmEn AuF mEiNeR hOmEpAgE ~*~</title>
+<style>
+  /* TILED STARFIELD BACKGROUND */
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #000033;
+    background-image: 
+      radial-gradient(1px 1px at 10% 20%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, #aaf 50%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 90% 40%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 15% 75%, #aaf 50%, transparent 100%),
+      radial-gradient(1px 1px at 45% 45%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 85% 15%, #fff 50%, transparent 100%),
+      radial-gradient(2px 2px at 25% 35%, #ffa 50%, transparent 100%),
+      radial-gradient(1px 1px at 65% 55%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 5% 95%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 55% 85%, #aaf 50%, transparent 100%);
+    background-size: 200px 200px;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    color: #00ff00;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ctext y='18' font-size='18'%3E⭐%3C/text%3E%3C/svg%3E"), auto;
+    overflow-x: hidden;
+  }
+
+  /* FRAMES LOOK */
+  .frame-top {
+    background: linear-gradient(180deg, #c0c0c0, #808080);
+    border-bottom: 3px outset #c0c0c0;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'MS Sans Serif', Tahoma, sans-serif;
+    font-size: 12px;
+    color: #000;
+  }
+  .frame-top .nav-btn {
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: 'MS Sans Serif', Tahoma, sans-serif;
+    cursor: pointer;
+    color: #000;
+  }
+  .frame-top .nav-btn:active { border-style: inset; }
+  .frame-top .address-bar {
+    flex: 1;
+    background: #fff;
+    border: 2px inset #808080;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #000;
+    font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  }
+
+  .page-wrapper {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* LEFT NAV FRAME */
+  .nav-frame {
+    width: 180px;
+    min-width: 180px;
+    background: #000066;
+    border-right: 3px ridge #6666ff;
+    padding: 10px;
+    font-size: 14px;
+  }
+  .nav-frame h3 {
+    color: #ffff00;
+    text-align: center;
+    font-size: 14px;
+    text-shadow: 2px 2px #ff0000;
+    margin-bottom: 10px;
+  }
+  .nav-frame a {
+    display: block;
+    color: #00ffff;
+    text-decoration: none;
+    padding: 4px 0;
+    font-size: 13px;
+  }
+  .nav-frame a:hover {
+    color: #ff00ff;
+    text-decoration: underline;
+  }
+  .nav-frame a::before { content: "➤ "; color: #ffff00; }
+  .nav-frame .nav-separator {
+    border-top: 1px dashed #6666ff;
+    margin: 8px 0;
+  }
+
+  /* MAIN CONTENT FRAME */
+  .content-frame {
+    flex: 1;
+    padding: 10px 20px 40px 20px;
+  }
+
+  /* MARQUEE */
+  .marquee-bar {
+    background: #990000;
+    border: 2px ridge #ff0000;
+    padding: 6px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .marquee-text {
+    display: inline-block;
+    animation: marquee 18s linear infinite;
+    color: #ffff00;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 1px 1px #000;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-200%); }
+  }
+
+  /* RAINBOW TEXT HEADER */
+  .rainbow-header {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin: 20px 0 5px;
+    animation: rainbow 3s linear infinite;
+    text-shadow: 3px 3px 0 #000;
+    letter-spacing: 2px;
+  }
+  @keyframes rainbow {
+    0% { color: #ff0000; }
+    16% { color: #ff8800; }
+    33% { color: #ffff00; }
+    50% { color: #00ff00; }
+    66% { color: #0088ff; }
+    83% { color: #ff00ff; }
+    100% { color: #ff0000; }
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #ff00ff;
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  /* BLINKING TEXT */
+  .blink {
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* UNDER CONSTRUCTION */
+  .under-construction {
+    text-align: center;
+    margin: 15px 0;
+    padding: 10px;
+    border: 3px dashed #ffff00;
+    background: rgba(255,255,0,0.1);
+  }
+  .construction-icon {
+    font-size: 40px;
+    display: inline-block;
+    animation: bounce 0.6s infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+  }
+
+  /* CONTENT SECTIONS */
+  .section {
+    border: 2px ridge #00ff00;
+    padding: 12px;
+    margin: 15px 0;
+    background: rgba(0,0,50,0.7);
+  }
+  .section h2 {
+    color: #ffff00;
+    font-size: 18px;
+    margin: 0 0 8px;
+    text-shadow: 2px 2px #ff0000;
+  }
+  .section p, .section li {
+    color: #00ff00;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .section a {
+    color: #00ffff;
+  }
+  .section a:visited {
+    color: #ff88ff;
+  }
+
+  /* SPINNING GLOBE */
+  .globe {
+    display: inline-block;
+    font-size: 30px;
+    animation: spin 4s linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+  }
+
+  /* EMAIL ENVELOPE */
+  .envelope {
+    display: inline-block;
+    font-size: 24px;
+    animation: wiggle 0.5s infinite alternate;
+  }
+  @keyframes wiggle {
+    from { transform: rotate(-15deg); }
+    to { transform: rotate(15deg); }
+  }
+
+  /* HIT COUNTER */
+  .counter-box {
+    text-align: center;
+    margin: 20px 0;
+  }
+  .counter-label {
+    color: #ff8800;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  .counter {
+    display: inline-flex;
+    gap: 2px;
+    background: #000;
+    border: 3px ridge #808080;
+    padding: 6px 10px;
+  }
+  .counter-digit {
+    background: #111;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 28px;
+    font-weight: bold;
+    width: 24px;
+    text-align: center;
+    border: 1px solid #333;
+    text-shadow: 0 0 8px #00ff00;
+    animation: digitGlow 2s ease-in-out infinite alternate;
+  }
+  @keyframes digitGlow {
+    from { text-shadow: 0 0 5px #00ff00; }
+    to { text-shadow: 0 0 15px #00ff00, 0 0 25px #00aa00; }
+  }
+
+  /* DANCING FIGURES */
+  .dancers {
+    text-align: center;
+    font-size: 28px;
+    margin: 10px 0;
+  }
+  .dancer {
+    display: inline-block;
+    animation: dance 0.8s infinite alternate;
+  }
+  .dancer:nth-child(2) { animation-delay: 0.1s; }
+  .dancer:nth-child(3) { animation-delay: 0.2s; }
+  .dancer:nth-child(4) { animation-delay: 0.3s; }
+  .dancer:nth-child(5) { animation-delay: 0.4s; }
+  @keyframes dance {
+    0% { transform: translateY(0) rotate(-5deg); }
+    100% { transform: translateY(-12px) rotate(5deg); }
+  }
+
+  /* GUESTBOOK */
+  .guestbook {
+    border: 2px ridge #ff00ff;
+    padding: 12px;
+    margin: 15px 0;
+    background: rgba(50,0,50,0.5);
+  }
+  .guestbook h2 {
+    color: #ff00ff;
+    text-align: center;
+    text-shadow: 2px 2px #000;
+  }
+  .gb-entry {
+    border-bottom: 1px dashed #ff00ff;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .gb-entry .gb-name { color: #ffff00; font-weight: bold; }
+  .gb-entry .gb-date { color: #888; font-size: 11px; }
+  .gb-entry .gb-msg { color: #00ff00; margin-top: 3px; }
+  .gb-form { margin-top: 10px; }
+  .gb-form input, .gb-form textarea {
+    background: #111;
+    color: #00ff00;
+    border: 2px inset #808080;
+    font-family: 'Comic Sans MS', cursive;
+    padding: 4px;
+    width: 100%;
+    max-width: 300px;
+    margin: 3px 0;
+    display: block;
+    font-size: 13px;
+  }
+  .gb-form textarea { height: 50px; }
+  .gb-form button {
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    padding: 4px 16px;
+    font-family: 'MS Sans Serif', Tahoma, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 5px;
+    color: #000;
+  }
+  .gb-form button:active { border-style: inset; }
+
+  /* WEBRING */
+  .webring {
+    text-align: center;
+    border: 2px ridge #c0c0c0;
+    background: linear-gradient(180deg, #000066, #000033);
+    padding: 10px;
+    margin: 20px 0;
+    font-size: 12px;
+  }
+  .webring-title {
+    color: #ffff00;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .webring a {
+    color: #00ffff;
+    margin: 0 8px;
+    text-decoration: none;
+  }
+  .webring a:hover { text-decoration: underline; }
+  .webring-logo {
+    font-size: 24px;
+    margin-bottom: 5px;
+  }
+
+  /* BEST VIEWED WITH */
+  .best-viewed {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 12px;
+    color: #aaa;
+  }
+  .browser-badge {
+    display: inline-block;
+    border: 2px outset #c0c0c0;
+    background: #ddd;
+    padding: 4px 10px;
+    margin: 4px;
+    font-size: 11px;
+    color: #000;
+    font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  }
+
+  /* MIDI NOTICE */
+  .midi-notice {
+    text-align: center;
+    font-size: 12px;
+    color: #ff8800;
+    margin: 10px 0;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* HR STYLE */
+  .fancy-hr {
+    border: none;
+    height: 4px;
+    background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #ff00ff, #ff0000);
+    margin: 15px 0;
+  }
+
+  /* LINK COLLECTION */
+  .links-section a {
+    color: #00ffff;
+    font-size: 13px;
+  }
+
+  /* FLAGS */
+  .flags {
+    text-align: center;
+    font-size: 24px;
+    margin: 10px 0;
+  }
+  .flag-wave {
+    display: inline-block;
+    animation: wave 1s ease-in-out infinite alternate;
+  }
+  .flag-wave:nth-child(2) { animation-delay: 0.15s; }
+  .flag-wave:nth-child(3) { animation-delay: 0.3s; }
+
+  /* FIRE TEXT */
+  .fire-text {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    background: linear-gradient(180deg, #ffff00, #ff8800, #ff0000, #880000);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fireFlicker 0.3s infinite alternate;
+    margin: 10px 0;
+  }
+  @keyframes fireFlicker {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.3); }
+  }
+  @keyframes wave {
+    from { transform: rotate(-10deg); }
+    to { transform: rotate(10deg); }
+  }
+
+  /* AWARDS */
+  .awards {
+    text-align: center;
+    margin: 15px 0;
+  }
+  .award-badge {
+    display: inline-block;
+    border: 3px outset gold;
+    background: linear-gradient(135deg, #ffd700, #b8860b);
+    color: #000;
+    padding: 8px 14px;
+    margin: 5px;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: 'Times New Roman', serif;
+    text-shadow: 1px 1px #fff;
+    transform: rotate(-3deg);
+  }
+  .award-badge:nth-child(2) { transform: rotate(2deg); }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: linear-gradient(180deg, #c0c0c0, #a0a0a0);
+    border-top: 2px outset #fff;
+    padding: 3px 10px;
+    font-family: 'MS Sans Serif', Tahoma, sans-serif;
+    font-size: 11px;
+    color: #000;
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+
+  /* SPARKLE CURSOR TRAIL */
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    font-size: 14px;
+    z-index: 999;
+    animation: sparkleAnim 0.8s forwards;
+  }
+  @keyframes sparkleAnim {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(0) translateY(-30px); }
+  }
+
+  /* SCROLLING STARS */
+  .star-field {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+  }
+  .shooting-star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    animation: shoot 6s linear infinite;
+    box-shadow: 0 0 6px #fff;
+  }
+  @keyframes shoot {
+    0% { transform: translate(100vw, -10px); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: translate(-20vw, 60vh); opacity: 0; }
+  }
+
+  /* TABLE */
+  .retro-table {
+    border-collapse: collapse;
+    margin: 10px auto;
+  }
+  .retro-table td, .retro-table th {
+    border: 2px ridge #00ff00;
+    padding: 5px 10px;
+    font-size: 13px;
+    color: #00ff00;
+  }
+  .retro-table th {
+    background: #003300;
+    color: #ffff00;
+  }
+
+  /* TWINKLING STAR DIVIDER */
+  .star-divider {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 8px;
+    color: #ffff00;
+    animation: twinkle 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.4; }
+    to { opacity: 1; }
+  }
+
+  .tooltip-90s {
+    color: #ff0000;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  /* Netscape-era horizontal rule */
+  .ns-hr {
+    border: none;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, #ff0000 0px, #ff0000 4px, transparent 4px, transparent 8px);
+    margin: 12px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- SHOOTING STARS BACKGROUND -->
+<div class="star-field">
+  <div class="shooting-star" style="top:10%;animation-delay:0s;"></div>
+  <div class="shooting-star" style="top:30%;animation-delay:2s;"></div>
+  <div class="shooting-star" style="top:55%;animation-delay:4s;"></div>
+  <div class="shooting-star" style="top:75%;animation-delay:1s;"></div>
+</div>
+
+<!-- FAKE BROWSER FRAME TOP -->
+<div class="frame-top">
+  <span class="nav-btn">⬅ Zurück</span>
+  <span class="nav-btn">Vorwärts ➡</span>
+  <span class="nav-btn">🔄 Aktualisieren</span>
+  <span class="nav-btn">🏠 Startseite</span>
+  <span class="address-bar">📍 http://www.geocities.com/~koolkid99/homepage.htm</span>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee-bar">
+  <span class="marquee-text">
+    ★★★ WiLLKoMmEn!!! ★★★ Diese Seite wurde mass letzt aktualisiert am 14.03.1999 ★★★ Neues Gästebuch online!!! ★★★ Bitte trag dich ein!!! ★★★ ICQ# 48293716 ★★★ Counter funktioniert wieder!!! ★★★
+  </span>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- LEFT NAV FRAME -->
+  <div class="nav-frame">
+    <h3>🌐 Navigation</h3>
+    <a href="#">Startseite</a>
+    <a href="#">Über mich</a>
+    <a href="#">Meine Hobbys</a>
+    <a href="#">Meine Linx</a>
+    <a href="#">Gästebuch</a>
+    <a href="#">Downloads</a>
+    <a href="#">Witze-Seite</a>
+    <a href="#">ASCII-Art</a>
+    <div class="nav-separator"></div>
+    <a href="#">Mein Hund Bello</a>
+    <a href="#">Urlaubsfotos 98</a>
+    <a href="#">Fun-Pics</a>
+    <div class="nav-separator"></div>
+    <div style="text-align:center; margin-top:15px;">
+      <div class="globe">🌍</div>
+    </div>
+    <div style="text-align:center; color:#aaa; font-size:10px; margin-top:15px;">
+      Besucher<br>online: 3
+    </div>
+    <div style="text-align:center; margin-top:15px;">
+      <div style="font-size:24px;">🕐</div>
+      <div id="clock" style="color:#00ff00; font-family:monospace; font-size:12px;"></div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content-frame">
+
+    <!-- MIDI NOTICE -->
+    <div class="midi-notice">
+      🔊 ACHTUNG: Diese Seite spielt automatisch MIDI-Musik ab! 🎵 (fuer_elise.mid) 🔊
+    </div>
+
+    <!-- HEADER -->
+    <div class="rainbow-header">~*~ WiLLkoMmEn AuF mEiNeR hOmEpAgE ~*~</div>
+    <div class="subtitle">✨ Die geilste Seite im ganzen WWW!!! ✨</div>
+
+    <!-- DANCING FIGURES -->
+    <div class="dancers">
+      <span class="dancer">🕺</span>
+      <span class="dancer">💃</span>
+      <span class="dancer">🕺</span>
+      <span class="dancer">💃</span>
+      <span class="dancer">🕺</span>
+    </div>
+
+    <hr class="fancy-hr">
+
+    <!-- FIRE TEXT -->
+    <div class="fire-text">🔥🔥🔥 HOT NEWS 🔥🔥🔥</div>
+
+    <!-- UNDER CONSTRUCTION -->
+    <div class="under-construction">
+      <div class="construction-icon">🚧</div>
+      <span class="blink" style="color:#ffff00; font-size:18px; font-weight:bold;">
+        ⚠️ ACHTUNG: DIESE SEITE IST NOCH UNDER CONSTRUCTION!!! ⚠️
+      </span>
+      <div class="construction-icon">👷</div>
+      <br>
+      <span style="color:#ff8800; font-size:13px;">Bitte hab Geduld... die Witze-Seite kommt bald!!!</span>
+    </div>
+
+    <div class="star-divider">✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦</div>
+
+    <!-- ABOUT ME -->
+    <div class="section">
+      <h2>📋 Über mich</h2>
+      <table class="retro-table">
+        <tr><th>Name:</th><td>KoolKid99</td></tr>
+        <tr><th>Alter:</th><td>14 Jahre</td></tr>
+        <tr><th>Wohnort:</th><td>irgendwo in Bayern 🏔️</td></tr>
+        <tr><th>Hobbys:</th><td>HTML lernen, Skateboarden, PlayStation, Chatten</td></tr>
+        <tr><th>Lieblingsserie:</th><td>Dragon Ball Z 🐉</td></tr>
+        <tr><th>Lieblingsessen:</th><td>Pizza und Döner 🍕</td></tr>
+        <tr><th>ICQ#:</th><td>48293716 (immer adden!!!)</td></tr>
+        <tr><th>Lieblingsband:</th><td>Linkin Park / Backstreet Boys</td></tr>
+      </table>
+    </div>
+
+    <!-- FLAGS -->
+    <div class="flags">
+      <span class="flag-wave">🇩🇪</span>
+      <span class="flag-wave">🇦🇹</span>
+      <span class="flag-wave">🇨🇭</span>
+    </div>
+
+    <hr class="ns-hr">
+
+    <!-- MEINE LINKS -->
+    <div class="section links-section">
+      <h2>🔗 Meine Lieblings-Linx</h2>
+      <p>Hier sind die coolsten Seiten im Internet:</p>
+      <p>
+        🌐 <a href="#">Altavista</a> - Die beste Suchmaschine!!!<br>
+        🌐 <a href="#">Yahoo!</a> - Auch voll cool<br>
+        🕹️ <a href="#">GameStar Online</a> - Für alle Zocker<br>
+        💬 <a href="#">mIRC Download</a> - Chatten gehen!!!<br>
+        🎵 <a href="#">Napster</a> - <span class="tooltip-90s">MP3z 4 free!!!</span><br>
+        📧 <a href="#">Hotmail</a> - Free E-Mail!!!<br>
+        🏠 <a href="#">GeoCities</a> - Mach deine eigene Homepage!!!<br>
+        😂 <a href="#">Funpic.de</a> - Lustige Bilder
+      </p>
+    </div>
+
+    <hr class="fancy-hr">
+
+    <!-- GUESTBOOK -->
+    <div class="guestbook">
+      <h2>📖 Mein Gästebuch</h2>
+      <p style="color:#ff88ff; font-size:13px; text-align:center;">
+        <span class="blink">★</span> Bitte tragt euch ein!!! <span class="blink">★</span>
+      </p>
+
+      <div class="gb-entry">
+        <span class="gb-name">~*SuPeRgIrL2000*~</span>
+        <span class="gb-date"> | 12.03.1999 um 15:23</span>
+        <div class="gb-msg">Hey coole HP!!! Schau auch mal bei mir vorbei: www.geocities.com/~supergirl2000 *knuddel* HDL!!!</div>
+      </div>
+      <div class="gb-entry">
+        <span class="gb-name">DaRkAnGeL_666</span>
+        <span class="gb-date"> | 10.03.1999 um 22:47</span>
+        <div class="gb-msg">Geile Seite Alter!!! Der Counter ist echt cool. Trag dich auch bei mir ein!!!</div>
+      </div>
+      <div class="gb-entry">
+        <span class="gb-name">Mama</span>
+        <span class="gb-date"> | 08.03.1999 um 18:12</span>
+        <div class="gb-msg">Schöne Seite Schatz! Vergiss nicht Hausaufgaben zu machen! Bussi Mama</div>
+      </div>
+      <div class="gb-entry">
+        <span class="gb-name">xX_SkAtErBoY_Xx</span>
+        <span class="gb-date"> | 05.03.1999 um 14:56</span>
+        <div class="gb-msg">yo wazzup! voll die krasse page!! haste ICQ?? add mich: 29481053!!! CU l8r m8!</div>
+      </div>
+      <div class="gb-entry">
+        <span class="gb-name">Webmaster_Tom</span>
+        <span class="gb-date"> | 01.03.1999 um 20:33</span>
+        <div class="gb-msg">Hi! Wir haben Deine Seite in unseren Webring aufgenommen! Weiter so! PS: Der MIDI klingt super.</div>
+      </div>
+
+      <div class="gb-form">
+        <b style="color:#ffff00;">✏️ Eintrag schreiben:</b><br>
+        <input type="text" placeholder="Dein Name">
+        <input type="text" placeholder="Deine Homepage URL">
+        <textarea placeholder="Deine Nachricht..."></textarea>
+        <button>📝 Eintragen!!!</button>
+      </div>
+    </div>
+
+    <hr class="fancy-hr">
+
+    <!-- EMAIL -->
+    <div style="text-align:center; margin: 15px 0;">
+      <span class="envelope">✉️</span>
+      <span style="color:#00ffff; font-size:16px;">
+        Schreib mir eine E-Mail: <a href="#" style="color:#ffff00;">koolkid99@hotmail.com</a>
+      </span>
+      <span class="envelope">✉️</span>
+    </div>
+
+    <!-- AWARDS -->
+    <div class="awards">
+      <div style="color:#ffff00; font-size:14px; margin-bottom:8px;">🏆 Auszeichnungen:</div>
+      <div class="award-badge">⭐ COOL SITE<br>OF THE DAY ⭐<br>März 1999</div>
+      <div class="award-badge">🏅 TOP 5%<br>OF ALL WEB<br>SITES 🏅</div>
+    </div>
+
+    <!-- HIT COUNTER -->
+    <div class="counter-box">
+      <div class="counter-label">📊 Sie sind Besucher Nummer:</div>
+      <div class="counter">
+        <span class="counter-digit" id="d0">0</span>
+        <span class="counter-digit" id="d1">0</span>
+        <span class="counter-digit" id="d2">0</span>
+        <span class="counter-digit" id="d3">0</span>
+        <span class="counter-digit" id="d4">0</span>
+        <span class="counter-digit" id="d5">0</span>
+      </div>
+      <div style="color:#888; font-size:10px; margin-top:4px;">seit dem 01.01.1999</div>
+    </div>
+
+    <!-- BEST VIEWED WITH -->
+    <div class="best-viewed">
+      <p>Diese Seite wurde optimiert für:</p>
+      <span class="browser-badge">🌐 Netscape Navigator 4.0</span>
+      <span class="browser-badge">🔵 Internet Explorer 5.0</span>
+      <br>
+      <span style="font-size:10px; color:#666;">Auflösung: 800x600 | 256 Farben</span>
+    </div>
+
+    <!-- WEBRING -->
+    <div class="webring">
+      <div class="webring-logo">🔗</div>
+      <div class="webring-title">💫 Bayern Homepages Webring 💫</div>
+      <div>
+        <a href="#">[⬅ Vorherige]</a>
+        <a href="#">[📋 Liste]</a>
+        <a href="#">[🎲 Zufall]</a>
+        <a href="#">[Nächste ➡]</a>
+      </div>
+      <div style="color:#888; font-size:10px; margin-top:5px;">
+        Diese Seite ist Mitglied #47 von 312 Seiten
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:#666;">
+      <p>© 1999 by KoolKid99 | Alle Rechte vorbehalten!!!</p>
+      <p>Made with ❤️ and Notepad.exe</p>
+      <p>Letzte Aktualisierung: 14.03.1999</p>
+      <p style="color:#444; font-size:9px;">Diese Homepage wurde erstellt mit HTML 3.2 und viel Geduld</p>
+    </div>
+
+  </div><!-- end content-frame -->
+</div><!-- end page-wrapper -->
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span>✅ Fertig</span>
+  <span>🌐 Internet Zone</span>
+</div>
+
+<script>
+  // ANIMATED HIT COUNTER
+  let count = 0;
+  const target = 4832;
+  const digits = ['d0','d1','d2','d3','d4','d5'];
+
+  function updateCounter(n) {
+    const str = String(n).padStart(6, '0');
+    digits.forEach((id, i) => {
+      document.getElementById(id).textContent = str[i];
+    });
+  }
+
+  function animateCounter() {
+    if (count < target) {
+      count += Math.floor(Math.random() * 120) + 30;
+      if (count > target) count = target;
+      updateCounter(count);
+      setTimeout(animateCounter, 30);
+    }
+  }
+  setTimeout(animateCounter, 800);
+
+  // CLOCK
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = h + ':' + m + ':' + s;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // SPARKLE CURSOR TRAIL
+  const sparkles = ['✨','⭐','💫','✦','🌟'];
+  let lastSparkle = 0;
+  document.addEventListener('mousemove', (e) => {
+    const now = Date.now();
+    if (now - lastSparkle < 100) return;
+    lastSparkle = now;
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
+    s.style.left = e.clientX + 'px';
+    s.style.top = e.clientY + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  });
+
+  // GUESTBOOK BUTTON
+  document.querySelector('.gb-form button').addEventListener('click', () => {
+    alert('Danke für deinen Eintrag!!! 😊\n\n(Funktion noch under construction...)');
+  });
+</script>
+
+</body>
+</html>
