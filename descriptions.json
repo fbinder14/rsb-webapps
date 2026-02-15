@@ -535,5 +535,11 @@
     "stufe": "5–10",
     "beschreibung": "Retro-Webseite im 90er-Jahre-Stil ohne erkennbare Lernfunktion",
     "kategorie": "Sonstiges"
+  },
+  "web.html": {
+    "fach": "Tool",
+    "stufe": "5–10",
+    "beschreibung": "Retro-Homepage im 90er-Jahre-Stil ohne erkennbare Lernfunktion",
+    "kategorie": "Sonstiges"
   }
 }
