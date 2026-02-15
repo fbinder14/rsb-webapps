@@ -529,5 +529,11 @@
     "stufe": "5–10",
     "beschreibung": "KI Memory - Ein digitales Gedächtnisspiel für zwei Spieler",
     "kategorie": "Tools"
+  },
+  "web10.html": {
+    "fach": "Tool",
+    "stufe": "5–10",
+    "beschreibung": "Retro-Webseite im 90er-Jahre-Stil ohne erkennbare Lernfunktion",
+    "kategorie": "Sonstiges"
   }
 }
