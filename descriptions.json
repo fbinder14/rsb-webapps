@@ -535,5 +535,12 @@
     "stufe": "5–10",
     "beschreibung": "Retro-Webseite im 90er-Jahre-Stil ohne erkennbare Lernfunktion",
     "kategorie": "Sonstiges"
+  },
+  "ak3-53.html": {
+    "fach": "BWR",
+    "stufe": "10",
+    "beschreibung": "Kostenträgerstückrechnung mit Zuschlagskalkulation trainieren",
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-3"
   }
 }
