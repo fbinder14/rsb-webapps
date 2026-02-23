@@ -1,0 +1,1044 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selbstkosten - Kostenträgerstückrechnung</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #28a745;
+            --pending-color: #6c757d;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .hero-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .task-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .task-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .task-card .card-body {
+            padding: 2rem;
+        }
+
+        .task-card.task-1 { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .task-card.task-2 { background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%); }
+        .task-card.task-3 { background: linear-gradient(135deg, #5f2c82 0%, #49a09d 100%); }
+
+        .task-card h3 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .task-card p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .calculation-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-row {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .step-row.pending {
+            background: #f8f9fa;
+            border-left-color: var(--pending-color);
+            opacity: 0.6;
+        }
+
+        .step-row.active {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+            box-shadow: 0 2px 10px rgba(33, 150, 243, 0.2);
+        }
+
+        .step-row.completed {
+            background: #e8f5e9;
+            border-left-color: var(--success-color);
+        }
+
+        .step-row.given {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        .check-icon {
+            color: var(--success-color);
+            font-size: 1.5rem;
+        }
+
+        .input-euro {
+            position: relative;
+        }
+
+        .input-euro input {
+            padding-right: 30px;
+            text-align: right;
+            font-family: 'Consolas', monospace;
+            font-size: 1.1rem;
+        }
+
+        .input-euro::after {
+            content: '\20AC';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        .input-euro input:disabled {
+            background-color: #d4edda;
+            border-color: var(--success-color);
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            background: var(--primary-gradient);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+
+        .data-table {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .data-table h5 {
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+
+        .operator {
+            font-weight: bold;
+            font-size: 1.2rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-weight: 600;
+        }
+
+        .btn-back {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-check-answer {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-check-answer:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-check-answer:disabled {
+            opacity: 0.5;
+            transform: none;
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .final-result {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .final-result h4 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .final-result .amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .final-result .answer-text {
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        .hint {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .tip-btn {
+            background: #ffc107;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .tip-btn:hover {
+            background: #e0a800;
+            transform: scale(1.1);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0); }
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .tip-box.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tip-box i {
+            color: #856404;
+            margin-right: 0.5rem;
+        }
+
+        .tip-formula {
+            background: white;
+            border-radius: 5px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .section-divider {
+            border-top: 2px dashed #dee2e6;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            background: white;
+            padding: 0 1rem;
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .task-description {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .task-description .product-name {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .zuschlag-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .zuschlag-table th, .zuschlag-table td {
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 0.75rem;
+            text-align: center;
+        }
+
+        .zuschlag-table th {
+            background: rgba(255,255,255,0.15);
+            font-weight: 600;
+        }
+
+        .zuschlag-table td {
+            font-family: 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas" class="celebration"></canvas>
+
+    <!-- Startseite -->
+    <div id="start-page">
+        <div class="hero-section text-center">
+            <div class="container">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-calculator me-2"></i>
+                    Selbstkosten ermitteln
+                </h1>
+                <p class="lead mb-0">Kostenträgerstückrechnung - Schritt für Schritt zum Ergebnis</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-8 text-center">
+                    <p class="text-muted fs-5">
+                        Ermittle die Selbstkosten pro Stück mithilfe der Zuschlagskalkulation.<br>
+                        Vom Fertigungsmaterial bis zu den Selbstkosten &ndash; du wirst Schritt für Schritt begleitet.
+                    </p>
+                    <p class="fw-bold">Wähle eine Aufgabe:</p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center g-4">
+                <div class="col-md-4">
+                    <div class="card task-card task-1 h-100" onclick="startTask(1)">
+                        <div class="card-body text-center">
+                            <h3>Aufgabe 1</h3>
+                            <p class="mb-1">AK-Bikes &ndash; Mountainbike &bdquo;Xtract&ldquo;</p>
+                            <small style="color: rgba(255,255,255,0.8);">Aufgabe 3/53</small>
+                            <div class="mt-3">
+                                <i class="bi bi-arrow-right-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card task-card task-2 h-100" onclick="startTask(2)">
+                        <div class="card-body text-center">
+                            <h3>Aufgabe 2</h3>
+                            <p class="mb-1">TechPro &ndash; Bluetooth-Lautsprecher</p>
+                            <small style="color: rgba(255,255,255,0.8);">Übungsaufgabe</small>
+                            <div class="mt-3">
+                                <i class="bi bi-arrow-right-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card task-card task-3 h-100" onclick="startTask(3)">
+                        <div class="card-body text-center">
+                            <h3>Aufgabe 3</h3>
+                            <p class="mb-1">MöbelWelt &ndash; Schreibtisch &bdquo;Ergo&ldquo;</p>
+                            <small style="color: rgba(255,255,255,0.8);">Übungsaufgabe</small>
+                            <div class="mt-3">
+                                <i class="bi bi-arrow-right-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Berechnungsseite -->
+    <div id="calc-page" style="display: none;">
+        <div class="hero-section text-center py-3">
+            <div class="container">
+                <h2 class="fw-bold mb-0" id="task-title">Aufgabe 1</h2>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <!-- Gegebene Daten -->
+                <div class="col-lg-4 mb-4">
+                    <div id="task-description-box" class="task-description">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                    <div class="data-table" id="given-data">
+                        <h5><i class="bi bi-clipboard-data me-2"></i>Gegebene Daten</h5>
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                    <button class="btn btn-back w-100" onclick="goBack()">
+                        <i class="bi bi-arrow-left me-2"></i>Zurück zur Auswahl
+                    </button>
+                </div>
+
+                <!-- Berechnungsbereich -->
+                <div class="col-lg-8">
+                    <div class="calculation-container">
+                        <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Dein Fortschritt</h5>
+                        <div class="progress mb-4">
+                            <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%">
+                                <span id="progress-text">0%</span>
+                            </div>
+                        </div>
+
+                        <div id="calculation-steps">
+                            <!-- Wird dynamisch gefüllt -->
+                        </div>
+
+                        <div id="final-result-box" style="display: none;">
+                            <!-- Wird bei Abschluss angezeigt -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Aufgabendaten
+        const tasks = {
+            1: {
+                title: 'Aufgabe 1 — AK-Bikes',
+                description: 'Im Unternehmen AK-Bikes entstanden bei der Fertigung eines Mountainbikes des Modells \u201eXtract\u201c als Einzelkosten <strong>730,00 \u20ac</strong> für Fertigungsmaterial und <strong>912,00 \u20ac</strong> für Fertigungslöhne. Bei der Produktion fielen zudem <strong>9,00 \u20ac</strong> Sondereinzelkosten der Fertigung je Mountainbike an.',
+                product: 'ein Mountainbike des Modells \u201eXtract\u201c',
+                fertigungsmaterial: 730.00,
+                fertigungsloehne: 912.00,
+                mgkProzent: 5.30,
+                fgkProzent: 149.50,
+                vwgkProzent: 14.60,
+                vtgkProzent: 9.80,
+                sondereinzelkosten: 9.00
+            },
+            2: {
+                title: 'Aufgabe 2 — TechPro',
+                description: 'Die TechPro GmbH stellt Bluetooth-Lautsprecher her. Für einen Lautsprecher fallen <strong>48,00 \u20ac</strong> Fertigungsmaterial und <strong>62,00 \u20ac</strong> Fertigungslöhne an. Die Sondereinzelkosten der Fertigung betragen <strong>3,50 \u20ac</strong> pro Stück.',
+                product: 'einen Bluetooth-Lautsprecher',
+                fertigungsmaterial: 48.00,
+                fertigungsloehne: 62.00,
+                mgkProzent: 8.50,
+                fgkProzent: 125.00,
+                vwgkProzent: 12.00,
+                vtgkProzent: 7.50,
+                sondereinzelkosten: 3.50
+            },
+            3: {
+                title: 'Aufgabe 3 — MöbelWelt',
+                description: 'Die MöbelWelt AG produziert den Schreibtisch \u201eErgo\u201c. Pro Schreibtisch werden <strong>125,00 \u20ac</strong> Fertigungsmaterial und <strong>158,00 \u20ac</strong> Fertigungslöhne verrechnet. Die Sondereinzelkosten der Fertigung belaufen sich auf <strong>12,50 \u20ac</strong> je Stück.',
+                product: 'einen Schreibtisch \u201eErgo\u201c',
+                fertigungsmaterial: 125.00,
+                fertigungsloehne: 158.00,
+                mgkProzent: 4.80,
+                fgkProzent: 165.00,
+                vwgkProzent: 16.20,
+                vtgkProzent: 11.50,
+                sondereinzelkosten: 12.50
+            }
+        };
+
+        let currentTask = null;
+        let currentStep = 0;
+        let solutions = {};
+
+        function formatEuro(value) {
+            return value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatProzent(value) {
+            return value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function parseEuroInput(value) {
+            let cleaned = value.replace(/\s/g, '').replace(/\u20ac/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleaned);
+        }
+
+        function round2(val) {
+            return Math.round(val * 100) / 100;
+        }
+
+        function calculateSolutions(taskNum) {
+            const t = tasks[taskNum];
+            const sol = {};
+
+            // Materialgemeinkosten
+            sol.materialgemeinkosten = round2(t.fertigungsmaterial * (t.mgkProzent / 100));
+
+            // Materialkosten
+            sol.materialkosten = round2(t.fertigungsmaterial + sol.materialgemeinkosten);
+
+            // Fertigungsgemeinkosten
+            sol.fertigungsgemeinkosten = round2(t.fertigungsloehne * (t.fgkProzent / 100));
+
+            // Zwischensumme (Fertigungslöhne + FGK)
+            sol.zwischensumme = round2(t.fertigungsloehne + sol.fertigungsgemeinkosten);
+
+            // Fertigungskosten
+            sol.fertigungskosten = round2(sol.zwischensumme + t.sondereinzelkosten);
+
+            // Herstellkosten
+            sol.herstellkosten = round2(sol.materialkosten + sol.fertigungskosten);
+
+            // Verwaltungsgemeinkosten
+            sol.verwaltungsgemeinkosten = round2(sol.herstellkosten * (t.vwgkProzent / 100));
+
+            // Vertriebsgemeinkosten
+            sol.vertriebsgemeinkosten = round2(sol.herstellkosten * (t.vtgkProzent / 100));
+
+            // Selbstkosten
+            sol.selbstkosten = round2(sol.herstellkosten + sol.verwaltungsgemeinkosten + sol.vertriebsgemeinkosten);
+
+            return sol;
+        }
+
+        function startTask(taskNum) {
+            currentTask = taskNum;
+            solutions = calculateSolutions(taskNum);
+
+            // Finde den ersten Input-Step
+            const steps = getSteps();
+            currentStep = steps.findIndex(s => s.type === 'input');
+            if (currentStep === -1) currentStep = 0;
+
+            document.getElementById('start-page').style.display = 'none';
+            document.getElementById('calc-page').style.display = 'block';
+            document.getElementById('task-title').textContent = tasks[taskNum].title;
+
+            renderTaskDescription();
+            renderGivenData();
+            renderCalculationSteps();
+            updateProgress();
+        }
+
+        function goBack() {
+            document.getElementById('start-page').style.display = 'block';
+            document.getElementById('calc-page').style.display = 'none';
+            document.getElementById('final-result-box').style.display = 'none';
+        }
+
+        function renderTaskDescription() {
+            const t = tasks[currentTask];
+            document.getElementById('task-description-box').innerHTML = `
+                <i class="bi bi-info-circle text-primary me-1"></i>
+                <strong>Aufgabenstellung:</strong><br>
+                <span class="mt-2 d-inline-block">${t.description}</span>
+                <div class="mt-2"><strong>Ermittle die Selbstkosten für ${t.product}.</strong></div>
+            `;
+        }
+
+        function renderGivenData() {
+            const t = tasks[currentTask];
+            let html = `<h5><i class="bi bi-clipboard-data me-2"></i>Gegebene Daten</h5>`;
+
+            html += `<div class="data-item"><span>Fertigungsmaterial</span><span>${formatEuro(t.fertigungsmaterial)} \u20ac</span></div>`;
+            html += `<div class="data-item"><span>Fertigungslöhne</span><span>${formatEuro(t.fertigungsloehne)} \u20ac</span></div>`;
+            html += `<div class="data-item"><span>SEKF</span><span>${formatEuro(t.sondereinzelkosten)} \u20ac</span></div>`;
+
+            html += `<hr style="border-color: rgba(255,255,255,0.3)">`;
+            html += `<h6 class="mb-2" style="font-size: 0.9rem;">Zuschlagssätze aus dem BAB:</h6>`;
+
+            html += `<table class="zuschlag-table">`;
+            html += `<tr><th>Material</th><th>Fertigung</th><th>Verwaltung</th><th>Vertrieb</th></tr>`;
+            html += `<tr>
+                <td>${formatProzent(t.mgkProzent)} %</td>
+                <td>${formatProzent(t.fgkProzent)} %</td>
+                <td>${formatProzent(t.vwgkProzent)} %</td>
+                <td>${formatProzent(t.vtgkProzent)} %</td>
+            </tr>`;
+            html += `</table>`;
+
+            document.getElementById('given-data').innerHTML = html;
+        }
+
+        function getSteps() {
+            const t = tasks[currentTask];
+            const steps = [];
+
+            // --- Materialkosten-Bereich ---
+            steps.push({
+                operator: '',
+                label: 'Fertigungsmaterial (FM)',
+                type: 'given',
+                value: t.fertigungsmaterial
+            });
+
+            steps.push({
+                operator: '+',
+                label: `Materialgemeinkosten (${formatProzent(t.mgkProzent)} %)`,
+                type: 'input',
+                solution: solutions.materialgemeinkosten,
+                tipKey: 'mgk'
+            });
+
+            steps.push({
+                operator: '=',
+                label: 'Materialkosten (MK)',
+                type: 'input',
+                solution: solutions.materialkosten,
+                isResult: true,
+                sectionEnd: 'Fertigungskosten',
+                tipKey: 'mk'
+            });
+
+            // --- Fertigungskosten-Bereich ---
+            steps.push({
+                operator: '',
+                label: 'Fertigungslöhne (FL)',
+                type: 'given',
+                value: t.fertigungsloehne
+            });
+
+            steps.push({
+                operator: '+',
+                label: `Fertigungsgemeinkosten (${formatProzent(t.fgkProzent)} %)`,
+                type: 'input',
+                solution: solutions.fertigungsgemeinkosten,
+                tipKey: 'fgk'
+            });
+
+            steps.push({
+                operator: '=',
+                label: 'Zwischensumme',
+                type: 'input',
+                solution: solutions.zwischensumme,
+                isResult: true,
+                tipKey: 'zs'
+            });
+
+            steps.push({
+                operator: '+',
+                label: 'Sondereinzelkosten d. Fert. (SEKF)',
+                type: 'given',
+                value: t.sondereinzelkosten
+            });
+
+            steps.push({
+                operator: '=',
+                label: 'Fertigungskosten (FK)',
+                type: 'input',
+                solution: solutions.fertigungskosten,
+                isResult: true,
+                sectionEnd: 'Herstellkosten',
+                tipKey: 'fk'
+            });
+
+            // --- Herstellkosten ---
+            steps.push({
+                operator: '=',
+                label: 'Herstellkosten (HK)',
+                type: 'input',
+                solution: solutions.herstellkosten,
+                isResult: true,
+                sectionEnd: 'Verwaltung & Vertrieb',
+                tipKey: 'hk'
+            });
+
+            // --- Verwaltung & Vertrieb ---
+            steps.push({
+                operator: '+',
+                label: `Verwaltungsgemeinkosten (${formatProzent(t.vwgkProzent)} %)`,
+                type: 'input',
+                solution: solutions.verwaltungsgemeinkosten,
+                tipKey: 'vwgk'
+            });
+
+            steps.push({
+                operator: '+',
+                label: `Vertriebsgemeinkosten (${formatProzent(t.vtgkProzent)} %)`,
+                type: 'input',
+                solution: solutions.vertriebsgemeinkosten,
+                tipKey: 'vtgk'
+            });
+
+            // --- Selbstkosten ---
+            steps.push({
+                operator: '=',
+                label: 'Selbstkosten (SK)',
+                type: 'input',
+                solution: solutions.selbstkosten,
+                isResult: true,
+                isFinal: true,
+                tipKey: 'sk'
+            });
+
+            return steps;
+        }
+
+        function renderCalculationSteps() {
+            const steps = getSteps();
+            let html = '';
+
+            steps.forEach((step, index) => {
+                const isActive = index === currentStep;
+                const isCompleted = index < currentStep;
+                const isPending = index > currentStep;
+
+                let statusClass = isPending ? 'pending' : (isCompleted ? 'completed' : 'active');
+                if (step.type === 'given') statusClass = 'given completed';
+
+                html += `<div class="step-row ${statusClass}" id="step-${index}">`;
+                html += `<div class="row align-items-center">`;
+                html += `<div class="col-1 text-center"><span class="operator">${step.operator}</span></div>`;
+                html += `<div class="col-5"><span class="${step.isResult ? 'result-label' : ''}">${step.label}</span></div>`;
+                html += `<div class="col-5">`;
+
+                if (step.type === 'given') {
+                    html += `<div class="input-euro">
+                        <input type="text" class="form-control" value="${formatEuro(step.value)}" disabled>
+                    </div>`;
+                } else if (step.type === 'input') {
+                    html += `<div class="input-euro">
+                        <input type="text" class="form-control" id="input-${index}"
+                               placeholder="0,00"
+                               ${isPending ? 'disabled' : ''}
+                               ${isCompleted ? 'disabled' : ''}
+                               ${isCompleted ? 'value="' + formatEuro(step.solution) + '"' : ''}
+                               onkeypress="handleKeyPress(event, ${index})">
+                    </div>
+                    <div class="hint" id="hint-${index}" style="display: none;">
+                        <span>Das ist leider nicht richtig.</span>
+                        <button class="tip-btn" onclick="toggleTip(${index})" title="Tipp anzeigen">
+                            <i class="bi bi-lightbulb-fill"></i>
+                        </button>
+                    </div>
+                    <div class="tip-box" id="tip-${index}">
+                        <i class="bi bi-lightbulb-fill"></i>
+                        <strong>Tipp:</strong>
+                        <div class="tip-formula" id="tip-formula-${index}"></div>
+                    </div>`;
+                }
+
+                html += `</div>`;
+                html += `<div class="col-1 text-center">`;
+                if (isCompleted || step.type === 'given') {
+                    html += `<i class="bi bi-check-circle-fill check-icon"></i>`;
+                } else if (isActive && step.type === 'input') {
+                    html += `<button class="btn btn-check-answer btn-sm" onclick="checkAnswer(${index})">
+                        <i class="bi bi-check2"></i>
+                    </button>`;
+                }
+                html += `</div>`;
+                html += `</div></div>`;
+
+                // Abschnittstrennlinien
+                if (step.sectionEnd) {
+                    html += `<div class="section-divider"><span class="section-title">${step.sectionEnd}</span></div>`;
+                }
+            });
+
+            document.getElementById('calculation-steps').innerHTML = html;
+
+            // Fokus auf aktives Eingabefeld
+            setTimeout(() => {
+                const activeInput = document.getElementById(`input-${currentStep}`);
+                if (activeInput && !activeInput.disabled) {
+                    activeInput.focus();
+                }
+            }, 100);
+        }
+
+        function handleKeyPress(event, stepIndex) {
+            if (event.key === 'Enter') {
+                checkAnswer(stepIndex);
+            }
+        }
+
+        function checkAnswer(stepIndex) {
+            const steps = getSteps();
+            const actualStep = steps[stepIndex];
+
+            const input = document.getElementById(`input-${stepIndex}`);
+            const hint = document.getElementById(`hint-${stepIndex}`);
+            const userValue = parseEuroInput(input.value);
+            const correctValue = actualStep.solution;
+
+            // Toleranz von 2 Cent für Rundungsfehler
+            const tolerance = 0.02;
+            const isCorrect = Math.abs(userValue - correctValue) <= tolerance;
+
+            if (isCorrect) {
+                input.value = formatEuro(correctValue);
+                input.disabled = true;
+                hint.style.display = 'none';
+
+                // Nächsten Input-Schritt finden
+                let nextInputStep = -1;
+                for (let i = stepIndex + 1; i < steps.length; i++) {
+                    if (steps[i].type === 'input') {
+                        nextInputStep = i;
+                        break;
+                    }
+                }
+
+                if (nextInputStep !== -1) {
+                    currentStep = nextInputStep;
+                    renderCalculationSteps();
+                } else {
+                    // Alle Schritte abgeschlossen!
+                    currentStep = steps.length;
+                    renderCalculationSteps();
+                    showFinalResult();
+                    launchConfetti();
+                }
+
+                updateProgress();
+            } else {
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 500);
+
+                hint.style.display = 'block';
+
+                const tipFormula = document.getElementById(`tip-formula-${stepIndex}`);
+                if (tipFormula) {
+                    tipFormula.innerHTML = getTip(actualStep.tipKey);
+                }
+
+                input.select();
+            }
+        }
+
+        function toggleTip(stepIndex) {
+            const tipBox = document.getElementById(`tip-${stepIndex}`);
+            if (tipBox) {
+                tipBox.classList.toggle('show');
+            }
+        }
+
+        function getTip(tipKey) {
+            const t = tasks[currentTask];
+            const sol = solutions;
+
+            switch (tipKey) {
+                case 'mgk':
+                    return `FM &times; MGK-Zuschlag<br>
+                            ${formatEuro(t.fertigungsmaterial)} &times; ${formatProzent(t.mgkProzent)} % = ?`;
+                case 'mk':
+                    return `FM + MGK<br>
+                            ${formatEuro(t.fertigungsmaterial)} + ${formatEuro(sol.materialgemeinkosten)} = ?`;
+                case 'fgk':
+                    return `FL &times; FGK-Zuschlag<br>
+                            ${formatEuro(t.fertigungsloehne)} &times; ${formatProzent(t.fgkProzent)} % = ?`;
+                case 'zs':
+                    return `FL + FGK<br>
+                            ${formatEuro(t.fertigungsloehne)} + ${formatEuro(sol.fertigungsgemeinkosten)} = ?`;
+                case 'fk':
+                    return `Zwischensumme + SEKF<br>
+                            ${formatEuro(sol.zwischensumme)} + ${formatEuro(t.sondereinzelkosten)} = ?`;
+                case 'hk':
+                    return `MK + FK<br>
+                            ${formatEuro(sol.materialkosten)} + ${formatEuro(sol.fertigungskosten)} = ?`;
+                case 'vwgk':
+                    return `HK &times; VwGK-Zuschlag<br>
+                            ${formatEuro(sol.herstellkosten)} &times; ${formatProzent(t.vwgkProzent)} % = ?`;
+                case 'vtgk':
+                    return `HK &times; VtGK-Zuschlag<br>
+                            ${formatEuro(sol.herstellkosten)} &times; ${formatProzent(t.vtgkProzent)} % = ?`;
+                case 'sk':
+                    return `HK + VwGK + VtGK<br>
+                            ${formatEuro(sol.herstellkosten)} + ${formatEuro(sol.verwaltungsgemeinkosten)} + ${formatEuro(sol.vertriebsgemeinkosten)} = ?`;
+                default:
+                    return 'Überprüfe deine Berechnung noch einmal.';
+            }
+        }
+
+        function updateProgress() {
+            const steps = getSteps();
+            const inputSteps = steps.filter(s => s.type === 'input');
+            const completedInputs = inputSteps.filter((s) => {
+                const stepIndex = steps.indexOf(s);
+                return stepIndex < currentStep;
+            }).length;
+
+            const percentage = Math.round((completedInputs / inputSteps.length) * 100);
+
+            document.getElementById('progress-bar').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = percentage + '%';
+        }
+
+        function showFinalResult() {
+            const t = tasks[currentTask];
+            const html = `
+                <div class="final-result">
+                    <h4><i class="bi bi-trophy-fill me-2"></i>Geschafft!</h4>
+                    <p>Die Selbstkosten für ${t.product} betragen:</p>
+                    <div class="amount">${formatEuro(solutions.selbstkosten)} \u20ac</div>
+                    <div class="answer-text">
+                        Antwortsatz: Die Selbstkosten betragen ${formatEuro(solutions.selbstkosten)} \u20ac.
+                    </div>
+                </div>
+            `;
+            document.getElementById('final-result-box').innerHTML = html;
+            document.getElementById('final-result-box').style.display = 'block';
+        }
+
+        // Konfetti-Effekt
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff9900', '#9900ff'];
+
+            for (let i = 0; i < 300; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 8 + 3,
+                    d: Math.random() * 300,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 10,
+                    tiltAngle: 0,
+                    tiltAngleIncrement: Math.random() * 0.1 + 0.05,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1
+                });
+            }
+
+            let animationFrames = 0;
+            const maxFrames = 400;
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach((p) => {
+                    ctx.beginPath();
+                    ctx.lineWidth = p.r;
+                    ctx.strokeStyle = p.color;
+                    ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                    ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                    ctx.stroke();
+
+                    p.tiltAngle += p.tiltAngleIncrement;
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.tilt = Math.sin(p.tiltAngle) * 15;
+
+                    if (p.y > canvas.height) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+
+                animationFrames++;
+                if (animationFrames < maxFrames) {
+                    requestAnimationFrame(draw);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            draw();
+        }
+
+        // Eingabe beim Verlassen formatieren
+        document.addEventListener('blur', function(e) {
+            if (e.target.matches('input[id^="input-"]') && !e.target.disabled) {
+                const value = parseEuroInput(e.target.value);
+                if (!isNaN(value)) {
+                    e.target.value = formatEuro(value);
+                }
+            }
+        }, true);
+    </script>
+</body>
+</html>
