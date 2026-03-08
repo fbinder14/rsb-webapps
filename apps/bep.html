@@ -1,0 +1,939 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SnowPro – Break-Even-Point</title>
+<style>
+  :root {
+    --blue: #2E75B6;
+    --blue-dark: #1B4F72;
+    --red: #C0392B;
+    --green: #27AE60;
+    --orange: #E67E22;
+    --yellow-bg: #FFF9C4;
+    --gray-light: #F0F4F8;
+    --gray: #94A3B8;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #E8F4FD 0%, #F0F4F8 50%, #EDE7F6 100%);
+    min-height: 100vh;
+    color: #1E293B;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0D2B45 0%, #1B4F72 40%, #2471A3 100%);
+    color: white;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 24px rgba(13,43,69,0.4);
+    overflow: hidden;
+  }
+  .header-mountain {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.07;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 120'%3E%3Cpath d='M0,120 L100,40 L160,70 L220,20 L300,80 L380,10 L440,50 L520,30 L600,60 L680,15 L750,55 L800,25 L800,120Z' fill='white'/%3E%3C/svg%3E") no-repeat bottom center;
+    background-size: cover;
+    pointer-events: none;
+  }
+  .header-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 20px 14px;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .header-brand .snowflake {
+    font-size: 22px;
+    opacity: 0.9;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  }
+  .header-brand .brand-name {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .header h1 {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    line-height: 1.2;
+  }
+  .header .subtitle {
+    font-size: 11px;
+    opacity: 0.55;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* Cards */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .icon-blue { background: #DBEAFE; }
+  .icon-green { background: #D1FAE5; }
+  .icon-red { background: #FEE2E2; }
+
+  /* Slider Controls */
+  .control-group {
+    margin-bottom: 18px;
+  }
+  .control-group:last-child { margin-bottom: 0; }
+
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .control-label span:first-child {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+  }
+  .control-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Custom Range Slider */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 44px;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--blue) 0%, var(--blue) var(--fill, 50%), #E2E8F0 var(--fill, 50%));
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--blue);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    margin-top: -12px;
+    transition: transform 0.1s;
+  }
+  input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+    border-color: var(--blue-dark);
+  }
+
+  /* Slider color variants */
+  .slider-red::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, var(--red) 0%, var(--red) var(--fill, 50%), #E2E8F0 var(--fill, 50%));
+  }
+  .slider-red::-webkit-slider-thumb { border-color: var(--red); }
+  .slider-red:active::-webkit-slider-thumb { border-color: #922B21; }
+
+  .slider-orange::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, var(--orange) 0%, var(--orange) var(--fill, 50%), #E2E8F0 var(--fill, 50%));
+  }
+  .slider-orange::-webkit-slider-thumb { border-color: var(--orange); }
+  .slider-orange:active::-webkit-slider-thumb { border-color: #A04000; }
+
+  /* Result KPIs */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .kpi {
+    background: var(--gray-light);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .kpi-value {
+    font-size: 22px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+  }
+  .kpi-unit {
+    font-size: 11px;
+    color: var(--gray);
+    font-weight: 500;
+  }
+  .kpi-highlight {
+    background: linear-gradient(135deg, #DBEAFE, #E0E7FF);
+    border: 2px solid var(--blue);
+  }
+  .kpi-highlight .kpi-value { color: var(--blue-dark); }
+
+  .kpi-loss { background: #FEE2E2; border: 2px solid var(--red); }
+  .kpi-loss .kpi-value { color: var(--red); }
+  .kpi-profit { background: #D1FAE5; border: 2px solid var(--green); }
+  .kpi-profit .kpi-value { color: var(--green); }
+
+  /* Chart */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 4px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #FAFBFC;
+  }
+  canvas {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+    touch-action: none;
+  }
+
+  /* IST Menge Control */
+  .ist-control {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #FFF7ED, #FFFBEB);
+    border-radius: 12px;
+    border: 2px solid #FDBA74;
+  }
+  .ist-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .ist-label span:first-child {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--orange);
+  }
+  .ist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.3s;
+  }
+  .badge-loss { background: #FEE2E2; color: var(--red); }
+  .badge-profit { background: #D1FAE5; color: var(--green); }
+  .badge-even { background: var(--yellow-bg); color: #92400E; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748B;
+  }
+  .legend-line {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid;
+  }
+
+  /* Info Box */
+  .info-box {
+    background: var(--yellow-bg);
+    border-left: 4px solid #F59E0B;
+    border-radius: 0 12px 12px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #92400E;
+    margin-top: 12px;
+  }
+  .info-box strong { color: #78350F; }
+
+  /* Hidden/Reveal for BEP */
+  .kpi-hidden .kpi-value,
+  .kpi-hidden .kpi-unit {
+    filter: blur(8px);
+    user-select: none;
+    transition: filter 0.5s ease;
+  }
+  .kpi-hidden.revealed .kpi-value,
+  .kpi-hidden.revealed .kpi-unit {
+    filter: none;
+  }
+  .reveal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #DBEAFE, #E0E7FF);
+    color: var(--blue-dark);
+    border: 2px solid var(--blue);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .reveal-btn:active {
+    transform: scale(0.97);
+    background: var(--blue);
+    color: white;
+  }
+  .reveal-btn.hidden { display: none; }
+
+  /* Animations */
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .pulse { animation: pulse 0.4s ease; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .container { padding: 12px; }
+    .card { padding: 16px; }
+    .kpi-value { font-size: 18px; }
+    .control-value { font-size: 16px; }
+    .header h1 { font-size: 18px; }
+  }
+  @media (min-width: 768px) {
+    .container { padding: 24px; }
+    .header { padding: 24px 32px 20px; }
+    .header h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-mountain"></div>
+  <div class="header-content">
+    <div class="header-brand">
+      <span class="snowflake">❄️</span>
+      <span class="brand-name">SnowPro</span>
+    </div>
+    <h1>Break-Even-Point · Interaktive Analyse</h1>
+    <div class="subtitle">Zweigwerk Bobingen</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Slider Card -->
+  <div class="card">
+    <div class="card-title">
+      <div class="icon icon-blue">⚙️</div>
+      Parameter anpassen
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Verkaufspreis (netto)</span>
+        <span class="control-value" id="vkDisplay">280,00 €</span>
+      </div>
+      <input type="range" id="vkSlider" min="100" max="500" value="280" step="5">
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Variable Stückkosten</span>
+        <span class="control-value" id="kvDisplay">160,00 €</span>
+      </div>
+      <input type="range" class="slider-red" id="kvSlider" min="50" max="400" value="160" step="5">
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Fixkosten</span>
+        <span class="control-value" id="kfDisplay">36.000 €</span>
+      </div>
+      <input type="range" class="slider-orange" id="kfSlider" min="5000" max="100000" value="36000" step="500">
+    </div>
+  </div>
+
+  <!-- KPI Card -->
+  <div class="card">
+    <div class="card-title">
+      <div class="icon icon-green">📊</div>
+      Ergebnisse
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi" id="kpiDb">
+        <div class="kpi-label">Deckungsbeitrag</div>
+        <div class="kpi-value" id="dbValue">120,00 €</div>
+        <div class="kpi-unit">je Stück</div>
+      </div>
+      <div class="kpi kpi-highlight kpi-hidden" id="kpiBep">
+        <div class="kpi-label">Gewinnschwelle</div>
+        <div class="kpi-value" id="bepValue">300</div>
+        <div class="kpi-unit">Stück</div>
+      </div>
+      <div class="kpi" id="kpiDbPct">
+        <div class="kpi-label">DB in % vom Erlös</div>
+        <div class="kpi-value" id="dbPctValue">42,86 %</div>
+        <div class="kpi-unit"></div>
+      </div>
+      <div class="kpi kpi-hidden" id="kpiBepEur">
+        <div class="kpi-label">BEP-Umsatz</div>
+        <div class="kpi-value" id="bepEurValue">84.000 €</div>
+        <div class="kpi-unit"></div>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button class="reveal-btn" id="revealBtn" onclick="revealBep()">🔍 Gewinnschwelle aufdecken</button>
+    </div>
+  </div>
+
+  <!-- Chart Card -->
+  <div class="card">
+    <div class="card-title">
+      <div class="icon icon-blue">📈</div>
+      Break-Even-Diagramm
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:var(--blue)"></div> Erlöse</div>
+      <div class="legend-item"><div class="legend-line" style="background:var(--red)"></div> Gesamtkosten</div>
+      <div class="legend-item"><div class="legend-line" style="background:#CBD5E1;height:2px;border-top:2px dashed #94A3B8"></div> Fixkosten</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1E293B;border-color:#1E293B"></div> BEP</div>
+    </div>
+
+    <!-- IST-Menge Slider -->
+    <div class="ist-control">
+      <div class="ist-label">
+        <span>📍 IST-Absatzmenge</span>
+        <span class="ist-badge badge-loss" id="istBadge">Verlust</span>
+      </div>
+      <div class="control-label">
+        <span style="font-size:13px;color:#9A3412">Stückzahl verschieben</span>
+        <span class="control-value" style="color:var(--orange)" id="istDisplay">200 Stück</span>
+      </div>
+      <input type="range" class="slider-orange" id="istSlider" min="0" max="1000" value="200" step="10">
+      <div style="display:flex;justify-content:space-between;margin-top:4px">
+        <span id="istErgebnis" style="font-size:13px;font-weight:700;color:var(--red)">Ergebnis: –12.000,00 €</span>
+      </div>
+    </div>
+
+    <div class="info-box" id="infoBox">
+      <strong>🔎 Aufgabe:</strong> Verschiebe die Regler und finde heraus, ab welcher Stückzahl SnowPro Bobingen Gewinn erwirtschaftet!
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  vk: 280,
+  kv: 160,
+  kf: 36000,
+  ist: 200
+};
+
+let bepRevealed = false;
+
+function revealBep() {
+  bepRevealed = true;
+  document.querySelectorAll('.kpi-hidden').forEach(el => el.classList.add('revealed'));
+  $('revealBtn').classList.add('hidden');
+  update();
+}
+
+// ============================================================
+// DOM REFS
+// ============================================================
+const $ = id => document.getElementById(id);
+const vkSlider = $('vkSlider'), kvSlider = $('kvSlider'), kfSlider = $('kfSlider'), istSlider = $('istSlider');
+const canvas = $('chart');
+const ctx = canvas.getContext('2d');
+
+// ============================================================
+// FORMATTING
+// ============================================================
+function fmtEuro(n) {
+  const abs = Math.abs(n);
+  const formatted = abs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (n < 0 ? '–' : '') + formatted + ' €';
+}
+function fmtPct(n) {
+  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' %';
+}
+function fmtNum(n) {
+  return Math.round(n).toLocaleString('de-DE');
+}
+
+// ============================================================
+// UPDATE SLIDER TRACK FILL
+// ============================================================
+function updateSliderFill(slider) {
+  const min = parseFloat(slider.min), max = parseFloat(slider.max), val = parseFloat(slider.value);
+  const pct = ((val - min) / (max - min)) * 100;
+  slider.style.setProperty('--fill', pct + '%');
+}
+
+// ============================================================
+// CALCULATIONS
+// ============================================================
+function calc() {
+  const db = state.vk - state.kv;
+  const bep = db > 0 ? Math.ceil(state.kf / db) : Infinity;
+  const dbPct = state.vk > 0 ? (db / state.vk) * 100 : 0;
+  const bepEur = bep * state.vk;
+  const istErloes = state.ist * state.vk;
+  const istKosten = state.kf + state.ist * state.kv;
+  const istErgebnis = istErloes - istKosten;
+
+  return { db, bep, dbPct, bepEur, istErloes, istKosten, istErgebnis };
+}
+
+// ============================================================
+// UPDATE UI
+// ============================================================
+function update() {
+  const r = calc();
+
+  // Displays
+  $('vkDisplay').textContent = fmtEuro(state.vk);
+  $('kvDisplay').textContent = fmtEuro(state.kv);
+  $('kfDisplay').textContent = fmtEuro(state.kf);
+  $('istDisplay').textContent = fmtNum(state.ist) + ' Stück';
+
+  // KPIs
+  $('dbValue').textContent = fmtEuro(r.db);
+  $('bepValue').textContent = r.bep === Infinity ? '∞' : fmtNum(r.bep);
+  $('dbPctValue').textContent = fmtPct(r.dbPct);
+  $('bepEurValue').textContent = r.bep === Infinity ? '–' : fmtEuro(r.bepEur);
+
+  // DB color
+  const kpiDb = $('kpiDb');
+  kpiDb.className = 'kpi' + (r.db > 0 ? '' : r.db === 0 ? '' : ' kpi-loss');
+
+  // IST Badge
+  const badge = $('istBadge');
+  if (r.istErgebnis > 0) {
+    badge.className = 'ist-badge badge-profit';
+    badge.textContent = '✓ Gewinn';
+  } else if (r.istErgebnis === 0) {
+    badge.className = 'ist-badge badge-even';
+    badge.textContent = '= Break-Even';
+  } else {
+    badge.className = 'ist-badge badge-loss';
+    badge.textContent = '✗ Verlust';
+  }
+
+  // IST Ergebnis
+  const istEl = $('istErgebnis');
+  istEl.textContent = 'Ergebnis: ' + fmtEuro(r.istErgebnis);
+  istEl.style.color = r.istErgebnis >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Info box
+  const diff = r.bep - state.ist;
+  let infoText;
+  if (!bepRevealed) {
+    // Vor dem Aufdecken: keine BEP-Stückzahl verraten
+    if (r.db <= 0) {
+      infoText = '<strong>⚠️ Achtung:</strong> Der Deckungsbeitrag ist ' + (r.db === 0 ? 'null' : 'negativ') +
+        '. So kann kein Gewinn entstehen!';
+    } else if (r.istErgebnis < 0) {
+      infoText = '<strong>🔎 Aufgabe:</strong> Bei <strong>' + fmtNum(state.ist) + ' Stück</strong> macht SnowPro Bobingen einen Verlust von <strong>' +
+        fmtEuro(Math.abs(r.istErgebnis)) + '</strong>. Finde heraus, ab welcher Stückzahl Gewinn entsteht!';
+    } else if (r.istErgebnis === 0) {
+      infoText = '<strong>🎯 Genau getroffen!</strong> Bei <strong>' + fmtNum(state.ist) + ' Stück</strong> sind Erlöse und Gesamtkosten gleich hoch. ' +
+        'Du hast die Gewinnschwelle gefunden!';
+    } else {
+      infoText = '<strong>✅ Gewinnzone!</strong> Bei <strong>' + fmtNum(state.ist) + ' Stück</strong> erzielt SnowPro Bobingen einen Gewinn von <strong>' +
+        fmtEuro(r.istErgebnis) + '</strong>. Kannst du die genaue Gewinnschwelle finden?';
+    }
+  } else {
+    // Nach dem Aufdecken: vollständige Infos
+    if (r.db <= 0) {
+      infoText = '<strong>⚠️ Achtung:</strong> Der Deckungsbeitrag ist ' + (r.db === 0 ? 'null' : 'negativ') +
+        '. Mit jedem verkauften Stück ' + (r.db < 0 ? 'steigt der Verlust!' : 'wird kein Beitrag zur Fixkostendeckung geleistet.');
+    } else if (r.istErgebnis < 0) {
+      infoText = '<strong>💡 Erkenntnis:</strong> Bei <strong>' + fmtNum(state.ist) + ' Stück</strong> liegt SnowPro Bobingen noch ' +
+        '<strong>' + fmtNum(diff) + ' Stück</strong> unter der Gewinnschwelle. Es entsteht ein Verlust von <strong>' +
+        fmtEuro(Math.abs(r.istErgebnis)) + '</strong>.';
+    } else if (r.istErgebnis === 0) {
+      infoText = '<strong>🎯 Genau getroffen!</strong> Bei <strong>' + fmtNum(state.ist) + ' Stück</strong> sind Erlöse und Gesamtkosten gleich hoch. ' +
+        'SnowPro Bobingen erwirtschaftet weder Gewinn noch Verlust.';
+    } else {
+      infoText = '<strong>✅ Gewinnzone!</strong> Bei <strong>' + fmtNum(state.ist) + ' Stück</strong> liegt SnowPro Bobingen ' +
+        '<strong>' + fmtNum(Math.abs(diff)) + ' Stück</strong> über der Gewinnschwelle. Der Gewinn beträgt <strong>' +
+        fmtEuro(r.istErgebnis) + '</strong>.';
+    }
+  }
+  $('infoBox').innerHTML = infoText;
+
+  // Slider fills
+  [vkSlider, kvSlider, kfSlider, istSlider].forEach(updateSliderFill);
+
+  // Adjust IST slider max (gedeckelt bei 1.000)
+  istSlider.max = 1000;
+
+  drawChart(r);
+}
+
+// ============================================================
+// CHART DRAWING
+// ============================================================
+function drawChart(r) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width;
+  const h = Math.min(w * 0.65, 420);
+
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // Padding
+  const pl = 62, pr = 20, pt = 16, pb = 40;
+  const cw = w - pl - pr;
+  const ch = h - pt - pb;
+
+  // Axis ranges (max 1.000 Stück)
+  const maxX = Math.min(Math.max(r.bep * 1.6, state.ist * 1.3, 500), 1000);
+  const maxYval = Math.max(state.vk * maxX, state.kf + state.kv * maxX);
+  const maxY = Math.ceil(maxYval / 10000) * 10000 * 1.1;
+
+  function px(x) { return pl + (x / maxX) * cw; }
+  function py(y) { return pt + ch - (y / maxY) * ch; }
+
+  // Clear
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#E2E8F0';
+  ctx.lineWidth = 0.5;
+  const yStep = maxY > 200000 ? 50000 : maxY > 100000 ? 20000 : 10000;
+  for (let y = 0; y <= maxY; y += yStep) {
+    ctx.beginPath();
+    ctx.moveTo(pl, py(y));
+    ctx.lineTo(w - pr, py(y));
+    ctx.stroke();
+  }
+  const xStep = maxX > 1000 ? 200 : maxX > 500 ? 100 : 50;
+  for (let x = 0; x <= maxX; x += xStep) {
+    ctx.beginPath();
+    ctx.moveTo(px(x), pt);
+    ctx.lineTo(px(x), pt + ch);
+    ctx.stroke();
+  }
+
+  // Y axis labels
+  ctx.fillStyle = '#64748B';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let y = 0; y <= maxY; y += yStep) {
+    ctx.fillText(Math.round(y).toLocaleString('de-DE'), pl - 6, py(y));
+  }
+
+  // X axis labels
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let x = 0; x <= maxX; x += xStep) {
+    ctx.fillText(Math.round(x).toLocaleString('de-DE'), px(x), pt + ch + 6);
+  }
+
+  // Axis titles
+  ctx.fillStyle = '#475569';
+  ctx.font = 'bold 11px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Stückzahl', pl + cw / 2, h - 4);
+
+  ctx.save();
+  ctx.translate(14, pt + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Euro (€)', 0, 0);
+  ctx.restore();
+
+  // Shading - Loss zone (only when revealed)
+  if (r.db > 0 && bepRevealed) {
+    const bepX = state.kf / r.db;
+    const clipRight = Math.min(bepX, maxX);
+
+    // Loss zone
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(state.kf));
+    const steps = 60;
+    for (let i = 0; i <= steps; i++) {
+      const xv = (clipRight / steps) * i;
+      ctx.lineTo(px(xv), py(state.kf + state.kv * xv));
+    }
+    for (let i = steps; i >= 0; i--) {
+      const xv = (clipRight / steps) * i;
+      ctx.lineTo(px(xv), py(state.vk * xv));
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(192, 57, 43, 0.08)';
+    ctx.fill();
+
+    // Profit zone
+    if (bepX < maxX) {
+      ctx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const xv = bepX + ((maxX - bepX) / steps) * i;
+        ctx.lineTo(px(xv), py(state.vk * xv));
+      }
+      for (let i = steps; i >= 0; i--) {
+        const xv = bepX + ((maxX - bepX) / steps) * i;
+        ctx.lineTo(px(xv), py(state.kf + state.kv * xv));
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(39, 174, 96, 0.08)';
+      ctx.fill();
+    }
+
+    // Zone labels
+    const lossLabelX = Math.min(bepX * 0.4, maxX * 0.25);
+    const lossLabelY = (state.vk * lossLabelX + (state.kf + state.kv * lossLabelX)) / 2;
+    ctx.fillStyle = 'rgba(192, 57, 43, 0.35)';
+    ctx.font = 'bold 13px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    if (lossLabelX > 20) ctx.fillText('Verlustzone', px(lossLabelX), py(lossLabelY));
+
+    if (bepX < maxX * 0.85) {
+      const profitLabelX = bepX + (maxX - bepX) * 0.6;
+      const profitLabelY = (state.vk * profitLabelX + (state.kf + state.kv * profitLabelX)) / 2;
+      ctx.fillStyle = 'rgba(39, 174, 96, 0.35)';
+      ctx.fillText('Gewinnzone', px(profitLabelX), py(profitLabelY));
+    }
+  }
+
+  // Fixkosten line (dashed)
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#94A3B8';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(state.kf));
+  ctx.lineTo(px(maxX), py(state.kf));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Erlöse line
+  ctx.strokeStyle = '#2E75B6';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(0));
+  ctx.lineTo(px(maxX), py(state.vk * maxX));
+  ctx.stroke();
+
+  // Kosten line
+  ctx.strokeStyle = '#C0392B';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(state.kf));
+  ctx.lineTo(px(maxX), py(state.kf + state.kv * maxX));
+  ctx.stroke();
+
+  // IST vertical line
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = 'rgba(230, 126, 34, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(px(state.ist), py(0));
+  ctx.lineTo(px(state.ist), py(Math.max(r.istErloes, r.istKosten) * 1.05));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // IST points
+  ctx.fillStyle = '#2E75B6';
+  ctx.beginPath();
+  ctx.arc(px(state.ist), py(r.istErloes), 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#C0392B';
+  ctx.beginPath();
+  ctx.arc(px(state.ist), py(r.istKosten), 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // IST bracket / difference
+  if (state.ist > 0) {
+    const midY = (r.istErloes + r.istKosten) / 2;
+    const diff = r.istErloes - r.istKosten;
+    ctx.fillStyle = diff >= 0 ? 'rgba(39,174,96,0.9)' : 'rgba(192,57,43,0.9)';
+    ctx.font = 'bold 10px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    const label = (diff >= 0 ? '+' : '') + fmtEuro(diff);
+    const labelX = px(state.ist) + 8;
+    const labelY = py(midY);
+
+    // Background pill
+    const tm = ctx.measureText(label);
+    const pillW = tm.width + 10;
+    const pillH = 18;
+    ctx.fillStyle = diff >= 0 ? 'rgba(209,250,229,0.95)' : 'rgba(254,226,226,0.95)';
+    ctx.beginPath();
+    ctx.roundRect(labelX - 5, labelY - pillH / 2, pillW, pillH, 4);
+    ctx.fill();
+    ctx.fillStyle = diff >= 0 ? '#166534' : '#991B1B';
+    ctx.fillText(label, labelX, labelY + 3.5);
+  }
+
+  // IST label
+  ctx.fillStyle = '#E67E22';
+  ctx.font = 'bold 10px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(state.ist + ' Stk.', px(state.ist), py(0) + 14);
+
+  // BEP point (only when revealed)
+  if (r.db > 0 && bepRevealed) {
+    const bepX = state.kf / r.db;
+    const bepY = state.vk * bepX;
+    if (bepX <= maxX) {
+      ctx.fillStyle = '#1E293B';
+      ctx.beginPath();
+      ctx.arc(px(bepX), py(bepY), 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(px(bepX), py(bepY), 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // BEP label
+      const labelDir = bepX > maxX * 0.6 ? -1 : 1;
+      const bepLabelX = px(bepX) + labelDir * 12;
+      const bepLabelY = py(bepY) - 20;
+      const bepText = 'BEP: ' + fmtNum(Math.ceil(bepX)) + ' Stk.';
+
+      ctx.fillStyle = 'rgba(255,249,196,0.95)';
+      const btm = ctx.measureText(bepText);
+      const bpW = btm.width + 14;
+      ctx.beginPath();
+      ctx.roundRect(bepLabelX - (labelDir > 0 ? 7 : bpW - 7), bepLabelY - 10, bpW, 20, 5);
+      ctx.fill();
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#78350F';
+      ctx.font = 'bold 10.5px -apple-system, sans-serif';
+      ctx.textAlign = labelDir > 0 ? 'left' : 'right';
+      ctx.fillText(bepText, bepLabelX, bepLabelY + 4);
+    }
+  }
+
+  // Axes
+  ctx.strokeStyle = '#CBD5E1';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pl, pt);
+  ctx.lineTo(pl, pt + ch);
+  ctx.lineTo(w - pr, pt + ch);
+  ctx.stroke();
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+function onInput(slider, key) {
+  slider.addEventListener('input', () => {
+    state[key] = parseFloat(slider.value);
+    update();
+  });
+}
+onInput(vkSlider, 'vk');
+onInput(kvSlider, 'kv');
+onInput(kfSlider, 'kf');
+onInput(istSlider, 'ist');
+
+// Resize
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(update, 50);
+});
+
+// Initial
+update();
+</script>
+</body>
+</html>
