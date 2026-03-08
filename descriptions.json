@@ -542,5 +542,12 @@
     "beschreibung": "Kostenträgerstückrechnung mit Zuschlagskalkulation trainieren",
     "kategorie": "BWR",
     "lernbereich": "BwR10-II-3"
+  },
+  "bep.html": {
+    "fach": "BWR",
+    "stufe": "10",
+    "beschreibung": "Break-Even-Point Berechnung mit variablen und fixen Kosten",
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-4"
   }
 }
