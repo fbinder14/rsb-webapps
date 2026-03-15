@@ -549,5 +549,12 @@
     "beschreibung": "Break-Even-Point Berechnung mit variablen und fixen Kosten",
     "kategorie": "BWR",
     "lernbereich": "BwR10-II-4"
+  },
+  "preisuntergrenzen.html": {
+    "fach": "BWR",
+    "stufe": "10",
+    "beschreibung": "Interaktive Übung zu Preisuntergrenzen in der Teilkostenrechnung",
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-4"
   }
 }
