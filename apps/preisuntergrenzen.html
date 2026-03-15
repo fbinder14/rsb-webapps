@@ -1,0 +1,692 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preisuntergrenzen – Schüler-Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F6F8FB;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1E293B;
+    --text-secondary: #64748B;
+    --accent: #4361EE;
+    --accent-light: #EEF2FF;
+    --accent-hover: #3B54D4;
+    --green: #10B981;
+    --green-light: #ECFDF5;
+    --red: #EF4444;
+    --red-light: #FEF2F2;
+    --amber: #F59E0B;
+    --amber-light: #FFFBEB;
+    --radius: 16px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.08);
+  }
+
+  html { font-size: 18px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Top Bar ── */
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: .8rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,.92);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 1rem; }
+  .topbar-title { font-weight: 700; font-size: 1.1rem; }
+  .topbar-sub { color: var(--text-secondary); font-size: .85rem; font-weight: 400; }
+  .badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: var(--accent-light); color: var(--accent);
+    padding: .25rem .7rem; border-radius: 99px;
+    font-size: .75rem; font-weight: 600;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* ── Phase Navigation ── */
+  .phase-nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .phase-tab {
+    padding: .9rem 1.5rem;
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+    position: relative;
+  }
+  .phase-tab:hover { color: var(--text); background: var(--bg); }
+  .phase-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .phase-tab .phase-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--border); color: var(--text-secondary);
+    font-size: .7rem; font-weight: 700; margin-right: .5rem;
+  }
+  .phase-tab.active .phase-num { background: var(--accent); color: #fff; }
+
+  /* ── Main Content ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+  .phase-section { display: none; animation: fadeUp .4s ease; }
+  .phase-section.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .25s;
+  }
+  .card:hover { box-shadow: var(--shadow-md); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .card-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-secondary);
+    margin-bottom: .3rem;
+  }
+  .card-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  /* ── Data Grid ── */
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .data-item {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 1.1rem 1.3rem;
+  }
+  .data-item .label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .3rem;
+  }
+  .data-item .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .data-item .value.accent { color: var(--accent); }
+  .data-item .unit {
+    font-size: .85rem;
+    color: var(--text-secondary);
+    font-family: 'Outfit', sans-serif;
+  }
+
+  /* ── Scenario Cards ── */
+  .scenario-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+  }
+  .scenario-icon.blue { background: var(--accent-light); }
+  .scenario-icon.amber { background: var(--amber-light); }
+
+  .quote-box {
+    background: var(--bg);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .quote-box.amber { border-left-color: var(--amber); }
+
+  .scenario-context {
+    font-size: 1.05rem;
+    color: var(--text);
+    margin: .8rem 0;
+    line-height: 1.7;
+  }
+
+  /* ── Arbeitsauftrag Card ── */
+  .arbeitsauftrag {
+    background: linear-gradient(135deg, #EEF2FF 0%, #F3E8FF 100%);
+    border: 1px solid #D0D9FF;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .arbeitsauftrag-header {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: 1rem;
+  }
+  .arbeitsauftrag-icon {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .arbeitsauftrag-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .arbeitsauftrag-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .arbeitsauftrag-content ol {
+    margin-left: 1.5rem;
+    margin-top: .5rem;
+  }
+  .arbeitsauftrag-content li {
+    margin-bottom: .6rem;
+  }
+
+  /* ── Decision Buttons ── */
+  .decision-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .decision-btn {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all .2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+  }
+  .decision-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .decision-btn:active { transform: translateY(0); }
+  .decision-btn.accept {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .decision-btn.accept.selected {
+    background: var(--green);
+    color: #fff;
+  }
+  .decision-btn.reject {
+    border-color: var(--red);
+    background: var(--red-light);
+    color: var(--red);
+  }
+  .decision-btn.reject.selected {
+    background: var(--red);
+    color: #fff;
+  }
+
+  /* ── Persistent Data Strip ── */
+  .data-strip {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: none;
+  }
+  .data-strip.visible { display: block; }
+  .data-strip-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
+    flex-wrap: wrap;
+  }
+  .data-strip-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-secondary);
+    margin-right: .2rem;
+  }
+  .data-strip-item {
+    display: flex;
+    align-items: baseline;
+    gap: .4rem;
+  }
+  .data-strip-item .ds-key {
+    font-size: .75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .data-strip-item .ds-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .data-strip-item .ds-val.highlight { color: var(--accent); }
+  .data-strip-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+
+  /* ── Navigation Buttons ── */
+  .nav-buttons {
+    display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .nav-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .7rem 1.5rem; border-radius: 10px;
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    font-family: 'Outfit', sans-serif; font-size: .95rem; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+  .nav-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .nav-btn.primary:hover { background: var(--accent-hover); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: .75rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    html { font-size: 16px; }
+    .main { padding: 1rem; }
+    .card { padding: 1.3rem; }
+    .data-grid { grid-template-columns: 1fr 1fr; }
+    .decision-buttons { flex-direction: column; }
+  }
+
+  /* Keyboard focus visible */
+  .phase-tab:focus-visible, .nav-btn:focus-visible, .decision-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ TOP BAR ══════════════════ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="topbar-title">Preisuntergrenzen – Partnerarbeit</div>
+      <div class="topbar-sub">BwR 10 · LB4 Teilkostenrechnung · SnowPro Max Winter e. K.</div>
+    </div>
+    <div class="badge">Partnerarbeit</div>
+  </div>
+</header>
+
+<!-- ══════════════════ PHASE TABS ══════════════════ -->
+<nav class="phase-nav" id="phaseNav">
+  <div class="phase-tab active" data-phase="0">
+    <span class="phase-num"><span>1</span></span>Ausgangsdaten
+  </div>
+  <div class="phase-tab" data-phase="1">
+    <span class="phase-num"><span>2</span></span>Szenario – Sportverein
+  </div>
+  <div class="phase-tab" data-phase="2">
+    <span class="phase-num"><span>3</span></span>Szenario – Preiskampf
+  </div>
+</nav>
+
+<!-- ══════════════════ PERSISTENT DATA STRIP ══════════════════ -->
+<div class="data-strip" id="dataStrip">
+  <div class="data-strip-inner">
+    <span class="data-strip-label">SnowPro Max Winter e. K.</span>
+    <div class="data-strip-divider"></div>
+    <div class="data-strip-item">
+      <span class="ds-key">Kapazität</span>
+      <span class="ds-val">1.000 Stk.</span>
+    </div>
+    <div class="data-strip-item">
+      <span class="ds-key">Produktion</span>
+      <span class="ds-val">800 Stk.</span>
+    </div>
+    <div class="data-strip-divider"></div>
+    <div class="data-strip-item">
+      <span class="ds-key">variable Kosten/Stk.</span>
+      <span class="ds-val highlight">180,00 €</span>
+    </div>
+    <div class="data-strip-item">
+      <span class="ds-key">Fixkosten gesamt</span>
+      <span class="ds-val">104.000,00 €</span>
+    </div>
+    <div class="data-strip-item">
+      <span class="ds-key">SK/Stk.</span>
+      <span class="ds-val">310,00 €</span>
+    </div>
+    <div class="data-strip-item">
+      <span class="ds-key">NVP</span>
+      <span class="ds-val">440,00 €</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<main class="main">
+
+  <!-- ── Phase 0: Ausgangsdaten ── -->
+  <section class="phase-section active" data-phase="0">
+    <div class="card">
+      <div class="card-label">Modellunternehmen</div>
+      <div class="card-title">SnowPro Max Winter e. K. – Werk Reichenhall</div>
+      <div class="data-grid">
+        <div class="data-item">
+          <div class="label">Kapazität</div>
+          <div class="value">1.000 <span class="unit">Stk./Monat</span></div>
+        </div>
+        <div class="data-item">
+          <div class="label">Aktuelle Produktion</div>
+          <div class="value">800 <span class="unit">Stück</span></div>
+        </div>
+        <div class="data-item">
+          <div class="label">Variable Kosten/Stk.</div>
+          <div class="value accent">180,00 <span class="unit">€</span></div>
+        </div>
+        <div class="data-item">
+          <div class="label">Fixkosten gesamt</div>
+          <div class="value">104.000,00 <span class="unit">€/Monat</span></div>
+        </div>
+        <div class="data-item">
+          <div class="label">Selbstkosten/Stk.</div>
+          <div class="value">310,00 <span class="unit">€</span></div>
+        </div>
+        <div class="data-item">
+          <div class="label">Normaler NVP</div>
+          <div class="value">440,00 <span class="unit">€</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:1.15rem;">Eure Aufgabe heute</div>
+      <p class="scenario-context" style="margin-top:.6rem;">
+        Im Unterricht habt ihr bereits das Szenario „Festival" zusammen mit dem Lehrer durchgesprochen.
+        Jetzt arbeitet ihr in <strong>Partnerarbeit</strong> an zwei weiteren Szenarien.
+      </p>
+      <p class="scenario-context">
+        Bearbeitet beide Szenarien gründlich, diskutiert mit eurem Partner/eurer Partnerin und nutzt
+        Berechnungen, um eure Entscheidung zu begründen!
+      </p>
+    </div>
+
+    <div class="nav-buttons">
+      <div></div>
+      <button class="nav-btn primary" onclick="goPhase(1)">Weiter zu Szenario 1 →</button>
+    </div>
+  </section>
+
+  <!-- ── Phase 1: Szenario 1 (Sportverein) ── -->
+  <section class="phase-section" data-phase="1">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-label">Szenario – Partnerarbeit</div>
+          <div class="card-title">Der Sportverein</div>
+        </div>
+        <div class="scenario-icon blue">⛷️</div>
+      </div>
+
+      <p class="scenario-context">
+        Der TSV Berchtesgaden feiert sein 100-jähriges Jubiläum und möchte seinen Mitgliedern ein besonderes Geschenk machen. Er fragt bei SnowPro an:
+      </p>
+
+      <div class="quote-box">
+        „Können Sie uns <strong>einmalig 100 Snowboards</strong> zum Stückpreis von <strong>220,00 €</strong> liefern? Mehr können wir leider nicht zahlen."
+      </div>
+
+      <p class="scenario-context">
+        Herr Winter rechnet: 220,00 € liegt deutlich unter den Selbstkosten von 310,00 €. Aber das Werk ist nicht ausgelastet …
+      </p>
+
+      <!-- Arbeitsauftrag -->
+      <div class="arbeitsauftrag">
+        <div class="arbeitsauftrag-header">
+          <div class="arbeitsauftrag-icon">📋</div>
+          <div class="arbeitsauftrag-title">Arbeitsauftrag</div>
+        </div>
+        <div class="arbeitsauftrag-content">
+          <ol>
+            <li><strong>Diskutiert:</strong> Soll SnowPro das Angebot annehmen oder ablehnen?</li>
+            <li><strong>Begründet:</strong> Nutzt Berechnungen (Deckungsbeitrag, Gesamtdaten) für eure Entscheidung.</li>
+            <li><strong>Notiert:</strong> Schreibt eure Überlegungen und Berechnungen auf.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Decision Buttons -->
+      <div class="decision-buttons">
+        <button class="decision-btn accept" data-scenario="1" onclick="toggleDecision(this, 'accept')">
+          <span>👍</span> <span>Annehmen</span>
+        </button>
+        <button class="decision-btn reject" data-scenario="1" onclick="toggleDecision(this, 'reject')">
+          <span>👎</span> <span>Ablehnen</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="goPhase(0)">← Ausgangsdaten</button>
+      <button class="nav-btn primary" onclick="goPhase(2)">Weiter zu Szenario 2 →</button>
+    </div>
+  </section>
+
+  <!-- ── Phase 2: Szenario 2 (Preiskampf) ── -->
+  <section class="phase-section" data-phase="2">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-label">Szenario – Partnerarbeit</div>
+          <div class="card-title">Der Preiskampf</div>
+        </div>
+        <div class="scenario-icon amber">⚔️</div>
+      </div>
+
+      <p class="scenario-context">
+        Ein chinesischer Hersteller drängt auf den Markt und verkauft vergleichbare Boards für 270,00 €.
+        SnowPros wichtigster Großhändler stellt ein Ultimatum:
+      </p>
+
+      <div class="quote-box amber">
+        „Ab nächsten Monat zahlen wir <strong>dauerhaft nur noch 280,00 €</strong> pro Board – für alle 800 Stück. Sonst wechseln wir den Lieferanten."
+      </div>
+
+      <p class="scenario-context">
+        280,00 € – das ist auch unter den Selbstkosten. Aber ohne diesen Kunden steht das Werk praktisch still.
+      </p>
+
+      <!-- Arbeitsauftrag -->
+      <div class="arbeitsauftrag">
+        <div class="arbeitsauftrag-header">
+          <div class="arbeitsauftrag-icon">📋</div>
+          <div class="arbeitsauftrag-title">Arbeitsauftrag</div>
+        </div>
+        <div class="arbeitsauftrag-content">
+          <ol>
+            <li><strong>Diskutiert:</strong> Soll SnowPro das Angebot annehmen oder ablehnen?</li>
+            <li><strong>Begründet:</strong> Berechnet den Deckungsbeitrag pro Stück und insgesamt. Was bedeutet das langfristig?</li>
+            <li><strong>Notiert:</strong> Schreibt eure Überlegungen und Berechnungen auf.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Decision Buttons -->
+      <div class="decision-buttons">
+        <button class="decision-btn accept" data-scenario="2" onclick="toggleDecision(this, 'accept')">
+          <span>👍</span> <span>Annehmen</span>
+        </button>
+        <button class="decision-btn reject" data-scenario="2" onclick="toggleDecision(this, 'reject')">
+          <span>👎</span> <span>Ablehnen</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="goPhase(1)">← Szenario 1</button>
+      <div></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer class="footer">
+  BwR 10 · LB4 Teilkostenrechnung · Preisuntergrenzen · SnowPro Max Winter e. K.
+</footer>
+
+<script>
+  // ══════════════════ PHASE MANAGEMENT ══════════════════
+  const phaseNav = document.getElementById('phaseNav');
+  const dataStrip = document.getElementById('dataStrip');
+  let currentPhase = 0;
+
+  // Tab clicks
+  phaseNav.querySelectorAll('.phase-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const phase = parseInt(tab.dataset.phase);
+      goPhase(phase);
+    });
+    // Keyboard navigation
+    tab.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = tab.nextElementSibling;
+        if (next && next.classList.contains('phase-tab')) {
+          next.focus();
+          next.click();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = tab.previousElementSibling;
+        if (prev && prev.classList.contains('phase-tab')) {
+          prev.focus();
+          prev.click();
+        }
+      }
+    });
+  });
+
+  function goPhase(n) {
+    currentPhase = n;
+
+    // Update sections
+    document.querySelectorAll('.phase-section').forEach((sec, i) => {
+      sec.classList.toggle('active', i === n);
+    });
+
+    // Update tabs
+    phaseNav.querySelectorAll('.phase-tab').forEach((tab, i) => {
+      tab.classList.toggle('active', i === n);
+    });
+
+    // Show/hide data strip (only on scenarios, not on intro)
+    dataStrip.classList.toggle('visible', n > 0 && n < 3);
+  }
+
+  // ══════════════════ DECISION BUTTONS ══════════════════
+  function toggleDecision(btn, type) {
+    const scenario = btn.dataset.scenario;
+    const container = btn.parentElement;
+
+    // Remove selection from opposite button
+    const otherType = type === 'accept' ? 'reject' : 'accept';
+    const otherBtn = container.querySelector('.decision-btn.' + otherType);
+    otherBtn.classList.remove('selected');
+
+    // Toggle this button
+    btn.classList.toggle('selected');
+  }
+
+  // ══════════════════ KEYBOARD SHORTCUTS ══════════════════
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && e.altKey) {
+      e.preventDefault();
+      if (currentPhase < 2) goPhase(currentPhase + 1);
+    } else if (e.key === 'ArrowLeft' && e.altKey) {
+      e.preventDefault();
+      if (currentPhase > 0) goPhase(currentPhase - 1);
+    }
+  });
+
+  // ══════════════════ INITIAL STATE ══════════════════
+  goPhase(0);
+</script>
+
+</body>
+</html>
