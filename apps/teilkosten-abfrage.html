@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BWR Quiz – Teilkostenrechnung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple: #635bff; --purple-light: #7a73ff; --purple-dark: #4b45c7;
+    --bg: #f6f8fa; --card: #ffffff; --border: #e3e8ee;
+    --text: #1a1f36; --muted: #697386;
+    --success: #0d9f6e; --success-bg: #ecfdf5;
+    --error: #e25950; --error-bg: #fef2f2;
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .quiz-container { max-width: 640px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--purple-light)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .option-btn {
+    width: 100%; text-align: left; padding: 16px; border-radius: 12px;
+    border: 2px solid var(--border); background: var(--card);
+    display: flex; align-items: flex-start; gap: 14px;
+    font-family: inherit; font-size: 15px; line-height: 1.5; color: var(--text);
+    cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+    -webkit-user-select: none; user-select: none;
+  }
+  .option-btn:active:not(.disabled) { transform: scale(0.985); }
+  .option-btn.correct { border-color: var(--success); background: var(--success-bg); box-shadow: 0 0 0 2px var(--success); }
+  .option-btn.wrong { border-color: var(--error); background: var(--error-bg); box-shadow: 0 0 0 2px var(--error); }
+  .option-btn.disabled { pointer-events: none; opacity: 0.5; }
+  .option-btn.disabled.correct, .option-btn.disabled.wrong { opacity: 1; }
+  .option-letter {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px;
+    background: var(--bg); display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--muted);
+  }
+  .afb-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+  .afb-1 { background: #eff6ff; color: #1d4ed8; }
+  .afb-2 { background: #f3f0ff; color: #6d28d9; }
+  .afb-3 { background: #fffbeb; color: #b45309; }
+  .btn-primary {
+    width: 100%; padding: 16px; border: none; border-radius: 12px;
+    background: var(--purple); color: white; font-family: inherit;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 16px rgba(99,91,255,0.25);
+  }
+  .btn-primary:hover { background: var(--purple-dark); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--border); color: var(--muted); box-shadow: none; cursor: default; }
+  .feedback { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 12px; margin-top: 24px; font-size: 14px; }
+  .feedback-correct { background: var(--success-bg); border: 1px solid #bbf7d0; color: #166534; }
+  .feedback-wrong { background: var(--error-bg); border: 1px solid #fecaca; color: #991b1b; }
+  .slide-up { animation: slideUp 0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes feedbackSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .feedback { animation: feedbackSlide 0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
+  @keyframes resultPop { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .result-anim { animation: resultPop 0.6s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .score-ring { transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1); }
+  .opt-delay-0 { animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) 0ms forwards; opacity: 0; }
+  .opt-delay-1 { animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) 60ms forwards; opacity: 0; }
+  .opt-delay-2 { animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) 120ms forwards; opacity: 0; }
+  .opt-delay-3 { animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1) 180ms forwards; opacity: 0; }
+  .quiz-header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(246,248,250,0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(227,232,238,0.5);
+    padding: 16px 24px 12px;
+  }
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: rgba(246,248,250,0.9); backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(227,232,238,0.5);
+    padding: 16px 24px;
+  }
+  .bottom-bar-inner { max-width: 640px; margin: 0 auto; }
+  .font-display { font-family: 'Source Serif 4', Georgia, serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="quiz-container" id="app">
+
+  <!-- START -->
+  <div id="screen-start" style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:48px 24px;">
+    <div class="slide-up">
+      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--purple),var(--purple-light));display:flex;align-items:center;justify-content:center;margin-bottom:32px;box-shadow:0 8px 24px rgba(99,91,255,0.2);">
+        <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h1 class="font-display" style="font-size:30px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;">Teilkostenrechnung</h1>
+      <p style="color:var(--muted);font-size:16px;line-height:1.5;margin-bottom:8px;">Preisuntergrenzen &amp; Deckungsbeitragsrechnung</p>
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);margin-top:24px;margin-bottom:40px;">
+        <span style="display:flex;align-items:center;gap:6px;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          11 Fragen
+        </span>
+        <span style="display:flex;align-items:center;gap:6px;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Zeit wird gemessen
+        </span>
+      </div>
+      <button class="btn-primary" id="btn-start">Quiz starten</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" style="flex:1;display:none;flex-direction:column;">
+    <div class="quiz-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <span id="q-counter" class="font-mono" style="font-size:14px;font-weight:600;color:var(--muted);"></span>
+        <span class="font-mono" style="font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="timer-display">00:00</span>
+        </span>
+      </div>
+      <div class="progress-track"><div id="progress-fill" class="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div style="flex:1;padding:24px 24px 140px;">
+      <div id="q-afb" class="afb-badge"></div>
+      <h2 id="q-text" class="font-display" style="font-size:20px;font-weight:600;line-height:1.45;margin-bottom:32px;"></h2>
+      <div id="q-options" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div id="q-feedback" style="display:none;"></div>
+    </div>
+    <div class="bottom-bar">
+      <div class="bottom-bar-inner">
+        <button id="btn-next" class="btn-primary" disabled>Weiter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result" style="flex:1;display:none;flex-direction:column;justify-content:center;padding:48px 24px;"></div>
+
+</div>
+
+<script>
+(function() {
+  var questions = [
+    {
+      afb: 1,
+      text: "Welcher Begriff beschreibt die Differenz zwischen dem Verkaufspreis je St\u00fcck und den variablen Kosten je St\u00fcck?",
+      options: ["Betriebsergebnis je St\u00fcck", "Gesamtdeckungsbeitrag", "St\u00fcckdeckungsbeitrag", "St\u00fcckerfolg"],
+      correct: 2
+    },
+    {
+      afb: 1,
+      text: "Was gibt die kurzfristige Preisuntergrenze an?",
+      options: ["Den niedrigsten Preis, zu dem langfristig kostendeckend verkauft werden kann", "Den niedrigsten Preis, ab dem das Unternehmen Gewinn erzielt", "Den niedrigsten Preis, der die Selbstkosten je St\u00fcck abdeckt", "Den niedrigsten Preis, der die variablen St\u00fcckkosten abdeckt"],
+      correct: 3
+    },
+    {
+      afb: 2,
+      text: "Ein Produkt hat variable St\u00fcckkosten von 18,00 \u20ac und fixe St\u00fcckkosten von 7,00 \u20ac. Ein Kunde bietet 20,00 \u20ac je St\u00fcck f\u00fcr einen Zusatzauftrag bei freien Kapazit\u00e4ten. Wie ist die Situation zu beurteilen?",
+      options: ["Der Auftrag ist anzunehmen, da ein St\u00fcckgewinn von 2,00 \u20ac erzielt wird.", "Der Auftrag ist anzunehmen, da ein positiver St\u00fcckdeckungsbeitrag von 2,00 \u20ac entsteht.", "Der Auftrag ist abzulehnen, da der Preis die Selbstkosten von 25,00 \u20ac nicht deckt.", "Der Auftrag ist abzulehnen, da der St\u00fcckdeckungsbeitrag von 2,00 \u20ac die Fixkosten nicht deckt."],
+      correct: 1
+    },
+    {
+      afb: 2,
+      text: "Warum bleiben die Fixkosten bei der Ermittlung der kurzfristigen Preisuntergrenze unber\u00fccksichtigt?",
+      options: ["Weil Fixkosten erst bei der Jahresabschlussrechnung verrechnet werden", "Weil Fixkosten bereits vollst\u00e4ndig durch das regul\u00e4re Sortiment gedeckt sind", "Weil Fixkosten unabh\u00e4ngig von der Annahme des Auftrags in gleicher H\u00f6he anfallen", "Weil Fixkosten bei kurzfristigen Entscheidungen generell keine Rolle spielen"],
+      correct: 2
+    },
+    {
+      afb: 2,
+      text: "Die langfristige Preisuntergrenze eines Produkts entspricht \u2026",
+      options: ["den variablen St\u00fcckkosten.", "den variablen St\u00fcckkosten zuz\u00fcglich Gewinnzuschlag.", "den Selbstkosten je St\u00fcck.", "den gesamten Fixkosten dividiert durch die Absatzmenge."],
+      correct: 2
+    },
+    {
+      afb: 2,
+      text: "SnowPro produziert das Snowboard \u201eFreeride\u201c. Die variablen St\u00fcckkosten betragen 120,00 \u20ac, die gesamten Fixkosten 60.000,00 \u20ac, die Absatzmenge 1.000 St\u00fcck. Wie hoch ist die langfristige Preisuntergrenze?",
+      options: ["120,00 \u20ac (nur variable St\u00fcckkosten angesetzt)", "60,00 \u20ac (nur Fixkostenanteil je St\u00fcck angesetzt)", "180,00 \u20ac", "150,00 \u20ac (Fixkosten nur h\u00e4lftig angesetzt)"],
+      correct: 2
+    },
+    {
+      afb: 3,
+      text: "SnowPro verkauft das Snowboard \u201eAlpin\u201c regul\u00e4r f\u00fcr 250,00 \u20ac (variable St\u00fcckkosten: 140,00 \u20ac). Ein Gro\u00dfkunde bietet, 500 St\u00fcck zu je 155,00 \u20ac abzunehmen. Die Kapazit\u00e4ten sind frei, es entstehen keine zus\u00e4tzlichen Fixkosten. Welche Aussage ist zutreffend?",
+      options: ["Der Auftrag liefert einen Gesamtdeckungsbeitrag von 55.000,00 \u20ac, da die Differenz zum regul\u00e4ren Preis angesetzt wird.", "Der Auftrag liefert einen Gesamtdeckungsbeitrag von 7.500,00 \u20ac und ist kurzfristig anzunehmen.", "Der Auftrag ist abzulehnen, da der Preis unter den Selbstkosten liegt und somit ein Verlust entsteht.", "Der Auftrag liefert einen Gesamtdeckungsbeitrag von 7.500,00 \u20ac, ist aber abzulehnen, da er den Durchschnittspreis senkt."],
+      correct: 1
+    },
+    {
+      afb: 3,
+      text: "Unter welcher Bedingung kann es betriebswirtschaftlich sinnvoll sein, einen Preis unterhalb der Selbstkosten zu akzeptieren?",
+      options: ["Wenn der Kunde eine langfristige Gesch\u00e4ftsbeziehung zusichert", "Wenn der Preis oberhalb der variablen St\u00fcckkosten liegt und kurzfristig freie Kapazit\u00e4ten vorhanden sind", "Wenn der Preis oberhalb der variablen St\u00fcckkosten liegt und das Unternehmen voll ausgelastet ist", "Wenn der Preis die Fixkosten je St\u00fcck \u00fcbersteigt, auch bei fehlenden freien Kapazit\u00e4ten"],
+      correct: 1
+    },
+    {
+      afb: 3,
+      text: "SnowPro \u00fcberlegt, die Snowblades \u201eStandard\u201c aus dem Sortiment zu nehmen. Das Produkt erwirtschaftet laut Vollkostenrechnung einen negativen St\u00fcckerfolg. Der St\u00fcckdeckungsbeitrag ist jedoch positiv. Welche Empfehlung ist aus Sicht der Teilkostenrechnung zu geben?",
+      options: ["Das Produkt aus dem Sortiment nehmen, da der negative St\u00fcckerfolg das Betriebsergebnis belastet.", "Das Produkt im Sortiment belassen, da der positive St\u00fcckdeckungsbeitrag einen Beitrag zur Fixkostendeckung leistet.", "Das Produkt im Sortiment belassen, da der negative St\u00fcckerfolg nur durch eine fehlerhafte Fixkostenverteilung entsteht und bei korrekter Verteilung verschwinden w\u00fcrde.", "Das Produkt nur dann im Sortiment belassen, wenn der St\u00fcckdeckungsbeitrag h\u00f6her ist als die gesamten Fixkosten des Unternehmens."],
+      correct: 1
+    },
+    {
+      afb: 3,
+      text: "Welches Risiko besteht, wenn ein Unternehmen dauerhaft s\u00e4mtliche Auftr\u00e4ge nur zur kurzfristigen Preisuntergrenze annimmt?",
+      options: ["Die variablen Kosten steigen langfristig, da die Produktionsanlagen st\u00e4rker belastet werden.", "Die Fixkosten sinken zwar, aber nicht schnell genug, um die niedrigen Preise auszugleichen.", "Die Fixkosten werden langfristig nicht gedeckt und das Unternehmen erzielt Verluste.", "Die Deckungsbeitr\u00e4ge werden negativ, da die variablen Kosten nicht mehr gedeckt werden."],
+      correct: 2
+    },
+    {
+      afb: 2,
+      text: "Was ist kein Merkmal der langfristigen Preisuntergrenze?",
+      options: ["DB = Fixkosten.", "Das Betriebsergebnis ist negativ.", "Deckung der Selbstkosten.", "Die variablen Kosten werden gedeckt."],
+      correct: 1
+    }
+  ];
+
+  var letters = ["A", "B", "C", "D"];
+  var currentQ = 0;
+  var score = 0;
+  var answered = false;
+  var startTime = null;
+  var timerInterval = null;
+
+  document.getElementById("btn-start").addEventListener("click", function() {
+    document.getElementById("screen-start").style.display = "none";
+    document.getElementById("screen-quiz").style.display = "flex";
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    showQuestion();
+  });
+
+  document.getElementById("btn-next").addEventListener("click", function() {
+    if (!answered) return;
+    currentQ++;
+    if (currentQ < questions.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  });
+
+  function updateTimer() {
+    var elapsed = Math.floor((Date.now() - startTime) / 1000);
+    var m = String(Math.floor(elapsed / 60)).padStart(2, "0");
+    var s = String(elapsed % 60).padStart(2, "0");
+    document.getElementById("timer-display").textContent = m + ":" + s;
+  }
+
+  function showQuestion() {
+    answered = false;
+    var q = questions[currentQ];
+    document.getElementById("q-counter").textContent = (currentQ + 1) + " / " + questions.length;
+    document.getElementById("progress-fill").style.width = (currentQ / questions.length * 100) + "%";
+
+    var afbEl = document.getElementById("q-afb");
+    var afbLabels = { 1: "AFB I", 2: "AFB II", 3: "AFB III" };
+    var afbClasses = { 1: "afb-badge afb-1", 2: "afb-badge afb-2", 3: "afb-badge afb-3" };
+    afbEl.textContent = afbLabels[q.afb];
+    afbEl.className = afbClasses[q.afb];
+
+    document.getElementById("q-text").textContent = q.text;
+
+    var optContainer = document.getElementById("q-options");
+    optContainer.innerHTML = "";
+
+    for (var i = 0; i < q.options.length; i++) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn opt-delay-" + i;
+      btn.innerHTML = '<span class="option-letter">' + letters[i] + '</span><span style="padding-top:4px;">' + q.options[i] + '</span>';
+      btn.addEventListener("click", (function(idx) {
+        return function() { selectOption(idx); };
+      })(i));
+      optContainer.appendChild(btn);
+    }
+
+    document.getElementById("q-feedback").style.display = "none";
+    document.getElementById("q-feedback").innerHTML = "";
+
+    var nextBtn = document.getElementById("btn-next");
+    nextBtn.disabled = true;
+    nextBtn.textContent = currentQ < questions.length - 1 ? "Weiter" : "Ergebnis anzeigen";
+  }
+
+  function selectOption(idx) {
+    if (answered) return;
+    answered = true;
+
+    var q = questions[currentQ];
+    var isCorrect = (idx === q.correct);
+    if (isCorrect) score++;
+
+    var btns = document.querySelectorAll("#q-options .option-btn");
+    for (var i = 0; i < btns.length; i++) {
+      if (i === q.correct) {
+        btns[i].classList.add("correct");
+      } else if (i === idx && !isCorrect) {
+        btns[i].classList.add("wrong");
+      }
+      if (i !== idx && i !== q.correct) {
+        btns[i].classList.add("disabled");
+      }
+    }
+
+    var fb = document.getElementById("q-feedback");
+    fb.style.display = "block";
+
+    if (isCorrect) {
+      fb.innerHTML = '<div class="feedback feedback-correct"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span><strong>Richtig!</strong></span></div>';
+    } else {
+      fb.innerHTML = '<div class="feedback feedback-wrong"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg><span><strong>Falsch.</strong> Richtig w\u00e4re ' + letters[q.correct] + '.</span></div>';
+    }
+
+    document.getElementById("btn-next").disabled = false;
+  }
+
+  function showResult() {
+    clearInterval(timerInterval);
+    var elapsed = Math.floor((Date.now() - startTime) / 1000);
+    var m = Math.floor(elapsed / 60);
+    var s = elapsed % 60;
+    var timeStr = m + ":" + String(s).padStart(2, "0");
+    var pct = Math.round((score / questions.length) * 100);
+
+    var grade, gradeColor, gradeLabel;
+    if (pct >= 92) { grade = "1"; gradeColor = "#0d9f6e"; gradeLabel = "Sehr gut"; }
+    else if (pct >= 81) { grade = "2"; gradeColor = "#0d9f6e"; gradeLabel = "Gut"; }
+    else if (pct >= 67) { grade = "3"; gradeColor = "#d97706"; gradeLabel = "Befriedigend"; }
+    else if (pct >= 50) { grade = "4"; gradeColor = "#d97706"; gradeLabel = "Ausreichend"; }
+    else if (pct >= 30) { grade = "5"; gradeColor = "#e25950"; gradeLabel = "Mangelhaft"; }
+    else { grade = "6"; gradeColor = "#e25950"; gradeLabel = "Ungen\u00fcgend"; }
+
+    var circumference = 2 * Math.PI * 54;
+    var dashoffset = circumference - (pct / 100) * circumference;
+
+    document.getElementById("screen-quiz").style.display = "none";
+    var rs = document.getElementById("screen-result");
+    rs.style.display = "flex";
+
+    rs.innerHTML =
+      '<div class="result-anim" style="text-align:center;">' +
+        '<div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--purple),var(--purple-light));display:flex;align-items:center;justify-content:center;margin:0 auto 32px;box-shadow:0 8px 24px rgba(99,91,255,0.2);">' +
+          '<svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' +
+        '</div>' +
+        '<h2 class="font-display" style="font-size:24px;font-weight:700;margin-bottom:4px;">Dein Ergebnis</h2>' +
+        '<p style="color:var(--muted);font-size:14px;margin-bottom:32px;">Teilkostenrechnung \u2013 Preisuntergrenzen</p>' +
+        '<div style="width:144px;height:144px;margin:0 auto 32px;position:relative;">' +
+          '<svg style="width:100%;height:100%;transform:rotate(-90deg);" viewBox="0 0 120 120">' +
+            '<circle cx="60" cy="60" r="54" stroke="var(--border)" stroke-width="8" fill="none"/>' +
+            '<circle class="score-ring" id="score-circle" cx="60" cy="60" r="54" stroke="' + gradeColor + '" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + circumference + '"/>' +
+          '</svg>' +
+          '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
+            '<span class="font-mono" style="font-size:30px;font-weight:700;color:' + gradeColor + ';">' + score + '</span>' +
+            '<span style="font-size:12px;color:var(--muted);">von ' + questions.length + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="background:var(--card);border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:24px;">' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">' +
+            '<div><div class="font-mono" style="font-size:24px;font-weight:700;color:' + gradeColor + ';">' + pct + '%</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">Korrekt</div></div>' +
+            '<div><div class="font-mono" style="font-size:24px;font-weight:700;">' + timeStr + '</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">Zeit</div></div>' +
+            '<div><div class="font-mono" style="font-size:24px;font-weight:700;color:' + gradeColor + ';">' + grade + '</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">' + gradeLabel + '</div></div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="btn-primary" onclick="location.reload()">Quiz wiederholen</button>' +
+      '</div>';
+
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        document.getElementById("score-circle").style.strokeDashoffset = dashoffset;
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
