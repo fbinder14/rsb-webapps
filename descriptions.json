@@ -556,5 +556,12 @@
     "beschreibung": "Interaktive Übung zu Preisuntergrenzen in der Teilkostenrechnung",
     "kategorie": "BWR",
     "lernbereich": "BwR10-II-4"
+  },
+  "teilkosten-abfrage.html": {
+    "fach": "BWR",
+    "stufe": "10",
+    "beschreibung": "Quiz zur Teilkostenrechnung mit Deckungsbeitrag und Break-even",
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-4"
   }
 }
