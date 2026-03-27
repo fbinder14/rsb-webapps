@@ -563,5 +563,12 @@
     "beschreibung": "Quiz zur Teilkostenrechnung mit Deckungsbeitrag und Break-even",
     "kategorie": "BWR",
     "lernbereich": "BwR10-II-4"
+  },
+  "ak10-2-8.html": {
+    "fach": "BWR",
+    "stufe": "10",
+    "beschreibung": "Übung zu Buchungssätzen aus dem Lehrbuch Alles Klar 10 II",
+    "kategorie": "BWR",
+    "lernbereich": "BwR10-II-1"
   }
 }
