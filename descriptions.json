@@ -570,5 +570,11 @@
     "beschreibung": "Übung zu Buchungssätzen aus dem Lehrbuch Alles Klar 10 II",
     "kategorie": "BWR",
     "lernbereich": "BwR10-II-1"
+  },
+  "laender-welt.html": {
+    "fach": "Geographie",
+    "stufe": "5–10",
+    "beschreibung": "Interaktive Länderkarten mit Hauptstädten und Kontinenten",
+    "kategorie": "Geographie"
   }
 }
