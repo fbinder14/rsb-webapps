@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Länder der Welt</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap');
+  :root {
+    --bg: #f0f4ff;
+    --card: #ffffff;
+    --accent-blue: #4a90d9;
+    --accent-green: #43b581;
+    --accent-orange: #f5a623;
+    --accent-pink: #e84393;
+    --accent-purple: #6c5ce7;
+    --accent-red: #e74c3c;
+    --text: #2d3436;
+    --text-light: #636e72;
+    --shadow: 0 4px 16px rgba(0,0,0,0.08);
+    --radius: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    z-index: 0;
+    opacity: 0.12;
+    pointer-events: none;
+  }
+  body::before { width: 400px; height: 400px; background: var(--accent-blue); top: -100px; right: -100px; }
+  body::after { width: 300px; height: 300px; background: var(--accent-orange); bottom: -80px; left: -80px; }
+
+  .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  .header { text-align: center; margin-bottom: 28px; animation: fadeDown .5s ease; }
+  .header h1 {
+    font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .header p { color: var(--text-light); font-size: 1rem; margin-top: 4px; }
+
+  .search-wrap { position: relative; max-width: 480px; margin: 0 auto 20px; animation: fadeDown .6s ease; }
+  .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-light); }
+  .search {
+    width: 100%; padding: 14px 16px 14px 48px; border: 2px solid #dfe6e9; border-radius: 40px;
+    font-size: 1.05rem; font-family: 'Nunito', sans-serif; background: var(--card);
+    transition: border-color .2s, box-shadow .2s; outline: none;
+  }
+  .search:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px rgba(74,144,217,.15); }
+  .search::placeholder { color: #b2bec3; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; animation: fadeDown .7s ease; }
+  .pill {
+    padding: 8px 18px; border-radius: 30px; border: 2px solid #dfe6e9; background: var(--card);
+    font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: .92rem;
+    cursor: pointer; transition: all .2s; user-select: none;
+  }
+  .pill:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .pill.active { color: #fff; border-color: transparent; transform: translateY(-2px); box-shadow: var(--shadow); }
+  .pill[data-c="all"].active { background: var(--accent-blue); }
+  .pill[data-c="Europa"].active { background: var(--accent-blue); }
+  .pill[data-c="Afrika"].active { background: var(--accent-orange); }
+  .pill[data-c="Asien"].active { background: var(--accent-red); }
+  .pill[data-c="Nordamerika"].active { background: var(--accent-green); }
+  .pill[data-c="Südamerika"].active { background: var(--accent-pink); }
+  .pill[data-c="Ozeanien"].active { background: var(--accent-purple); }
+
+  .counter { text-align: center; font-size: .9rem; color: var(--text-light); margin-bottom: 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; cursor: pointer; transition: transform .2s, box-shadow .2s;
+    animation: popIn .35s ease backwards;
+  }
+  .card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .card .flag-wrap {
+    width: 100%; aspect-ratio: 4/3; background: #f7f9fc;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 4.5rem; line-height: 1;
+  }
+  .card .flag-wrap.svg-flag { font-size: 1rem; }
+  .card .flag-wrap.svg-flag svg { width: 75%; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .card .info { padding: 10px 12px 12px; text-align: center; }
+  .card .info .name { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: .95rem; line-height: 1.2; }
+  .card .info .capital { font-size: .78rem; color: var(--text-light); margin-top: 2px; }
+  .card .info .continent-tag {
+    display: inline-block; margin-top: 6px; font-size: .7rem; font-weight: 700;
+    padding: 2px 10px; border-radius: 20px; color: #fff;
+  }
+
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 100; align-items: center; justify-content: center; padding: 20px;
+    animation: fadeIn .2s ease;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 20px; max-width: 400px; width: 100%;
+    overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: scaleIn .25s ease;
+  }
+  .modal .modal-flag {
+    width: 100%; background: linear-gradient(135deg, #f0f4ff, #e8eeff);
+    display: flex; align-items: center; justify-content: center;
+    padding: 30px; font-size: 7rem; line-height: 1;
+  }
+  .modal .modal-flag.svg-flag { font-size: 1rem; }
+  .modal .modal-flag.svg-flag svg { width: 60%; height: auto; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+  .modal .modal-body { padding: 24px; text-align: center; }
+  .modal .modal-body h2 { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.6rem; margin-bottom: 12px; }
+  .modal .modal-body .detail { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: .95rem; }
+  .modal .modal-body .detail:last-child { border-bottom: none; }
+  .modal .modal-body .detail .label { color: var(--text-light); min-width: 90px; text-align: right; }
+  .modal .modal-body .detail .value { font-weight: 600; }
+  .close-btn {
+    position: absolute; top: 12px; right: 12px; width: 36px; height: 36px;
+    border-radius: 50%; border: none; background: rgba(255,255,255,.85);
+    cursor: pointer; font-size: 1.2rem; display: flex; align-items: center;
+    justify-content: center; transition: background .2s; z-index: 10;
+  }
+  .close-btn:hover { background: #fff; }
+  .modal-wrap { position: relative; }
+
+  .no-results { text-align: center; padding: 60px 20px; color: var(--text-light); font-size: 1.1rem; }
+  .no-results .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-16px);} to { opacity:1; transform:translateY(0);} }
+  @keyframes popIn { from { opacity:0; transform:scale(.9);} to { opacity:1; transform:scale(1);} }
+  @keyframes fadeIn { from { opacity:0;} to { opacity:1;} }
+  @keyframes scaleIn { from { opacity:0; transform:scale(.85);} to { opacity:1; transform:scale(1);} }
+
+  @media (max-width:500px) {
+    .header h1 { font-size: 1.6rem; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .pill { padding: 6px 14px; font-size: .82rem; }
+    .card .flag-wrap { font-size: 3.5rem; }
+    .modal .modal-flag { font-size: 5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Länder der Welt</h1>
+    <p>Suche ein Land und entdecke seine Flagge!</p>
+  </div>
+  <div class="search-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/></svg>
+    <input class="search" id="search" type="text" placeholder="Land suchen …" autocomplete="off">
+  </div>
+  <div class="filters" id="filters">
+    <div class="pill active" data-c="all">Alle</div>
+    <div class="pill" data-c="Europa">Europa</div>
+    <div class="pill" data-c="Afrika">Afrika</div>
+    <div class="pill" data-c="Asien">Asien</div>
+    <div class="pill" data-c="Nordamerika">Nordamerika</div>
+    <div class="pill" data-c="Südamerika">Südamerika</div>
+    <div class="pill" data-c="Ozeanien">Ozeanien</div>
+  </div>
+  <div class="counter" id="counter"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal-wrap">
+    <button class="close-btn" id="closeModal">✕</button>
+    <div class="modal" id="modal"></div>
+  </div>
+</div>
+
+<script>
+// Kosovo SVG flag (inline, no external dependency)
+const KOSOVO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 600"><rect width="840" height="600" fill="#244AA5"/><g fill="#FFF"><polygon points="262.8,200.4 270.4,223.6 295,223.6 275.2,238 282.6,261.2 262.8,246.8 243,261.2 250.4,238 230.6,223.6 255.2,223.6"/><polygon points="344.4,156 352,179.2 376.6,179.2 356.8,193.6 364.2,216.8 344.4,202.4 324.6,216.8 332,193.6 312.2,179.2 336.8,179.2"/><polygon points="420,140.4 427.6,163.6 452.2,163.6 432.4,178 439.8,201.2 420,186.8 400.2,201.2 407.6,178 387.8,163.6 412.4,163.6"/><polygon points="495.6,156 503.2,179.2 527.8,179.2 508,193.6 515.4,216.8 495.6,202.4 475.8,216.8 483.2,193.6 463.4,179.2 488,179.2"/><polygon points="577.2,200.4 584.8,223.6 609.4,223.6 589.6,238 597,261.2 577.2,246.8 557.4,261.2 564.8,238 545,223.6 569.6,223.6"/></g><g fill="none" stroke="#D4AF37" stroke-width="0"><path d="M350,310 C350,260 385,230 420,220 C455,230 490,260 490,310 C490,370 470,410 455,440 C445,458 430,475 420,490 C410,475 395,458 385,440 C370,410 350,370 350,310Z" fill="#D4AF37"/></g><polygon points="340.2,286 347.8,309.2 372.4,309.2 352.6,323.6 360,346.8 340.2,332.4 320.4,346.8 327.8,323.6 308,309.2 332.6,309.2" fill="#FFF"/></svg>`;
+
+function toEmoji(code) {
+  return code.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join('');
+}
+
+function toFlag(code, big) {
+  if (code === 'xk') {
+    const cls = big ? 'svg-flag' : 'svg-flag';
+    return { html: KOSOVO_SVG, isSvg: true };
+  }
+  return { html: toEmoji(code), isSvg: false };
+}
+
+const countries=[
+{n:"Deutschland",c:"Europa",cap:"Berlin",code:"de"},
+{n:"Frankreich",c:"Europa",cap:"Paris",code:"fr"},
+{n:"Italien",c:"Europa",cap:"Rom",code:"it"},
+{n:"Spanien",c:"Europa",cap:"Madrid",code:"es"},
+{n:"Portugal",c:"Europa",cap:"Lissabon",code:"pt"},
+{n:"Vereinigtes Königreich",c:"Europa",cap:"London",code:"gb"},
+{n:"Irland",c:"Europa",cap:"Dublin",code:"ie"},
+{n:"Niederlande",c:"Europa",cap:"Amsterdam",code:"nl"},
+{n:"Belgien",c:"Europa",cap:"Brüssel",code:"be"},
+{n:"Luxemburg",c:"Europa",cap:"Luxemburg",code:"lu"},
+{n:"Schweiz",c:"Europa",cap:"Bern",code:"ch"},
+{n:"Österreich",c:"Europa",cap:"Wien",code:"at"},
+{n:"Polen",c:"Europa",cap:"Warschau",code:"pl"},
+{n:"Tschechien",c:"Europa",cap:"Prag",code:"cz"},
+{n:"Slowakei",c:"Europa",cap:"Bratislava",code:"sk"},
+{n:"Ungarn",c:"Europa",cap:"Budapest",code:"hu"},
+{n:"Rumänien",c:"Europa",cap:"Bukarest",code:"ro"},
+{n:"Bulgarien",c:"Europa",cap:"Sofia",code:"bg"},
+{n:"Griechenland",c:"Europa",cap:"Athen",code:"gr"},
+{n:"Kroatien",c:"Europa",cap:"Zagreb",code:"hr"},
+{n:"Serbien",c:"Europa",cap:"Belgrad",code:"rs"},
+{n:"Slowenien",c:"Europa",cap:"Ljubljana",code:"si"},
+{n:"Dänemark",c:"Europa",cap:"Kopenhagen",code:"dk"},
+{n:"Schweden",c:"Europa",cap:"Stockholm",code:"se"},
+{n:"Norwegen",c:"Europa",cap:"Oslo",code:"no"},
+{n:"Finnland",c:"Europa",cap:"Helsinki",code:"fi"},
+{n:"Island",c:"Europa",cap:"Reykjavik",code:"is"},
+{n:"Estland",c:"Europa",cap:"Tallinn",code:"ee"},
+{n:"Lettland",c:"Europa",cap:"Riga",code:"lv"},
+{n:"Litauen",c:"Europa",cap:"Vilnius",code:"lt"},
+{n:"Ukraine",c:"Europa",cap:"Kiew",code:"ua"},
+{n:"Türkei",c:"Europa",cap:"Ankara",code:"tr"},
+{n:"Russland",c:"Europa",cap:"Moskau",code:"ru"},
+{n:"Malta",c:"Europa",cap:"Valletta",code:"mt"},
+{n:"Zypern",c:"Europa",cap:"Nikosia",code:"cy"},
+{n:"Albanien",c:"Europa",cap:"Tirana",code:"al"},
+{n:"Kosovo",c:"Europa",cap:"Pristina",code:"xk"},
+{n:"Nordmazedonien",c:"Europa",cap:"Skopje",code:"mk"},
+{n:"Montenegro",c:"Europa",cap:"Podgorica",code:"me"},
+{n:"Bosnien und Herzegowina",c:"Europa",cap:"Sarajevo",code:"ba"},
+{n:"Moldau",c:"Europa",cap:"Chișinău",code:"md"},
+{n:"Belarus",c:"Europa",cap:"Minsk",code:"by"},
+{n:"Ägypten",c:"Afrika",cap:"Kairo",code:"eg"},
+{n:"Südafrika",c:"Afrika",cap:"Pretoria",code:"za"},
+{n:"Nigeria",c:"Afrika",cap:"Abuja",code:"ng"},
+{n:"Kenia",c:"Afrika",cap:"Nairobi",code:"ke"},
+{n:"Marokko",c:"Afrika",cap:"Rabat",code:"ma"},
+{n:"Tunesien",c:"Afrika",cap:"Tunis",code:"tn"},
+{n:"Äthiopien",c:"Afrika",cap:"Addis Abeba",code:"et"},
+{n:"Ghana",c:"Afrika",cap:"Accra",code:"gh"},
+{n:"Tansania",c:"Afrika",cap:"Dodoma",code:"tz"},
+{n:"Algerien",c:"Afrika",cap:"Algier",code:"dz"},
+{n:"Senegal",c:"Afrika",cap:"Dakar",code:"sn"},
+{n:"Elfenbeinküste",c:"Afrika",cap:"Yamoussoukro",code:"ci"},
+{n:"Kamerun",c:"Afrika",cap:"Yaoundé",code:"cm"},
+{n:"Madagaskar",c:"Afrika",cap:"Antananarivo",code:"mg"},
+{n:"Mosambik",c:"Afrika",cap:"Maputo",code:"mz"},
+{n:"Namibia",c:"Afrika",cap:"Windhoek",code:"na"},
+{n:"Uganda",c:"Afrika",cap:"Kampala",code:"ug"},
+{n:"Demokratische Republik Kongo",c:"Afrika",cap:"Kinshasa",code:"cd"},
+{n:"Libyen",c:"Afrika",cap:"Tripolis",code:"ly"},
+{n:"Sudan",c:"Afrika",cap:"Khartum",code:"sd"},
+{n:"Niger",c:"Afrika",cap:"Niamey",code:"ne"},
+{n:"China",c:"Asien",cap:"Peking",code:"cn"},
+{n:"Japan",c:"Asien",cap:"Tokio",code:"jp"},
+{n:"Indien",c:"Asien",cap:"Neu-Delhi",code:"in"},
+{n:"Südkorea",c:"Asien",cap:"Seoul",code:"kr"},
+{n:"Thailand",c:"Asien",cap:"Bangkok",code:"th"},
+{n:"Vietnam",c:"Asien",cap:"Hanoi",code:"vn"},
+{n:"Indonesien",c:"Asien",cap:"Jakarta",code:"id"},
+{n:"Malaysia",c:"Asien",cap:"Kuala Lumpur",code:"my"},
+{n:"Philippinen",c:"Asien",cap:"Manila",code:"ph"},
+{n:"Singapur",c:"Asien",cap:"Singapur",code:"sg"},
+{n:"Pakistan",c:"Asien",cap:"Islamabad",code:"pk"},
+{n:"Bangladesch",c:"Asien",cap:"Dhaka",code:"bd"},
+{n:"Iran",c:"Asien",cap:"Teheran",code:"ir"},
+{n:"Irak",c:"Asien",cap:"Bagdad",code:"iq"},
+{n:"Saudi-Arabien",c:"Asien",cap:"Riad",code:"sa"},
+{n:"Ver. Arabische Emirate",c:"Asien",cap:"Abu Dhabi",code:"ae"},
+{n:"Israel",c:"Asien",cap:"Jerusalem",code:"il"},
+{n:"Jordanien",c:"Asien",cap:"Amman",code:"jo"},
+{n:"Nepal",c:"Asien",cap:"Kathmandu",code:"np"},
+{n:"Sri Lanka",c:"Asien",cap:"Colombo",code:"lk"},
+{n:"Mongolei",c:"Asien",cap:"Ulaanbaatar",code:"mn"},
+{n:"Kasachstan",c:"Asien",cap:"Astana",code:"kz"},
+{n:"Usbekistan",c:"Asien",cap:"Taschkent",code:"uz"},
+{n:"USA",c:"Nordamerika",cap:"Washington D.C.",code:"us"},
+{n:"Kanada",c:"Nordamerika",cap:"Ottawa",code:"ca"},
+{n:"Mexiko",c:"Nordamerika",cap:"Mexiko-Stadt",code:"mx"},
+{n:"Kuba",c:"Nordamerika",cap:"Havanna",code:"cu"},
+{n:"Costa Rica",c:"Nordamerika",cap:"San José",code:"cr"},
+{n:"Panama",c:"Nordamerika",cap:"Panama-Stadt",code:"pa"},
+{n:"Jamaika",c:"Nordamerika",cap:"Kingston",code:"jm"},
+{n:"Honduras",c:"Nordamerika",cap:"Tegucigalpa",code:"hn"},
+{n:"Guatemala",c:"Nordamerika",cap:"Guatemala-Stadt",code:"gt"},
+{n:"Haiti",c:"Nordamerika",cap:"Port-au-Prince",code:"ht"},
+{n:"Dominikanische Republik",c:"Nordamerika",cap:"Santo Domingo",code:"do"},
+{n:"Brasilien",c:"Südamerika",cap:"Brasília",code:"br"},
+{n:"Argentinien",c:"Südamerika",cap:"Buenos Aires",code:"ar"},
+{n:"Chile",c:"Südamerika",cap:"Santiago",code:"cl"},
+{n:"Kolumbien",c:"Südamerika",cap:"Bogotá",code:"co"},
+{n:"Peru",c:"Südamerika",cap:"Lima",code:"pe"},
+{n:"Venezuela",c:"Südamerika",cap:"Caracas",code:"ve"},
+{n:"Ecuador",c:"Südamerika",cap:"Quito",code:"ec"},
+{n:"Uruguay",c:"Südamerika",cap:"Montevideo",code:"uy"},
+{n:"Paraguay",c:"Südamerika",cap:"Asunción",code:"py"},
+{n:"Bolivien",c:"Südamerika",cap:"Sucre",code:"bo"},
+{n:"Australien",c:"Ozeanien",cap:"Canberra",code:"au"},
+{n:"Neuseeland",c:"Ozeanien",cap:"Wellington",code:"nz"},
+{n:"Fidschi",c:"Ozeanien",cap:"Suva",code:"fj"},
+{n:"Papua-Neuguinea",c:"Ozeanien",cap:"Port Moresby",code:"pg"},
+{n:"Samoa",c:"Ozeanien",cap:"Apia",code:"ws"},
+{n:"Tonga",c:"Ozeanien",cap:"Nukuʻalofa",code:"to"},
+];
+
+const continentColors = {
+  "Europa":"#4a90d9","Afrika":"#f5a623","Asien":"#e74c3c",
+  "Nordamerika":"#43b581","Südamerika":"#e84393","Ozeanien":"#6c5ce7"
+};
+
+const grid = document.getElementById('grid');
+const search = document.getElementById('search');
+const counter = document.getElementById('counter');
+const overlay = document.getElementById('overlay');
+const modal = document.getElementById('modal');
+const closeModal = document.getElementById('closeModal');
+let activeContinent = 'all';
+
+function render(list) {
+  if (!list.length) {
+    grid.innerHTML = '<div class="no-results"><span class="emoji">🌍</span>Kein Land gefunden. Versuch es nochmal!</div>';
+    counter.textContent = '';
+    return;
+  }
+  counter.textContent = `${list.length} ${list.length===1?'Land':'Länder'} gefunden`;
+  grid.innerHTML = list.map((c, i) => {
+    const f = toFlag(c.code);
+    return `
+    <div class="card" style="animation-delay:${Math.min(i*30,600)}ms" onclick="showDetail('${c.code}')">
+      <div class="flag-wrap${f.isSvg?' svg-flag':''}">${f.html}</div>
+      <div class="info">
+        <div class="name">${c.n}</div>
+        <div class="capital">${c.cap}</div>
+        <span class="continent-tag" style="background:${continentColors[c.c]}">${c.c}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filter() {
+  const q = search.value.toLowerCase().trim();
+  let list = countries;
+  if (activeContinent !== 'all') list = list.filter(c => c.c === activeContinent);
+  if (q) list = list.filter(c => c.n.toLowerCase().includes(q) || c.cap.toLowerCase().includes(q));
+  render(list);
+}
+
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    activeContinent = p.dataset.c;
+    filter();
+  });
+});
+search.addEventListener('input', filter);
+
+window.showDetail = function(code) {
+  const c = countries.find(x => x.code === code);
+  if (!c) return;
+  const f = toFlag(c.code);
+  modal.innerHTML = `
+    <div class="modal-flag${f.isSvg?' svg-flag':''}">${f.html}</div>
+    <div class="modal-body">
+      <h2>${c.n}</h2>
+      <div class="detail"><span class="label">Hauptstadt</span><span class="value">${c.cap}</span></div>
+      <div class="detail"><span class="label">Kontinent</span><span class="value" style="color:${continentColors[c.c]}">${c.c}</span></div>
+      <div class="detail"><span class="label">Ländercode</span><span class="value">${c.code.toUpperCase()}</span></div>
+    </div>
+  `;
+  overlay.classList.add('open');
+};
+
+closeModal.addEventListener('click', () => overlay.classList.remove('open'));
+overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') overlay.classList.remove('open'); });
+
+filter();
+</script>
+</body>
+</html>
