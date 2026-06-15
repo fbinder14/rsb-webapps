@@ -576,5 +576,11 @@
     "stufe": "5–10",
     "beschreibung": "Interaktive Länderkarten mit Hauptstädten und Kontinenten",
     "kategorie": "Geographie"
+  },
+  "bwl-fragen.html": {
+    "fach": "BWR",
+    "stufe": "10",
+    "beschreibung": "Prüfungstrainer mit 40 Theoriefragen zur BWR-Abschlussprüfung",
+    "kategorie": "BWR"
   }
 }
