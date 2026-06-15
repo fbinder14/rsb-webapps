@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BWR – Prüfungsvorbereitung 10. Klasse</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#f6f9fc',
+          card: '#ffffff',
+          ink: '#1a1f36',
+          inksoft: '#4f566b',
+          muted: '#8792a2',
+          line: '#e3e8ee',
+          brand: '#635bff',
+          brandsoft: '#f0eeff',
+          ok: '#047a42',
+          oksoft: '#eafbf1',
+          okline: '#a8e6c4',
+          bad: '#c0123c',
+          badsoft: '#fdeef1',
+          badline: '#f5b8c6',
+        },
+        fontFamily: {
+          serif: ['"Source Serif 4"', 'Georgia', 'serif'],
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body { background:#f6f9fc; }
+  .fade-in { animation: fadeIn .35s ease both; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform:none;} }
+  .opt-btn { transition: background-color .15s, border-color .15s, transform .08s; }
+  .opt-btn:active { transform: scale(.99); }
+  /* sichere Abstände für Geräte mit Notch */
+  .safe-b { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body class="font-sans text-ink antialiased">
+
+<div class="mx-auto max-w-xl px-4 pt-5 safe-b min-h-screen flex flex-col">
+
+  <!-- Kopf -->
+  <header class="mb-4">
+    <p class="font-mono text-[11px] uppercase tracking-[2px] text-brand mb-1">Wirtschaft &middot; Abschlussprüfung</p>
+    <h1 class="font-serif font-bold text-2xl sm:text-3xl leading-tight">BWR-Prüfungstrainer</h1>
+  </header>
+
+  <!-- START -->
+  <section id="screen-start" class="fade-in flex-1">
+    <div class="bg-card border border-line rounded-2xl shadow-sm p-6 sm:p-7">
+      <p class="text-inksoft text-[17px] leading-relaxed mb-4">
+        Wiederhole hier die wichtigsten Theoriefragen für die Abschlussprüfung.
+        Pro Frage gibt es <span class="font-semibold text-ink">vier Antworten</span> – nur eine ist richtig.
+        Du bekommst sofort eine Rückmeldung.
+      </p>
+      <ul class="text-inksoft text-[15px] leading-relaxed space-y-1.5 mb-6">
+        <li class="flex gap-2"><span class="text-brand font-bold">&middot;</span> 40 Fragen in zufälliger Reihenfolge</li>
+        <li class="flex gap-2"><span class="text-brand font-bold">&middot;</span> Antworten werden jedes Mal neu gemischt</li>
+        <li class="flex gap-2"><span class="text-brand font-bold">&middot;</span> Kein Druck – das ist reines Üben</li>
+      </ul>
+      <button id="btn-start" class="w-full bg-brand text-white font-semibold text-[17px] rounded-xl py-4 hover:bg-[#524bdb] transition">
+        Quiz starten →
+      </button>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="screen-quiz" class="hidden flex-1 flex flex-col">
+    <!-- Fortschritt -->
+    <div class="mb-4">
+      <div class="flex items-center justify-between mb-2">
+        <span id="progress-label" class="font-mono text-[12px] uppercase tracking-[1.5px] text-muted">Frage 1 von 40</span>
+        <span id="score-label" class="font-mono text-[12px] text-brand font-semibold">0 richtig</span>
+      </div>
+      <div class="h-1.5 w-full bg-line rounded-full overflow-hidden">
+        <div id="progress-bar" class="h-full bg-brand rounded-full transition-all duration-300" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Frage -->
+    <div class="bg-card border border-line rounded-2xl shadow-sm p-5 sm:p-6 mb-4">
+      <p id="question-text" class="font-serif font-semibold text-[20px] sm:text-[22px] leading-snug"></p>
+    </div>
+
+    <!-- Optionen -->
+    <div id="options" class="space-y-3 flex-1"></div>
+
+    <!-- Feedback + Weiter -->
+    <div id="feedback" class="hidden mt-4 rounded-xl p-4 text-[15px] leading-relaxed"></div>
+
+    <button id="btn-next" class="hidden w-full mt-4 bg-brand text-white font-semibold text-[17px] rounded-xl py-4 hover:bg-[#524bdb] transition">
+      Weiter →
+    </button>
+  </section>
+
+  <!-- ERGEBNIS -->
+  <section id="screen-end" class="hidden fade-in flex-1">
+    <div class="bg-card border border-line rounded-2xl shadow-sm p-6 sm:p-8 text-center">
+      <p class="font-mono text-[12px] uppercase tracking-[2px] text-muted mb-3">Geschafft</p>
+      <div id="end-emoji" class="text-5xl mb-3">🎉</div>
+      <p class="font-serif font-bold text-3xl mb-1"><span id="end-score">0</span> <span class="text-muted font-normal text-2xl">von 40</span></p>
+      <p id="end-percent" class="font-mono text-brand font-semibold text-lg mb-2">0 %</p>
+      <p id="end-message" class="text-inksoft text-[16px] leading-relaxed mb-6"></p>
+      <div class="space-y-3">
+        <button id="btn-again" class="w-full bg-brand text-white font-semibold text-[17px] rounded-xl py-4 hover:bg-[#524bdb] transition">
+          Nochmal üben (neu gemischt)
+        </button>
+        <button id="btn-wrong" class="hidden w-full bg-white border border-line text-ink font-semibold text-[16px] rounded-xl py-4 hover:bg-bg transition">
+          Nur falsch beantwortete üben
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="text-center text-muted text-[12px] py-6">
+    BWR-Prüfungstrainer · zum Üben, ohne Benotung
+  </footer>
+</div>
+
+<script>
+// ---- Fragenpool: richtige Antwort + 3 Distraktoren ----
+const POOL = [
+  {nr:1, frage:'Wofür steht die Abkürzung „USt-IdNr.“?',
+   richtig:'Umsatzsteuer-Identifikationsnummer',
+   falsch:['Unternehmenssteuer-Identifikationsnummer','Umsatzsteuer-Indexnummer','Umsatzsteuer-Inkassonummer']},
+  {nr:2, frage:'Was bedeutet der Vermerk „rein netto“ auf einer Eingangsrechnung?',
+   richtig:'Der Rechnungsbetrag ist innerhalb der Frist ohne Skontoabzug oder sonstige Abzüge zu bezahlen.',
+   falsch:['Der Rechnungsbetrag versteht sich ohne Umsatzsteuer.','Vom Rechnungsbetrag dürfen 3 % Skonto abgezogen werden.','Der Rechnungsbetrag ist sofort in bar zu begleichen.']},
+  {nr:3, frage:'Wie wirkt sich die Umsatzsteuer auf den Unternehmenserfolg aus?',
+   richtig:'Sie ist ein durchlaufender Posten und wirkt erfolgsneutral.',
+   falsch:['Sie erhöht den Gewinn des Unternehmens.','Sie verringert den Gewinn des Unternehmens.','Sie wirkt sich nur auf das Privatvermögen des Unternehmers aus.']},
+  {nr:4, frage:'Wofür stehen die handelsrechtlichen Abkürzungen „e. Kfr.“ und „HRA“?',
+   richtig:'eingetragene Kauffrau und Handelsregister, Abteilung A',
+   falsch:['eigenständige Kauffrau und Handelsregister-Anmeldung','eingetragene Kauffrau und Handelsregister, Abteilung B','erste Kauffrau und Handelsregister-Auszug']},
+  {nr:5, frage:'Über welchen Zeitraum müssen geschäftliche Belege und Rechnungen aufbewahrt werden?',
+   richtig:'10 Jahre',
+   falsch:['3 Jahre','5 Jahre','7 Jahre']},
+  {nr:6, frage:'Wie heißt der Vermerk „Die Ware bleibt bis zur vollständigen Bezahlung unser Eigentum“ rechtlich?',
+   richtig:'Eigentumsvorbehalt',
+   falsch:['Sicherungsübereignung','Eigentumsgarantie','Pfandrecht']},
+  {nr:7, frage:'Mit welchem Vermögen haftet ein Einzelunternehmer (z. B. e. K.) im Insolvenzfall?',
+   richtig:'unbeschränkt – mit Geschäfts- und Privatvermögen',
+   falsch:['beschränkt – nur mit dem Geschäftsvermögen','beschränkt – nur in Höhe der Einlage','gar nicht – es haftet eine Pflichtversicherung']},
+  {nr:8, frage:'Welchen betriebswirtschaftlichen Vorteil hat ein Lieferant, der Skonto gewährt?',
+   richtig:'Er setzt einen Anreiz für schnellere Bezahlung und erhält so rascher liquide Mittel.',
+   falsch:['Er kann dadurch einen höheren Verkaufspreis verlangen.','Er spart Umsatzsteuer.','Er muss die Ware nicht mehr ausliefern.']},
+  {nr:9, frage:'Warum schöpft der Käufer die Skontofrist im Regelfall vollständig aus?',
+   richtig:'Um möglichst lange Guthabenzinsen auf dem eigenen Geschäftskonto zu erhalten.',
+   falsch:['Um den Skontosatz zu erhöhen.','Um die Ware länger testen zu können.','Um eine Mahnung zu vermeiden.']},
+  {nr:10, frage:'Warum beliefert ein Unternehmen einen Kunden trotz hoher Frachtkosten „frei Haus“?',
+   richtig:'Um sich einen Wettbewerbsvorteil gegenüber Konkurrenten zu verschaffen.',
+   falsch:['Um Umsatzsteuer zu sparen.','Weil dies gesetzlich vorgeschrieben ist.','Um die eigenen Lagerkosten zu senken.']},
+  {nr:11, frage:'Was ist ein Grund für die Gewährung eines Treuerabatts?',
+   richtig:'Belohnung einer langjährigen Geschäftsbeziehung und Festigung der Kundenbindung.',
+   falsch:['Um Restposten und Auslaufware schneller zu verkaufen.','Als Ausgleich für mangelhaft gelieferte Ware.','Um Neukunden zum allerersten Kauf zu bewegen.']},
+  {nr:12, frage:'Wie wirkt sich ein höherer Rabatt auf den kalkulierten Gewinn des Verkäufers aus?',
+   richtig:'Er verringert den Gewinn des Unternehmens.',
+   falsch:['Er erhöht den Gewinn des Unternehmens.','Er hat keine Auswirkung auf den Gewinn.','Er erhöht die abzuführende Umsatzsteuer.']},
+  {nr:13, frage:'Welches weitere Kriterium ist – neben dem Preis – bei der Lieferantenauswahl bedeutsam?',
+   richtig:'Zuverlässigkeit, Produktqualität oder ökologisch unbedenkliche Werkstoffe.',
+   falsch:['die Höhe der Umsatzsteuer des Lieferanten','die Rechtsform des Lieferanten','die Anzahl der Mitarbeiter des Lieferanten']},
+  {nr:14, frage:'Was ist ein möglicher Nachteil der Produktionsverlagerung in ein asiatisches Billiglohnland?',
+   richtig:'Eine geringere Fertigungsqualität als bei einer Produktion in Deutschland.',
+   falsch:['höhere Lohnkosten als in Deutschland','deutlich kürzere Transportwege','höhere Steuern in Deutschland']},
+  {nr:15, frage:'Was versteht man unter dem Begriff „Standortfaktoren“?',
+   richtig:'Entscheidende Kriterien, nach denen sich Unternehmen für einen Standort entscheiden.',
+   falsch:['die Faktoren, nach denen ein Produktpreis kalkuliert wird','gesetzliche Vorschriften zur Buchführung','die Kosten für Werbung und Marketing eines Produkts']},
+  {nr:16, frage:'Was ist je ein Vor- und ein Nachteil des Just-in-time-Verfahrens?',
+   richtig:'Vorteil: geringe/entfallende Lagerkosten – Nachteil: Produktionsstopp bei Lieferproblemen.',
+   falsch:['Vorteil: hohe Lagerbestände als Puffer – Nachteil: hohe Lagerkosten','Vorteil: völlige Unabhängigkeit von Lieferanten – Nachteil: hohe Materialpreise','Vorteil: keine Qualitätskontrolle nötig – Nachteil: lange Lieferzeiten']},
+  {nr:17, frage:'Warum wird trotz Ablauf der Zahlungsfrist manchmal auf eine sofortige Mahnung verzichtet?',
+   richtig:'Um gute Kundenbeziehungen nicht zu gefährden.',
+   falsch:['Weil eine Mahnung gesetzlich verboten ist.','Weil die Forderung dadurch verjährt.','Weil dadurch Umsatzsteuer gespart wird.']},
+  {nr:18, frage:'Welche Art des Vertriebswegs liegt vor, wenn über Groß- und Einzelhändler verkauft wird?',
+   richtig:'indirekter Vertrieb – der Verkauf erfolgt nicht unmittelbar an die Endverbraucher.',
+   falsch:['direkter Vertrieb','Direktvertrieb über das Internet','Eigenvertrieb ab Werk']},
+  {nr:19, frage:'Wie heißt die buchhalterische Behandlung von Anschaffungsnebenkosten (z. B. Überführungskosten) beim Maschinenkauf?',
+   richtig:'Aktivierung – die Nebenkosten werden dem Anlagegut zugerechnet.',
+   falsch:['Passivierung','Abschreibung','Stornierung']},
+  {nr:20, frage:'Warum wird oft ein psychologischer Schwellenpreis (z. B. 39,99 €) festgelegt?',
+   richtig:'Aus werbepsychologischen Gründen.',
+   falsch:['Wegen gesetzlicher Vorgaben zur Preisauszeichnung.','Um Umsatzsteuer zu sparen.','Um die Lagerkosten zu decken.']},
+  {nr:21, frage:'Wofür steht die Abkürzung „AfA“ in der Anlagenbuchhaltung?',
+   richtig:'Absetzung für Abnutzung',
+   falsch:['Abschreibung für Anlagen','Anschaffung für Anlagevermögen','Abgabe für Aufwendungen']},
+  {nr:22, frage:'Welche Ursache führt zu einer Wertminderung von Sachanlagen?',
+   richtig:'Natürlicher Verschleiß durch Nutzung oder technischer Fortschritt.',
+   falsch:['die Zahlung der Umsatzsteuer','eine Erhöhung des Verkaufspreises','die Aufnahme eines Bankkredits']},
+  {nr:23, frage:'Wie nennt man den Restwert einer vollständig abgeschriebenen, aber weiter genutzten Anlage?',
+   richtig:'Erinnerungswert (1,00 €)',
+   falsch:['Restwert (0,00 €)','Schrottwert','Marktwert']},
+  {nr:24, frage:'Warum unterscheidet sich beim linearen Verfahren der Abschreibungsbetrag im Anschaffungsjahr vom zweiten Jahr?',
+   richtig:'Im Anschaffungsjahr wird zeitanteilig (nur für die verbleibenden Monate) abgeschrieben, im Folgejahr für volle 12 Monate.',
+   falsch:['Im Anschaffungsjahr gilt ein höherer Prozentsatz als im Folgejahr.','Im zweiten Jahr steigt der Betrag wegen der Inflation.','Der Betrag richtet sich nach dem jeweiligen Verkaufspreis der Maschine.']},
+  {nr:25, frage:'Wie lässt sich das Risiko einer Aktienanlage wirksam verringern?',
+   richtig:'Durch Diversifikation bzw. breite Streuung über verschiedene Anlagen.',
+   falsch:['Indem man möglichst nur in eine einzige Aktie investiert.','Indem man ausschließlich sehr kurzfristig handelt.','Indem man nur in die eigene Branche investiert.']},
+  {nr:26, frage:'Was ist ein wesentlicher Nachteil sehr sicherer Geldanlagen (z. B. Tagesgeld, Sparbriefe)?',
+   richtig:'Die im Vergleich zu Aktien sehr niedrige Rendite.',
+   falsch:['das sehr hohe Verlustrisiko','das Fehlen jeder Einlagensicherung','die starken Kursschwankungen']},
+  {nr:27, frage:'Was ist ein Vorteil von ETFs gegenüber Einzelaktien?',
+   richtig:'Durch die Streuung über viele Aktien sinkt das Risiko von Kursverlusten deutlich.',
+   falsch:['eine garantierte feste Verzinsung','eine vollständig risikofreie Anlage','immer eine höhere Dividende als jede Einzelaktie']},
+  {nr:28, frage:'Was ist eine Dividende im Aktienhandel?',
+   richtig:'Eine erfolgsabhängige Gewinnausschüttung der AG an ihre Aktionäre.',
+   falsch:['ein fester Zinssatz auf das eingezahlte Kapital','die Gebühr für den Kauf einer Aktie','der Rückkaufpreis einer Aktie durch die AG']},
+  {nr:29, frage:'Welches Kriterium kennzeichnet – neben wirtschaftlichen Aspekten – eine nachhaltige Geldanlage?',
+   richtig:'Soziales Engagement oder ökologisch unbedenkliches (klimaschonendes) Handeln des Unternehmens.',
+   falsch:['eine möglichst hohe Rendite','eine möglichst kurze Anlagedauer','ein möglichst niedriger Aktienkurs']},
+  {nr:30, frage:'Worin unterscheiden sich Festdarlehen und Abzahlungsdarlehen?',
+   richtig:'Festdarlehen: Tilgung am Ende in einer Summe – Abzahlungsdarlehen: jährlich gleichbleibender Tilgungsbetrag.',
+   falsch:['Festdarlehen: gleichbleibende Rate – Abzahlungsdarlehen: Tilgung am Ende in einer Summe','Festdarlehen: zinslos – Abzahlungsdarlehen: mit Zinsen','Festdarlehen: nur für Privatpersonen – Abzahlungsdarlehen: nur für Unternehmen']},
+  {nr:31, frage:'Welche Finanzierung kommt – alternativ zum Bankkredit – für eine neue Maschine infrage?',
+   richtig:'Leasing',
+   falsch:['Skonto','Mahnung','Abschreibung']},
+  {nr:32, frage:'Welcher Grund spricht für eine Eigenfinanzierung (z. B. Privateinlage) statt einer Kreditaufnahme?',
+   richtig:'Es entsteht keine Zinsbelastung und das Unternehmen bleibt unabhängig von Banken.',
+   falsch:['Man erhält dafür eine Steuererstattung.','Die Umsatzsteuer entfällt vollständig.','Man muss keine Buchführung mehr machen.']},
+  {nr:33, frage:'Welche Personalzusatzkosten kommen dem Arbeitnehmer im Krankheitsfall zugute?',
+   richtig:'Die gesetzlich vorgeschriebene Lohnfortzahlung im Krankheitsfall.',
+   falsch:['das vereinbarte Grundgehalt','die Auszahlung des Urlaubsgeldes','die Vergütung von Überstunden']},
+  {nr:34, frage:'Was ist ein Beispiel für freiwillig gewährte Personalzusatzkosten?',
+   richtig:'Ein 13. Monatsgehalt, Urlaubs- oder Weihnachtsgeld bzw. eine betriebliche Altersvorsorge.',
+   falsch:['die gesetzlichen Sozialversicherungsbeiträge','die gesetzliche Lohnfortzahlung im Krankheitsfall','der gesetzliche Mindestlohn']},
+  {nr:35, frage:'Welche zwei Kriterien sprechen als Standortfaktoren für den Wirtschaftsstandort Deutschland?',
+   richtig:'Hoch qualifizierte Arbeitskräfte und eine gute Infrastruktur (sowie hohe Rechtssicherheit).',
+   falsch:['niedrige Löhne und niedrige Steuern','warmes Klima und günstige Grundstücke','das Fehlen gesetzlicher Vorschriften']},
+  {nr:36, frage:'Welcher Standortfaktor könnte für ein deutsches Unternehmen bei einem Standort im Nachbarland (z. B. Österreich) entscheidend sein?',
+   richtig:'Die geografische Nähe zum deutschen Standort oder eine bereits bestehende gute Geschäftsbeziehung.',
+   falsch:['die große räumliche Entfernung zum deutschen Stammsitz','eine völlig fremde Sprache und Kultur','niedrige Löhne wie in einem asiatischen Billiglohnland']},
+  {nr:37, frage:'Was ist ein Vorteil eines kooperativen Führungsstils für die Belegschaft?',
+   richtig:'Größere Identifikation mit dem Unternehmen, weil Mitarbeiter in Entscheidungen einbezogen werden.',
+   falsch:['Die Mitarbeiter müssen keinerlei Verantwortung tragen.','Entscheidungen trifft allein die Geschäftsleitung.','Absprachen im Team sind nicht mehr nötig.']},
+  {nr:38, frage:'Wie sind „Cash Cows“ in der Portfolio-Analyse charakterisiert?',
+   richtig:'niedriges Marktwachstum, aber sehr hoher relativer Marktanteil',
+   falsch:['hohes Marktwachstum und hoher relativer Marktanteil','hohes Marktwachstum und niedriger relativer Marktanteil','niedriges Marktwachstum und niedriger relativer Marktanteil']},
+  {nr:39, frage:'Warum werden Einzelkosten im Betriebsabrechnungsbogen (BAB) nicht auf Kostenstellen verteilt?',
+   richtig:'Weil sie dem Kostenträger (Produkt) direkt zugerechnet werden können.',
+   falsch:['weil sie zu gering sind, um sie zu erfassen','weil sie immer gleich hoch bleiben','weil sie keine Kosten im eigentlichen Sinne sind']},
+  {nr:40, frage:'Was ist buchhalterisch zu beachten, wenn ein Kunde bei einer Ausgangsrechnung berechtigt Skonto abzieht?',
+   richtig:'Der Rechnungsbetrag wird reduziert und es muss zwingend eine Umsatzsteuerkorrektur erfolgen.',
+   falsch:['Der volle Rechnungsbetrag bleibt bestehen, nur die Zahlungsfrist verlängert sich.','Es muss zusätzliche Umsatzsteuer berechnet werden.','Der Skontobetrag wird als zusätzlicher Ertrag gebucht.']},
+];
+
+// ---- Hilfsfunktionen ----
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// ---- Zustand ----
+let order = [];        // gemischte Fragenliste
+let idx = 0;           // aktueller Index
+let score = 0;
+let answered = false;
+let wrongItems = [];   // für "nur falsche üben"
+const LETTERS = ['A','B','C','D'];
+
+// ---- DOM ----
+const $ = id => document.getElementById(id);
+const screens = { start:$('screen-start'), quiz:$('screen-quiz'), end:$('screen-end') };
+function show(name){ Object.values(screens).forEach(s=>s.classList.add('hidden')); screens[name].classList.remove('hidden'); }
+
+function startQuiz(items){
+  order = shuffle(items);
+  idx = 0; score = 0; wrongItems = [];
+  show('quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = order[idx];
+  $('progress-label').textContent = `Frage ${idx+1} von ${order.length}`;
+  $('score-label').textContent = `${score} richtig`;
+  $('progress-bar').style.width = `${(idx/order.length)*100}%`;
+  $('question-text').textContent = item.frage;
+
+  // Optionen mischen
+  const opts = shuffle([{t:item.richtig, ok:true}, ...item.falsch.map(t=>({t, ok:false}))]);
+  const box = $('options');
+  box.innerHTML = '';
+  opts.forEach((o,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn w-full text-left bg-card border border-line rounded-xl px-4 py-3.5 flex items-start gap-3 hover:border-brand hover:bg-brandsoft';
+    btn.innerHTML = `
+      <span class="shrink-0 mt-0.5 font-mono text-[13px] font-semibold text-brand bg-brandsoft border border-line rounded-md w-7 h-7 flex items-center justify-center">${LETTERS[i]}</span>
+      <span class="text-[16px] leading-snug text-ink pt-0.5">${o.t}</span>`;
+    btn.addEventListener('click', ()=>choose(btn, o, item));
+    box.appendChild(btn);
+  });
+
+  const fb = $('feedback');
+  fb.classList.add('hidden'); fb.className='hidden';
+  $('btn-next').classList.add('hidden');
+  $('screen-quiz').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function choose(btn, opt, item){
+  if(answered) return;
+  answered = true;
+
+  const buttons = [...$('options').children];
+  buttons.forEach(b=>{ b.classList.add('cursor-default'); b.classList.remove('hover:border-brand','hover:bg-brandsoft'); });
+
+  // richtige Option markieren
+  buttons.forEach(b=>{
+    const label = b.querySelector('span:last-child').textContent;
+    if(label === item.richtig){
+      b.classList.remove('border-line','bg-card');
+      b.classList.add('border-okline','bg-oksoft');
+      b.querySelector('span:first-child').className =
+        'shrink-0 mt-0.5 font-mono text-[13px] font-semibold text-white bg-ok rounded-md w-7 h-7 flex items-center justify-center';
+    }
+  });
+
+  const fb = $('feedback');
+  if(opt.ok){
+    score++;
+    $('score-label').textContent = `${score} richtig`;
+    fb.className = 'mt-4 rounded-xl p-4 text-[15px] leading-relaxed bg-oksoft border border-okline text-ok fade-in';
+    fb.innerHTML = `<span class="font-semibold">Richtig!</span> ${item.richtig}`;
+  } else {
+    wrongItems.push(item);
+    btn.classList.remove('border-line','bg-card');
+    btn.classList.add('border-badline','bg-badsoft');
+    btn.querySelector('span:first-child').className =
+      'shrink-0 mt-0.5 font-mono text-[13px] font-semibold text-white bg-bad rounded-md w-7 h-7 flex items-center justify-center';
+    fb.className = 'mt-4 rounded-xl p-4 text-[15px] leading-relaxed bg-badsoft border border-badline text-ink fade-in';
+    fb.innerHTML = `<span class="font-semibold text-bad">Nicht ganz.</span> Richtig wäre: <span class="font-semibold">${item.richtig}</span>`;
+  }
+
+  const next = $('btn-next');
+  next.textContent = (idx+1 < order.length) ? 'Weiter →' : 'Ergebnis ansehen →';
+  next.classList.remove('hidden');
+  next.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function nextQuestion(){
+  idx++;
+  if(idx < order.length){ renderQuestion(); }
+  else { showEnd(); }
+}
+
+function showEnd(){
+  show('end');
+  const total = order.length;
+  const pct = Math.round((score/total)*100);
+  $('end-score').textContent = score;
+  $('end-percent').textContent = `${pct} %`;
+  // Anzeige "von X" anpassen, falls nur falsche geübt wurden
+  document.querySelector('#end-score').parentElement.querySelector('.text-muted').textContent = `von ${total}`;
+
+  let emoji, msg;
+  if(pct >= 90){ emoji='🏆'; msg='Stark! Du bist fit für die Prüfung.'; }
+  else if(pct >= 70){ emoji='👍'; msg='Gut gemacht – ein paar Fragen noch wiederholen, dann passt es.'; }
+  else if(pct >= 50){ emoji='💪'; msg='Solide Basis. Schau dir die kniffligen Themen nochmal an.'; }
+  else { emoji='📚'; msg='Dranbleiben lohnt sich – wiederhole die Inhalte und versuch es erneut.'; }
+  $('end-emoji').textContent = emoji;
+  $('end-message').textContent = msg;
+
+  const wrongBtn = $('btn-wrong');
+  if(wrongItems.length > 0){
+    wrongBtn.classList.remove('hidden');
+    wrongBtn.textContent = `Nur die ${wrongItems.length} falschen üben`;
+  } else {
+    wrongBtn.classList.add('hidden');
+  }
+}
+
+// ---- Events ----
+$('btn-start').addEventListener('click', ()=>startQuiz(POOL));
+$('btn-next').addEventListener('click', nextQuestion);
+$('btn-again').addEventListener('click', ()=>startQuiz(POOL));
+$('btn-wrong').addEventListener('click', ()=>startQuiz(wrongItems));
+
+// Tastatur am Beamer/Laptop: Enter/→ = Weiter
+document.addEventListener('keydown', e=>{
+  if(!screens.quiz.classList.contains('hidden') && answered && (e.key==='Enter' || e.key==='ArrowRight')){
+    nextQuestion();
+  }
+});
+</script>
+</body>
+</html>
