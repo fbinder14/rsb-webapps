@@ -582,5 +582,11 @@
     "stufe": "10",
     "beschreibung": "Prüfungstrainer mit 40 Theoriefragen zur BWR-Abschlussprüfung",
     "kategorie": "BWR"
+  },
+  "labyrinth.html": {
+    "fach": "Labyrinth",
+    "stufe": "5–10",
+    "beschreibung": "3D-Labyrinth-Spiel mit Ego-Perspektive und Minimap",
+    "kategorie": "Tools"
   }
 }
