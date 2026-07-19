@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0061)file:///Users/franzbinder/Downloads/endloses-labyrinth_3.html -->
-<html lang="de"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="de">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Endloses Labyrinth</title>
 <style>
@@ -21,9 +21,9 @@
   .keys { margin-top:1.4rem; font-size:.85rem; opacity:.7; } .keys b { color:#f4ead2; }
   .csel { margin-bottom:1.2rem; font-size:.95rem; opacity:.95; }
   .wsel { margin-bottom:1.2rem; font-size:.95rem; opacity:.95; }
-  .wbtn { display:inline-block; min-width:44px; padding:.28rem .7rem; margin:.15rem; border-radius:8px;
+  .wbtn, .lbtn { display:inline-block; min-width:44px; padding:.28rem .7rem; margin:.15rem; border-radius:8px;
     cursor:pointer; background:rgba(244,234,210,.15); border:1px solid rgba(244,234,210,.3); color:#f4ead2; }
-  .wbtn.on { background:#e8d4a2; color:#3c301c; font-weight:700; }
+  .wbtn.on, .lbtn.on { background:#e8d4a2; color:#3c301c; font-weight:700; }
   .crange { vertical-align:middle; width:190px; max-width:60%; }
   .cnum { display:inline-block; min-width:2ch; font-weight:700; color:#e8d4a2; }
   #chatbtn { position:fixed; top:64px; right:14px; z-index:7; display:none; width:44px; height:44px;
@@ -68,30 +68,30 @@
 </style>
 </head>
 <body>
-<canvas id="view" width="760" height="374" style="width: 1470px; height: 725px;"></canvas>
+<canvas id="view"></canvas>
 <div id="crosshair"></div>
 <div id="hud">Zeit: 0s</div>
 <canvas id="mini" width="164" height="164"></canvas>
 <div id="restartBtn">Neu starten</div>
-<div id="flyUp" class="flybtn">⬆</div>
-<div id="flyDown" class="flybtn">⬇</div>
+<div id="flyUp" class="flybtn">&#11014;</div>
+<div id="flyDown" class="flybtn">&#11015;</div>
 <div id="toast"></div>
-<div id="mute">🔊</div>
-<div id="chatbtn">💬</div>
-<div id="drinkbtn">💧</div>
+<div id="mute">&#128266;</div>
+<div id="chatbtn">&#128172;</div>
+<div id="drinkbtn">&#128167;</div>
 <div id="say"></div>
 <div id="chatbar"><input id="chatin" type="text" maxlength="60" placeholder="Sag etwas zu den Kumpeln\u2026 (Enter)"><button id="chatsend">Senden</button></div>
 <div id="touch">
-  <div class="tbtn" id="bUp">▲</div><div class="tbtn" id="bDown">▼</div>
-  <div class="tbtn" id="bLeftS">◀</div><div class="tbtn" id="bRightS">▶</div>
-  <div class="tbtn" id="bTL">↺</div><div class="tbtn" id="bTR">↻</div>
+  <div class="tbtn" id="bUp">&#9650;</div><div class="tbtn" id="bDown">&#9660;</div>
+  <div class="tbtn" id="bLeftS">&#9664;</div><div class="tbtn" id="bRightS">&#9654;</div>
+  <div class="tbtn" id="bTL">&#8634;</div><div class="tbtn" id="bTR">&#8635;</div>
 </div>
 <div id="overlay">
   <h1>Endloses Labyrinth</h1>
-  <p>Sandfarbenes Labyrinth ohne Ausgang. Dunkle Gestalten verfolgen dich – <b>lauf weg!</b> Deine bunten Kumpel ziehen gleich los. Ein Wanderer gibt dir Wasser (<b>Shift</b> = Sprint). Geh durch die <b>Tür</b> (im Startgang), um zu <b>Level 2 – der Garage</b> zu wechseln – und jederzeit zurück. Vorsicht dort vor einem Kumpel, der keiner ist…</p>
-  <div id="ctrl"><div class="csel">Wie viele Kumpel? <input class="crange" type="range" min="0" max="100" value="3"> <span class="cnum">3</span></div><div class="wsel">Wasser? <span class="wbtn on" data-w="1">Ja</span><span class="wbtn" data-w="0">Nein</span></div></div>
+  <p>Sandfarbenes Labyrinth ohne Ausgang. Dunkle Gestalten verfolgen dich &ndash; <b>lauf weg!</b> Deine bunten Kumpel ziehen gleich los. Ein Wanderer gibt dir Wasser (<b>Shift</b> = Sprint). Geh durch die <b>T&uuml;r</b> (im Startgang), um zu <b>Level 2 &ndash; der Garage</b> zu wechseln &ndash; und jederzeit zur&uuml;ck. Vorsicht dort vor einem Kumpel, der keiner ist&hellip;</p>
+  <div id="ctrl"></div>
   <button id="startBtn">Starten</button>
-  <div class="keys"><b>W A S D</b> laufen · <b>Pfeile / Maus</b> umsehen · am Handy per Tasten</div>
+  <div class="keys"><b>W A S D</b> laufen &middot; <b>Pfeile / Maus</b> umsehen &middot; am Handy per Tasten</div>
 </div>
 
 <script>
@@ -104,7 +104,7 @@
   var ENEMY_COUNT=3,ENEMY_SPEED=1.75,CATCH_DIST=0.45;
   var BUDDY_VULN=4,BUDDY_HIT=0.55,BUDDY_RESPAWN=25,MAX_BUDDIES=100;
   var PALETTE=['#4aa3ff','#ff5a5a','#ffb347','#ffe14a','#5ee36b','#38d9d9','#b57bff','#ff7bd5'];
-  var buddyCount=3;
+  var buddyCount=3,levelChoice=1;
 
   var canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
   var hud=document.getElementById('hud'),overlay=document.getElementById('overlay');
@@ -150,7 +150,12 @@
     for(var k=0;k<btns.length;k++){(function(b){b.addEventListener('click',function(){
       waterEnabled=b.getAttribute('data-w')==='1';
       for(var m=0;m<btns.length;m++)btns[m].classList.remove('on');b.classList.add('on');});})(btns[k]);}}
-  document.getElementById('ctrl').innerHTML=selectorHTML()+waterHTML();wireSelector(document.getElementById('ctrl'));wireWater(document.getElementById('ctrl'));
+  function levelHTML(){return '<div class="wsel">Level: <span class="lbtn'+(levelChoice===1?' on':'')+'" data-l="1">1 &ndash; Labyrinth</span><span class="lbtn'+(levelChoice===2?' on':'')+'" data-l="2">2 &ndash; Garage</span></div>';}
+  function wireLevel(root){var btns=root.querySelectorAll('.lbtn');
+    for(var k=0;k<btns.length;k++){(function(b){b.addEventListener('click',function(){
+      levelChoice=parseInt(b.getAttribute('data-l'),10);
+      for(var m=0;m<btns.length;m++)btns[m].classList.remove('on');b.classList.add('on');});})(btns[k]);}}
+  document.getElementById('ctrl').innerHTML=levelHTML()+selectorHTML()+waterHTML();wireSelector(document.getElementById('ctrl'));wireWater(document.getElementById('ctrl'));wireLevel(document.getElementById('ctrl'));
 
   // ---------- Audio ----------
   var audioCtx=null;
@@ -265,10 +270,11 @@
 
   function beginGame(){
     ensureAudio();spectating=false;restartBtn.style.display='none';mini.style.display='none';flyUp.style.display='none';flyDown.style.display='none';flyOffset=0;
-    water=0;boostT=0;nextWanderAt=12;wanderer.active=false;level=1;cars=[];mimic=null;portalCd=0;
+    water=0;boostT=0;nextWanderAt=12;wanderer.active=false;level=levelChoice;cars=[];mimic=null;portalCd=0;
     px=0.5;py=0.5;ang=0;survived=0;nearest=99;talkGate=0;lastMilestone=0;
     enemies=[];for(var i=0;i<ENEMY_COUNT;i++)enemies.push(openCellNear(9));
     buddies=[];for(var j=0;j<buddyCount;j++)buddies.push(makeBuddy(j,buddyCount));
+    if(level===2)placeGarage();
     playing=true;overlay.classList.add('hidden');hud.style.display='block';muteBtn.style.display='block';chatbtn.style.display='block';drinkbtn.style.display=waterEnabled?'block':'none';
     var isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
     if(isTouch)touch.style.display='block';
@@ -278,10 +284,10 @@
   function gameOver(){
     playing=false;if(document.exitPointerLock){try{document.exitPointerLock();}catch(e){}}
     overlay.innerHTML='<h1>Erwischt!</h1><p>Eine Gestalt hat dich eingeholt. Du hast <b>'+
-      Math.floor(survived)+' Sekunden</b> \u00fcberlebt.</p>'+selectorHTML()+waterHTML()+
+      Math.floor(survived)+' Sekunden</b> \u00fcberlebt.</p>'+levelHTML()+selectorHTML()+waterHTML()+
       '<div><button id="startBtn">Nochmal</button> <button id="specBtn" style="margin-left:.5rem;background:#8fd0ff">Zuschauen</button></div>'+
-      '<div class="keys">Zuschauen aus der <b>Vogelperspektive</b>: du fliegst frei &uuml;ber das Labyrinth. <b>WASD / Pfeile</b> schwenken, <b>Leertaste</b> = h&ouml;her (rauszoomen), <b>Shift</b> = tiefer. Die Gestalten jagen dich nicht.</div>';
-    overlay.classList.remove('hidden');wireSelector(overlay);wireWater(overlay);
+      '<div class="keys">Beim Zuschauen jagen dich die Gestalten nicht.</div>';
+    overlay.classList.remove('hidden');wireSelector(overlay);wireWater(overlay);wireLevel(overlay);
     document.getElementById('startBtn').addEventListener('click',beginGame);
     document.getElementById('specBtn').addEventListener('click',startSpectate);
   }
@@ -382,23 +388,29 @@
     ctx.beginPath();ctx.moveTo(hx,hip);ctx.lineTo(hx-figW*0.4+sway,feet);ctx.moveTo(hx,hip);ctx.lineTo(hx+figW*0.4-sway,feet);ctx.stroke();
   }
 
+  function isoPt(wx,wy,z){var dx=wx-px,dy=wy-py;return [W/2+(dx-dy)*zoom*0.5,H/2+(dx+dy)*zoom*0.25-z];}
+  function isoPoly(p){ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(var i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);ctx.closePath();ctx.fill();}
+  function isoCube(minx,miny,maxx,maxy,hpx,color){
+    var A=isoPt(minx,miny,hpx),B=isoPt(maxx,miny,hpx),C=isoPt(maxx,maxy,hpx),D=isoPt(minx,maxy,hpx);
+    var B0=isoPt(maxx,miny,0),C0=isoPt(maxx,maxy,0),D0=isoPt(minx,maxy,0);
+    ctx.fillStyle=color;isoPoly([B,C,C0,B0]);isoPoly([D,C,C0,D0]);isoPoly([A,B,C,D]);
+    ctx.fillStyle='rgba(0,0,0,.22)';isoPoly([B,C,C0,B0]);
+    ctx.fillStyle='rgba(0,0,0,.40)';isoPoly([D,C,C0,D0]);}
   function renderTop(){
-    var wcol=level===2?'rgb(122,126,132)':'rgb(200,180,138)',fcol=level===2?'#2c2f36':'#38311f';
-    ctx.fillStyle=fcol;ctx.fillRect(0,0,W,H);
-    var cs=zoom,halfW=(W/2)/cs+1,halfH=(H/2)/cs+1;
-    var minx=Math.floor(px-halfW),maxx=Math.ceil(px+halfW),miny=Math.floor(py-halfH),maxy=Math.ceil(py+halfH);
-    ctx.fillStyle=wcol;
-    for(var cx=minx;cx<=maxx;cx++)for(var cy=miny;cy<=maxy;cy++){
-      if(isWall(cx,cy)){ctx.fillRect(W/2+(cx-px)*cs,H/2+(cy-py)*cs,cs+1,cs+1);}}
-    function M(wx,wy){return [W/2+(wx-px)*cs,H/2+(wy-py)*cs];}
-    var m,i;
-    if(level===2){for(i=0;i<cars.length;i++){m=M(cars[i].x,cars[i].y);ctx.fillStyle=cars[i].color;ctx.fillRect(m[0]-cs*0.38,m[1]-cs*0.24,cs*0.76,cs*0.48);}}
-    m=M(portal.x,portal.y);ctx.fillStyle=level===1?'#38d9d9':'#ffb347';ctx.fillRect(m[0]-cs*0.22,m[1]-cs*0.35,cs*0.44,cs*0.7);
-    for(i=0;i<buddies.length;i++){var b=buddies[i];if(!b.alive)continue;m=M(b.x,b.y);ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(m[0],m[1],Math.max(3,cs*0.32),0,Math.PI*2);ctx.fill();}
-    if(wanderer.active){m=M(wanderer.x,wanderer.y);ctx.fillStyle='#37c9ac';ctx.beginPath();ctx.arc(m[0],m[1],Math.max(3,cs*0.32),0,Math.PI*2);ctx.fill();}
-    if(level===2&&mimic){m=M(mimic.x,mimic.y);ctx.fillStyle=mimic.revealed?'#b02bd0':'#5ee36b';ctx.beginPath();ctx.arc(m[0],m[1],Math.max(3,cs*0.36),0,Math.PI*2);ctx.fill();}
-    ctx.fillStyle='#c0281e';for(i=0;i<enemies.length;i++){m=M(enemies[i].x,enemies[i].y);ctx.beginPath();ctx.arc(m[0],m[1],Math.max(3,cs*0.36),0,Math.PI*2);ctx.fill();}
-    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(W/2,H/2,Math.max(4,cs*0.3),0,Math.PI*2);ctx.stroke();
+    var floorc=level===2?'#26282e':'#2f2a1c',wc=level===2?'rgb(122,126,132)':'rgb(206,186,142)',wallH=zoom*0.9;
+    ctx.fillStyle=floorc;ctx.fillRect(0,0,W,H);
+    var reach=Math.min(28,Math.ceil((W+2*H)/zoom/2)+3),ox=Math.round(px),oy=Math.round(py),items=[],i;
+    for(var dx=-reach;dx<=reach;dx++)for(var dy=-reach;dy<=reach;dy++){var cx=ox+dx,cy=oy+dy;
+      if(isWall(cx,cy))items.push({d:cx+cy,minx:cx,miny:cy,maxx:cx+1,maxy:cy+1,h:wallH,c:wc});}
+    function tok(x,y,h,c){items.push({d:x+y,minx:x-0.34,miny:y-0.34,maxx:x+0.34,maxy:y+0.34,h:h,c:c});}
+    if(level===2)for(i=0;i<cars.length;i++)items.push({d:cars[i].x+cars[i].y,minx:cars[i].x-0.42,miny:cars[i].y-0.42,maxx:cars[i].x+0.42,maxy:cars[i].y+0.42,h:zoom*0.42,c:cars[i].color});
+    for(i=0;i<buddies.length;i++){var b=buddies[i];if(b.alive)tok(b.x,b.y,zoom*0.75,b.color);}
+    if(wanderer.active)tok(wanderer.x,wanderer.y,zoom*0.85,'#37c9ac');
+    if(level===2&&mimic)tok(mimic.x,mimic.y,zoom*(mimic.revealed?1.1:0.75),mimic.revealed?'#b02bd0':'#5ee36b');
+    for(i=0;i<enemies.length;i++)tok(enemies[i].x,enemies[i].y,zoom*0.95,'#c0281e');
+    tok(px,py,zoom*0.6,'#ffffff');
+    items.sort(function(a,b){return a.d-b.d;});
+    for(i=0;i<items.length;i++){var it=items[i];isoCube(it.minx,it.miny,it.maxx,it.maxy,it.h,it.c);}
   }
 
   function render(){
@@ -459,7 +471,6 @@
     }
 
     if(level===2){drawCars(invDet,dirX,dirY,planeX,planeY);drawMimic(invDet,dirX,dirY,planeX,planeY);}
-    drawPortal(invDet,dirX,dirY,planeX,planeY);
 
     if(nearest<5.5){var a=(5.5-nearest)/5.5*0.45;ctx.fillStyle='rgba(120,10,10,'+a+')';ctx.fillRect(0,0,W,H);}
   }
@@ -490,7 +501,6 @@
         if(keys.up)zoom=Math.max(8,zoom-34*dt);
         if(keys.down)zoom=Math.min(64,zoom+34*dt);
       }
-      if(playing){portalCd-=dt;if(portalCd<=0&&Math.hypot(px-portal.x,py-portal.y)<0.8)switchLevel(level===1?2:1);}
 
       // Kumpel bewegen (wandern selbstst\u00e4ndig)
       for(var j=0;j<buddies.length;j++){var b=buddies[j];b.distP=Math.hypot(px-b.x,py-b.y);
@@ -550,8 +560,8 @@
       if(playing&&mm>0&&mm%60===0&&mm!==lastMilestone){var rb=randomBuddy();if(rb){lastMilestone=mm;say('Schon '+mm+' Sekunden! Stark!',rb);talkGate=2.2;}}
       for(var tb=0;tb<buddies.length;tb++){var bt=buddies[tb];if(!bt.alive)continue;
         bt.talkT-=dt;
-        if(bt.talkT<=0){bt.talkT=(nearest<4?3:7)+Math.random()*7;
-          if(talkGate<=0){buddyTalk(bt);talkGate=2.0;}}
+        if(bt.talkT<=0){bt.talkT=(nearest<4?2:4)+Math.random()*5;
+          if(talkGate<=0){buddyTalk(bt);talkGate=1.3;}}
       }
       // Mimic (Garage): sieht aus wie ein Kumpel, verwandelt sich bei N\u00e4he
       if(playing&&level===2&&mimic){
@@ -598,7 +608,14 @@
     var b=nearestBuddy()||randomBuddy();
     sayBox.innerHTML='<b style="color:#fff">Mikey:</b> '+text;sayBox.style.borderColor='#fff';sayBox.style.opacity=1;sayBox.style.display='block';
     clearTimeout(sayTimer);sayTimer=setTimeout(function(){sayBox.style.display='none';},2600);
-    if(b){var reply=replyFor(text);setTimeout(function(){say(reply,b);talkGate=1.6;},850);}}
+    var lt=text.toLowerCase(),cat=null;
+    if(/l\u00e4nder|land|country|countries/.test(lt))cat=COUNTRIES;
+    else if(/tiere|tier|animal/.test(lt))cat=ANIMALS;
+    else if(/farben|farbe|colou?r/.test(lt))cat=COLORS;
+    if(cat){var list=aliveBuddies().slice(0,12);
+      for(var i=0;i<list.length;i++){(function(bb,idx){setTimeout(function(){if(bb.alive)say(pick(cat),bb);},700+idx*1300);})(list[i],i);}
+      talkGate=list.length*1.3+1;}
+    else if(b){var reply=replyFor(text);setTimeout(function(){say(reply,b);talkGate=1.6;},850);}}
   chatbtn.addEventListener('click',function(){chatting?closeChat():openChat();});
   drinkbtn.addEventListener('click',drink);
   chatin.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();sendChat();}else if(e.key==='Escape'){e.preventDefault();closeChat();}e.stopPropagation();});
@@ -634,6 +651,5 @@
   requestAnimationFrame(loop);
 })();
 </script>
-
-
-</body></html>
+</body>
+</html>
