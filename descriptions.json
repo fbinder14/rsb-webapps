@@ -595,5 +595,12 @@
     "beschreibung": "Ausgaben der Familie Berger nach Kategorien sortieren (Drag & Drop)",
     "kategorie": "BWR",
     "lernbereich": "BwR7-IIIa-1"
+  },
+  "stabliniensystem.html": {
+    "fach": "WR",
+    "stufe": "9",
+    "beschreibung": "Quiz zum Stabliniensystem in der Unternehmensorganisation",
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR9-II-1"
   }
 }
