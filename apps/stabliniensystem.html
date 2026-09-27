@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="de" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Quiz Dashboard · Stabliniensystem</title>
+  <style>
+    :root{
+      --bg-sidebar:#0E1117; --bg-main:#F7F8FA; --card-bg:#FFFFFF; --text-strong:#0F172A; --text-muted:#475569;
+      --brand:#635BFF; --brand-2:#00D4FF; --shadow:0 10px 30px rgba(2,6,23,0.12); --radius:16px;
+    }
+    html,body{height:100%}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(180deg,#FAFBFF 0%,#F4F6FB 100%);color:var(--text-strong)}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:280px;background:radial-gradient(1200px 400px at -200px -200px,#1B2240,#0E1117);color:#E2E8F0;padding:28px 22px;position:sticky;top:0;height:100vh;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+    .brand-badge{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 8px 24px rgba(99,91,255,0.4), inset 0 0 12px rgba(255,255,255,0.28)}
+    .brand-title{font-weight:800;letter-spacing:0.2px;font-size:18px}
+    .meta{font-size:12px;color:#9CA3AF;margin-bottom:16px}
+    .progress{height:10px;background:#1f2636;border-radius:999px}
+    .progress-bar{background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+    .main{flex:1;padding:34px;display:flex;flex-direction:column;gap:24px}
+    .pill{background:#fff;border-radius:999px;padding:8px 14px;font-weight:600;color:#334155;box-shadow:var(--shadow)}
+    .card-quiz{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px}
+    .question{font-size:clamp(26px,2.6vw,34px);line-height:1.2;font-weight:800;letter-spacing:-0.3px;margin-bottom:18px}
+    .subtitle{font-size:14px;color:var(--text-muted);margin-bottom:12px}
+    .options{display:grid;gap:14px}
+    .option{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;border:1px solid #E5E7EB;background:#FFFFFF;cursor:pointer;transition:all .18s ease;position:relative}
+    .option:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(2,6,23,0.08);border-color:#D1D5DB}
+    .opt-key{min-width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#F1F5F9;color:#0F172A;font-weight:700}
+    .opt-text{font-weight:600;color:#0F172A}
+    .reveal{border-radius:14px;padding:16px 18px;font-weight:600;display:none;margin-top:14px}
+    .reveal.correct{background:#ECFEFF;color:#065F46;border:1px solid #99F6E4}
+    .reveal.wrong{background:#FEF2F2;color:#7F1D1D;border:1px solid #FECACA}
+    .why{font-weight:500;color:#334155;margin-top:8px}
+    .nav-controls{display:flex;gap:10px;margin-top:20px}
+    .btn-gradient{border:none;border-radius:12px;padding:12px 16px;font-weight:700;color:white;background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 8px 18px rgba(99,91,255,0.35)}
+    .btn-ghost{border:1px solid #CBD5E1;border-radius:12px;padding:12px 16px;font-weight:700;color:#0F172A;background:white}
+    .kbd-hint{font-size:12px;color:#64748B}
+    .badge-step{background:#EEF2FF;color:#3730A3;font-weight:700;padding:6px 10px;border-radius:999px}
+    .footer-note{color:#64748B;font-size:12px}
+    @media (max-width: 992px){.sidebar{display:none}.main{padding:18px}.question{font-size:24px}}
+  
+    *,*::before,*::after{box-sizing:border-box}body{margin:0;font-size:16px;line-height:1.5}button{font:inherit;line-height:inherit;text-transform:none}button:not(:disabled){cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible{outline:3px solid #635BFF;outline-offset:4px}ul{margin-top:0;margin-bottom:1rem}.d-flex{display:flex}.justify-content-between{justify-content:space-between}.align-items-center{align-items:center}.gap-2{gap:.5rem}.mt-2{margin-top:.5rem}.mt-4{margin-top:1.5rem}.fw-bold{font-weight:700}.text-start{text-align:left}.progress{display:flex;overflow:hidden}.progress-bar{display:flex;transition:width .3s}.main{min-width:0}.sidebar{flex-shrink:0}.flexible-row{gap:12px;flex-wrap:wrap}.option{width:100%;text-align:left}.opt-key{flex-shrink:0}.option.selected-correct{border-color:#22D3EE;box-shadow:0 8px 24px rgba(14,165,233,.25)}.option.selected-wrong{border-color:#FCA5A5;box-shadow:0 8px 24px rgba(239,68,68,.18)}
+    html[data-bs-theme="dark"]{color-scheme:dark;--text-strong:#F1F5F9;--text-muted:#CBD5E1;--card-bg:#1A2232;--shadow:0 10px 30px rgba(0,0,0,.25)}html[data-bs-theme="dark"] body{background:linear-gradient(180deg,#101725,#151D2D)}html[data-bs-theme="dark"] .option,html[data-bs-theme="dark"] .btn-ghost,html[data-bs-theme="dark"] .pill{background:#222D40;color:#F1F5F9;border-color:#45536A}html[data-bs-theme="dark"] .opt-text{color:#F1F5F9}html[data-bs-theme="dark"] .opt-key{background:#35415B;color:#F1F5F9}html[data-bs-theme="dark"] .footer-note,html[data-bs-theme="dark"] .kbd-hint{color:#B8C5D8}html[data-bs-theme="dark"] .reveal.correct{background:#113D3A;color:#CCFBF1;border-color:#26766E}html[data-bs-theme="dark"] .reveal.wrong{background:#45252B;color:#FFE4E6;border-color:#9F5361}html[data-bs-theme="dark"] .why{color:inherit}
+    @media(max-width:600px){.main{padding:14px;gap:16px}.card-quiz{padding:20px}.option{padding:13px 12px;gap:10px}.opt-text{font-size:15px}.pill{font-size:14px}.btn-ghost,.btn-gradient{padding:10px 13px}.nav-controls{flex-wrap:wrap}.flexible-row>.d-flex{flex-wrap:wrap}.question{font-size:24px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-badge"></div>
+      <div>
+        <div class="brand-title">Wirtschaft • Quiz</div>
+        <div class="meta">Stabliniensystem</div>
+      </div>
+    </div>
+    <div class="mt-4">
+      <div class="meta">Fortschritt</div>
+      <div class="progress">
+        <div id="progressBar" class="progress-bar" role="progressbar" aria-label="Beantwortete Fragen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-2">
+        <span class="badge-step"><span id="stepNow">1</span>/<span id="stepTotal">10</span></span>
+        <span class="meta">Tasten: 1–4, ← →</span>
+      </div>
+    </div>
+    <div class="mt-4">
+      <div class="meta">Tipps</div>
+      <ul class="mt-2" style="list-style:none;padding-left:0;line-height:1.6">
+        <li>• Stab berät, Linie entscheidet</li>
+        <li>• Ein Weisungsweg, Expertise obendrauf</li>
+        <li>• Klarheit durch Rollen & Transparenz</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="d-flex justify-content-between align-items-center flexible-row">
+      <div class="pill">Live‑Quiz · Stabliniensystem</div>
+      <div class="d-flex align-items-center gap-2">
+        <button id="btnRestart" class="btn-ghost">Neu starten</button>
+        <button id="btnTheme" class="btn-ghost">Dark/Light</button>
+      </div>
+    </div>
+
+    <section class="card-quiz mt-2">
+      <div class="subtitle"><span class="badge-step">Frage <span id="qIndex">1</span></span></div>
+      <div id="questionText" class="question" tabindex="-1">…</div>
+      <div id="optionsWrap" class="options"></div>
+      <div id="revealBox" class="reveal" role="status" aria-live="polite">
+        <div id="revealTitle" class="fw-bold"></div>
+        <div id="revealWhy" class="why"></div>
+      </div>
+      <div class="nav-controls">
+        <button id="btnPrev" class="btn-ghost">&larr; Zurück</button>
+        <button id="btnNext" class="btn-gradient">Weiter &rarr;</button>
+      </div>
+      <div class="mt-2 kbd-hint">Schnellauswahl: 1 • 2 • 3 • 4 · Navigieren: Pfeile ← →</div>
+    </section>
+
+    <div class="d-flex justify-content-between align-items-center flexible-row">
+      <div class="footer-note">Design inspiriert vom Stripe‑Dashboard Look & Feel.</div>
+      <div class="footer-note">HTML · Offline nutzbar</div>
+    </div>
+  </main>
+</div>
+
+<script>
+
+const ORIGINAL_QUESTIONS = [{"q": "Welche Aussage trifft das Stabliniensystem am besten?", "opts": ["Mehrere Vorgesetzte teilen sich die Weisungsbefugnis über eine Stelle.", "Ein klarer Weisungsweg wird durch beratende, nicht weisungsbefugte Stabsstellen ergänzt.", "Stabsstellen entscheiden operativ, Linien bereiten nur vor.", "Linieninstanzen beraten, Stäbe setzen um."], "correct": 1, "why": "Stabliniensystem = Einlinien‑Weisungsweg plus beratende Stabsstellen ohne Weisungsrecht."}, {"q": "Was ist die primäre Funktion einer Stabsstelle?", "opts": ["Operative Führung von Abteilungen.", "Planung, Analyse, Beratung und Entscheidungsvorbereitung ohne eigenes Weisungsrecht.", "Disziplinarische Leitung von Projektteams.", "Genehmigung von Budgets in den Linien."], "correct": 1, "why": "Stäbe liefern Analysen und Empfehlungen, entscheiden und weisen nicht an."}, {"q": "Worin unterscheidet sich Stabliniensystem vom Mehrliniensystem?", "opts": ["Stablinie hat zwei Chefs pro Stelle, Mehrlinie nur einen.", "Stablinie behält einen Weisungsweg, Mehrlinie hat mehrere.", "Beide haben mehrere Weisungswege, aber Stablinie hat zusätzlich Stäbe.", "Es gibt keinen Unterschied."], "correct": 1, "why": "Stablinie: ein Weisungsweg; Mehrlinie: mehrere Weisungsbeziehungen."}, {"q": "Welcher Effekt ist typischerweise ein Vorteil des Stabliniensystems?", "opts": ["Höhere Entscheidungsgüte durch Expertisen der Stäbe.", "Schnellere Entscheidungen, weil Analysen entfallen.", "Weniger Koordination, da Stäbe autark entscheiden.", "Geringerer Qualifizierungsbedarf im Management."], "correct": 0, "why": "Expertenwissen verbessert die Qualität; Analysen entfallen nicht, sondern unterstützen."}, {"q": "Welches Risiko ist systemimmanent im Stabliniensystem?", "opts": ["Vollständiger Verlust der Hierarchie.", "Selektive Informationsweitergabe durch Stäbe kann Entscheidungen verzerren.", "Doppeltes Weisungsrecht führt zu Machtkämpfen.", "Keine Möglichkeit zur Spezialisierung."], "correct": 1, "why": "Informationsselektion/„Shadow influence“ ist ein bekanntes Risiko; doppeltes Weisungsrecht ist Mehrlinie."}, {"q": "Welche Maßnahme mindert Konflikte zwischen Stab und Linie am wirksamsten?", "opts": ["Stäben begrenzte Weisungsrechte geben.", "Klare Rollen („Stab berät, Linie entscheidet“), transparente Wege, Feedback‑Schleifen.", "Stabsberichte nur mündlich übermitteln.", "Stäbe organisatorisch auflösen."], "correct": 1, "why": "Rollenklarheit, Transparenz und Feedback reduzieren Konflikte nachhaltig."}, {"q": "Welche Zuordnung passt zum Stab?", "opts": ["Werksleitung vergibt Schichtpläne.", "Controlling erstellt Investitionsrechnungen und Entscheidungsvorlagen.", "Vertrieb setzt Rabattstaffeln in Filialen um.", "Produktionsleiter ordnet Maschinenbelegung an."], "correct": 1, "why": "Controlling ist typische Stabsfunktion: Analysen/Vorlagen statt Weisung/Umsetzung."}, {"q": "Warum helfen Stäbe beim Ausgleich von Kurz- und Langfrist?", "opts": ["Sie priorisieren Tagesgeschäft vor Strategie.", "Sie fokussieren auf langfristige Analysen/Strategien und ergänzen die kurzfristig agierende Linie.", "Sie eliminieren langfristige Planungen zugunsten schneller Entscheidungen.", "Sie ersetzen die strategische Arbeit der Unternehmensleitung."], "correct": 1, "why": "Stäbe bringen Langfrist‑/Strategiefokus in die primär kurzfristige Linienarbeit."}, {"q": "Welches Statement ist im Vergleich zur Einlinie korrekt?", "opts": ["Einlinie ist konfliktreicher als Mehrlinie.", "Einlinie ist klar, aber überlastungsanfällig; Stablinie entlastet bei klarem Weisungsweg.", "Einlinie und Stablinie sind identisch.", "Einlinie hat immer Stabsstellen."], "correct": 1, "why": "Stablinie behält Klarheit und erhöht Kapazität/Qualität durch Beratung."}, {"q": "Wann ist eine Stabsstelle besonders sinnvoll?", "opts": ["Bei standardisierten Routinen ohne Analysebedarf.", "Bei komplexen, regulierten Entscheidungen mit hohem Informations‑ und Bewertungsaufwand.", "Wenn schnelle Ad‑hoc‑Entscheidungen ohne Datenbasis nötig sind.", "Wenn mehrere Vorgesetzte parallel Weisungen geben sollen."], "correct": 1, "why": "Komplexität/Regulierung erfordern Spezialwissen und strukturierte Entscheidungsaufbereitung."}];
+let QUESTIONS=[],idx=0,answered={},finished=false;
+const $=id=>document.getElementById(id);
+const qText=$('questionText'),qIndex=$('qIndex'),optionsWrap=$('optionsWrap'),revealBox=$('revealBox'),revealTitle=$('revealTitle'),revealWhy=$('revealWhy'),btnPrev=$('btnPrev'),btnNext=$('btnNext'),btnRestart=$('btnRestart'),progressBar=$('progressBar'),stepNow=$('stepNow'),stepTotal=$('stepTotal'),btnTheme=$('btnTheme');
+const letters=['A','B','C','D'];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function freshQuestions(){const positions=shuffle(ORIGINAL_QUESTIONS.map((_,i)=>i%4));return ORIGINAL_QUESTIONS.map((q,n)=>{const opts=shuffle(q.opts.filter((_,i)=>i!==q.correct));opts.splice(positions[n],0,q.opts[q.correct]);return {...q,opts,correct:positions[n]};});}
+function progress(){const pct=Math.round(Object.keys(answered).length/QUESTIONS.length*100);progressBar.style.width=pct+'%';progressBar.setAttribute('aria-valuenow',pct);stepTotal.textContent=QUESTIONS.length;}
+function highlightSelection(choice,correct){[...optionsWrap.children].forEach((button,i)=>{button.classList.toggle('selected-correct',i===choice&&choice===correct);button.classList.toggle('selected-wrong',i===choice&&choice!==correct);button.setAttribute('aria-pressed',String(i===choice));});}
+function showReveal(choice){const q=QUESTIONS[idx],ok=choice===q.correct;revealBox.className='reveal '+(ok?'correct':'wrong');revealTitle.textContent=ok?'Richtig ✔':`Falsch ✘   (Richtige Antwort: ${letters[q.correct]})`;revealWhy.textContent=q.why;revealBox.style.display='block';}
+function render(){finished=false;const q=QUESTIONS[idx];qText.textContent=q.q;qIndex.textContent=idx+1;stepNow.textContent=idx+1;progress();optionsWrap.replaceChildren();q.opts.forEach((opt,i)=>{const button=document.createElement('button');button.type='button';button.className='option text-start';button.dataset.idx=i;button.setAttribute('aria-pressed','false');const key=document.createElement('span');key.className='opt-key';key.textContent=letters[i];const label=document.createElement('span');label.className='opt-text';label.textContent=opt;button.append(key,label);button.onclick=()=>selectOption(i);optionsWrap.append(button);});if(answered[idx]!==undefined){showReveal(answered[idx]);highlightSelection(answered[idx],q.correct);}else{revealBox.style.display='none';}btnPrev.disabled=idx===0;btnNext.textContent=idx===QUESTIONS.length-1?'Fertig':'Weiter →';btnNext.onclick=idx===QUESTIONS.length-1?finish:next;}
+function selectOption(choice){if(finished||!Number.isInteger(choice)||choice<0||choice>3)return;answered[idx]=choice;highlightSelection(choice,QUESTIONS[idx].correct);showReveal(choice);progress();}
+function prev(){if(finished){render();}else if(idx>0){idx--;render();}}
+function next(){if(finished)return;if(idx<QUESTIONS.length-1){idx++;render();}}
+function finish(){if(finished)return;finished=true;const count=Object.entries(answered).filter(([k,v])=>QUESTIONS[+k].correct===v).length;const missing=QUESTIONS.length-Object.keys(answered).length;qText.textContent=`Ergebnis: ${count} / ${QUESTIONS.length} richtig`;optionsWrap.replaceChildren();revealBox.className='reveal correct';revealTitle.textContent='Quiz beendet';revealWhy.textContent=(missing?`${missing} Frage${missing===1?' blieb':'n blieben'} unbeantwortet. `:'')+'Tipp: Wiederhole Weisungsweg, Stabsfunktion und Rollenklarheit.';revealBox.style.display='block';btnPrev.disabled=false;btnNext.textContent='Erneut starten';btnNext.onclick=restart;progress();}
+function restart(){idx=0;answered={};finished=false;QUESTIONS=freshQuestions();render();}
+btnPrev.onclick=prev;btnRestart.onclick=restart;btnTheme.setAttribute('aria-label','Dunkle Darstellung einschalten');btnTheme.setAttribute('aria-pressed','false');btnTheme.onclick=()=>{const dark=document.documentElement.dataset.bsTheme!=='dark';document.documentElement.dataset.bsTheme=dark?'dark':'light';btnTheme.setAttribute('aria-pressed',String(dark));btnTheme.setAttribute('aria-label',dark?'Helle Darstellung einschalten':'Dunkle Darstellung einschalten');};
+document.addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey||e.repeat||e.target.closest?.('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowLeft'){e.preventDefault();prev();}else if(e.key==='ArrowRight'&&!finished){e.preventDefault();idx===QUESTIONS.length-1?finish():next();}else if(['1','2','3','4'].includes(e.key)&&!finished){e.preventDefault();selectOption(Number(e.key)-1);}});
+restart();
+
+</script>
+</body>
+</html>
