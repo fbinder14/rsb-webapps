@@ -602,5 +602,12 @@
     "beschreibung": "Quiz zum Stabliniensystem in der Unternehmensorganisation",
     "kategorie": "Wirtschaft & Recht",
     "lernbereich": "WR9-II-1"
+  },
+  "bestandskonteneroeffnen.html": {
+    "fach": "BWR",
+    "stufe": "7–8",
+    "beschreibung": "Eröffnungsbilanzen erstellen durch Zuordnung von Bilanzposten",
+    "kategorie": "BWR",
+    "lernbereich": "BwR7-IIIa-3"
   }
 }
