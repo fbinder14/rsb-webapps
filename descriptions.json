@@ -609,5 +609,12 @@
     "beschreibung": "Eröffnungsbilanzen erstellen durch Zuordnung von Bilanzposten",
     "kategorie": "BWR",
     "lernbereich": "BwR7-IIIa-3"
+  },
+  "bestandskonten-gipfelcheck.html": {
+    "fach": "BWR",
+    "stufe": "7",
+    "beschreibung": "Übung zur Eröffnung der Bestandskonten in der Buchhaltung",
+    "kategorie": "BWR",
+    "lernbereich": "BwR7-IIIa-3"
   }
 }
