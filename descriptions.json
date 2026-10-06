@@ -623,5 +623,12 @@
     "beschreibung": "Haushaltsplan erstellen und Einnahmen/Ausgaben kategorisieren",
     "kategorie": "BWR",
     "lernbereich": "BwR7-IIIa-1"
+  },
+  "haushalt.html": {
+    "fach": "BWR",
+    "stufe": "7",
+    "beschreibung": "Haushaltsplan für Familie Berger erstellen und analysieren",
+    "kategorie": "BWR",
+    "lernbereich": "BwR7-IIIa-1"
   }
 }
