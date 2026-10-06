@@ -1,46 +1,488 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#155b52"><title>Geld im Blick · Dein Haushaltsplan</title>
-<style>/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-font-weight:initial;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--spacing:.25rem;--container-6xl:72rem;--text-sm:.875rem;--text-sm--line-height:calc(1.25 / .875);--text-2xl:1.5rem;--text-2xl--line-height:calc(2 / 1.5);--text-3xl:1.875rem;--text-3xl--line-height:calc(2.25 / 1.875);--font-weight-bold:700;--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono)}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.mx-auto{margin-inline:auto}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-4{margin-top:calc(var(--spacing) * 4)}.mt-5{margin-top:calc(var(--spacing) * 5)}.mt-6{margin-top:calc(var(--spacing) * 6)}.mt-8{margin-top:calc(var(--spacing) * 8)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.mb-5{margin-bottom:calc(var(--spacing) * 5)}.mb-6{margin-bottom:calc(var(--spacing) * 6)}.mb-8{margin-bottom:calc(var(--spacing) * 8)}.mb-10{margin-bottom:calc(var(--spacing) * 10)}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.table{display:table}.max-w-6xl{max-width:var(--container-6xl)}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-end{align-items:flex-end}.justify-between{justify-content:space-between}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-8{gap:calc(var(--spacing) * 8)}.px-5{padding-inline:calc(var(--spacing) * 5)}.py-8{padding-block:calc(var(--spacing) * 8)}.text-2xl{font-size:var(--text-2xl);line-height:var(--tw-leading,var(--text-2xl--line-height))}.text-sm{font-size:var(--text-sm);line-height:var(--tw-leading,var(--text-sm--line-height))}.font-bold{--tw-font-weight:var(--font-weight-bold);font-weight:var(--font-weight-bold)}.blur{--tw-blur:blur(8px);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}@media (min-width:40rem){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.sm\:px-8{padding-inline:calc(var(--spacing) * 8)}.sm\:py-12{padding-block:calc(var(--spacing) * 12)}.sm\:text-3xl{font-size:var(--text-3xl);line-height:var(--tw-leading,var(--text-3xl--line-height))}}@media (min-width:48rem){.md\:col-span-2{grid-column:span 2/span 2}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (min-width:64rem){.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Haushaltsplan Familie Berger</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { accent: '#635bff', ink: '#0a2540', muted: '#425466', line: '#e3e8ee', soft: '#f6f9fc' },
+    fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['"Source Serif 4"','Georgia','serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+  } }
+};
+</script>
 <style>
-:root{--ink:#173e38;--green:#155b52;--paper:#f7f6ef;--line:#d8e2db}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:'Avenir Next','Trebuchet MS',sans-serif;font-size:17px;line-height:1.6}h1,h2,h3,p{margin:0}button,input,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.5}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #b36513;outline-offset:4px}h1{font-family:'Palatino Linotype',Palatino,Georgia,serif;font-weight:500;letter-spacing:-.04em;line-height:1.06;font-size:clamp(48px,7vw,82px)}h2{font-size:clamp(25px,3vw,32px);letter-spacing:-.035em;line-height:1.2}h3{font-size:20px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.muted{color:#56716b}.panel{background:#fff;border:1px solid var(--line);border-radius:24px;padding:28px}.step{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#e9eee7;font-size:15px;font-weight:800;flex-shrink:0}.pill{background:#e9eee7;border-radius:50px;padding:7px 13px;font-size:13px;font-weight:700}.receipt{border:1px solid var(--line);border-top:4px solid #d2a450;border-radius:6px 6px 16px 16px;background:#fff;position:relative;text-align:left;padding:18px 20px;min-height:153px;transition:transform .2s,box-shadow .2s}.receipt:hover{transform:translateY(-3px);box-shadow:0 8px 24px #183d3810}.receipt.done{border-top-color:var(--green);background:#eef5ef}.receipt .amount{display:block;font-size:27px;font-weight:700;font-variant-numeric:tabular-nums}.receipt small{display:block;font-size:12px;color:#56716b}.primary{border:0;background:var(--green);color:#fff;border-radius:14px;padding:14px 23px;min-height:52px;font-weight:700}.secondary{border:1px solid #b9cdc5;background:#fff;color:var(--green);border-radius:14px;padding:12px 18px;min-height:48px;font-weight:700}.section-head{background:#edf3ee;font-weight:800;font-size:13px;letter-spacing:.08em;padding:12px 18px}.plan-row{display:grid;grid-template-columns:minmax(0,1fr) 205px;align-items:center;gap:20px;padding:14px 18px;border-bottom:1px solid #e8ede8}.plan-row label{line-height:1.35}.money{width:100%;text-align:right;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;min-height:52px;background:#fbfcf9;border:1.5px solid #a5beb4;border-radius:10px;padding:10px 12px;color:var(--ink)}.money[aria-invalid=true]{border-color:#ac462b;background:#fff6ef}.field-error{font-size:13px;color:#a13b25;display:block;line-height:1.35;margin-top:5px}.total{background:#f8faf7;font-weight:700}.total output{text-align:right;font-variant-numeric:tabular-nums}.notice{border-left:3px solid #bd8736;padding:10px 16px;background:#faf4e7;border-radius:0 10px 10px 0}.result{background:var(--green);color:white;padding:26px;border-radius:18px}.choice{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--line);padding:14px;border-radius:12px;cursor:pointer;background:#fff;min-height:54px}.choice:has(input:checked){border-color:var(--green);background:#edf5ef}.choice input{width:22px;height:22px;margin-top:2px;flex-shrink:0;accent-color:var(--green)}textarea{width:100%;min-height:100px;padding:15px;border:1px solid #9cb8ab;border-radius:12px;resize:vertical}progress{width:100%;height:7px;accent-color:var(--green);display:block}progress::-webkit-progress-bar{background:#e4e9e1;border-radius:6px}progress::-webkit-progress-value{background:var(--green);border-radius:6px}.hidden,[hidden]{display:none!important}dialog{max-width:430px;border:0;border-radius:22px;padding:28px;color:var(--ink)}dialog::backdrop{background:#173e3866}.notebook{background:repeating-linear-gradient(#fffdf6,#fffdf6 31px,#d6e1d940 32px);border:1px solid #dcdccc;border-radius:18px;padding:26px}.notebook table{border-collapse:collapse;width:100%;margin:18px 0}.notebook td,.notebook th{padding:7px 0;border-bottom:1px solid #d5dfd4;text-align:left}.notebook td:last-child{text-align:right;font-variant-numeric:tabular-nums}.notebook p{margin-bottom:10px}a{color:inherit}.print-only{display:none}@media(max-width:620px){.panel{padding:19px}.plan-row{grid-template-columns:minmax(0,1fr) 155px;gap:10px;padding:12px 9px}.money{font-size:18px}.receipt{padding:14px}.receipt .amount{font-size:24px}}@media print{@page{size:A4;margin:16mm}body{background:white;color:black;font-size:12pt}.no-print{display:none!important}main{max-width:none!important;margin:0!important;padding:0!important}.notebook{border:0;padding:0;background:white}#notebook{display:block!important}#notebook[hidden]{display:none!important}.print-only{display:block}.notebook h2{font-size:24pt}.notebook table{break-inside:avoid}footer{display:none}}
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: #f6f9fc; color: #0a2540; -webkit-tap-highlight-color: transparent; }
+  .num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  input.money, select.cat, textarea.answer {
+    border: 2px solid #e3e8ee; border-radius: 12px; background: #fff; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input.money { font-family: 'JetBrains Mono', monospace; font-size: 20px; text-align: right; padding: 10px 40px 10px 14px; width: 100%; min-height: 52px; }
+  select.cat { font-size: 17px; padding: 10px 12px; width: 100%; min-height: 50px; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23425466' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
+  textarea.answer { font-size: 17px; padding: 12px 14px; width: 100%; min-height: 96px; resize: vertical; }
+  input.money:focus, select.cat:focus, textarea.answer:focus { border-color: #635bff; box-shadow: 0 0 0 4px rgba(99,91,255,.15); }
+  .ok  { border-color: #1aae6f !important; background-color: #effbf5 !important; }
+  .bad { border-color: #e5424d !important; background-color: #fff3f4 !important; }
+  .pick { border: 2px solid #e3e8ee; transition: all .15s; }
+  .pick.on { border-color: #635bff; background: #f3f2ff; }
+  .pick.on .box { background: #635bff; border-color: #635bff; }
+  .pick.on .box svg { opacity: 1; }
+  .pick.ok { border-color: #1aae6f !important; }
+  .pick.bad { border-color: #e5424d !important; }
+  .box svg { opacity: 0; }
+  .btn { min-height: 52px; border-radius: 14px; font-weight: 600; font-size: 17px; padding: 0 22px; transition: transform .08s, background .15s; }
+  .btn:active { transform: scale(.97); }
+  .fade { animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  #print { display: none; }
+  @media print {
+    @page { size: A4; margin: 15mm; }
+    body { background: #fff; }
+    #app, #nav { display: none !important; }
+    #print { display: block; font-family: Inter, Arial, sans-serif; color: #000; font-size: 11pt; }
+    #print h1 { font-size: 18pt; font-weight: 700; margin-bottom: 4pt; }
+    #print h2 { font-size: 12.5pt; font-weight: 700; margin: 12pt 0 4pt; }
+    #print table { width: 100%; border-collapse: collapse; margin-bottom: 4pt; }
+    #print td, #print th { border: 1px solid #999; padding: 3pt 6pt; text-align: left; vertical-align: top; }
+    #print td.r, #print th.r { text-align: right; white-space: nowrap; }
+    #print .sum td { font-weight: 700; background: #f0f0f0; }
+    #print .q { margin-top: 6pt; font-weight: 600; }
+    #print .a { border: 1px solid #999; min-height: 40pt; padding: 5pt; white-space: pre-wrap; }
+    #print section { break-inside: avoid; }
+  }
 </style>
 </head>
-<body>
-<main class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
-<header class="no-print">
-<div class="flex items-center justify-between gap-4 mb-10"><span class="eyebrow">Geld im Blick <span class="muted">/ BwR 7 IIIa</span></span><button id="reset" class="secondary" aria-label="Alle Eingaben zurücksetzen">Neu starten</button></div>
-<div class="grid md:grid-cols-3 gap-8 items-end mb-8"><div class="md:col-span-2"><div class="eyebrow mb-3 muted">Familie Berger · Monatsplanung</div><h1>Ein Plan für<br>jeden Euro.</h1></div><p class="muted">Was kommt rein? Was geht raus? Erstelle einen Haushaltsplan und finde heraus, was der Familie am Monatsende bleibt.</p></div>
-<div class="flex flex-wrap gap-3 mb-10"><span class="pill">01 Übertragen</span><span class="pill">02 Berechnen</span><span class="pill">03 Entscheiden</span><span class="pill">04 Ins Heft</span></div>
-</header>
-<section class="no-print mb-10" aria-labelledby="posts-heading"><div class="flex items-center gap-3 mb-3"><span class="step">1</span><h2 id="posts-heading">Die Angaben der Familie</h2></div><p class="muted mb-5">Alle Angaben gelten für <strong>einen Monat</strong>. Tippe eine Karte an, um zur passenden Zeile zu gelangen. Trage den Betrag selbst ein.</p><div id="receipts" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
-<section id="plan" class="panel no-print mb-8" aria-labelledby="plan-heading"><div class="flex flex-wrap justify-between gap-4 items-center mb-3"><h2 id="plan-heading">Dein Haushaltsplan</h2><span id="count" class="pill" aria-live="polite">0 von 6 übertragen</span></div><p class="muted mb-5">Beträge z. B. als <strong>2800</strong> oder <strong>2.800,00</strong> eingeben. Beim Verlassen des Feldes werden sie als Eurobetrag formatiert.</p><progress id="progress" max="6" value="0" aria-label="Korrekt übertragene Beträge" class="mb-6"></progress><div id="fields"></div><div class="mt-6 flex flex-wrap items-center gap-4"><button id="calculate" class="primary" disabled>Differenz berechnen →</button><p id="calc-hint" class="muted text-sm">Übertrage zuerst alle sechs Beträge richtig.</p></div><div id="result" class="result mt-6" hidden aria-live="polite"><div class="eyebrow mb-2">Einnahmen − Ausgaben = Ergebnis</div><p id="equation" class="text-2xl sm:text-3xl font-bold"></p><p class="mt-2">Was bedeutet dieses Ergebnis für die Familie?</p></div></section>
-<section id="decisions" class="panel no-print mb-8" hidden aria-labelledby="decisions-heading"><div class="flex gap-3 items-center mb-5"><span class="step">3</span><h2 id="decisions-heading">Was lässt sich daraus schließen?</h2></div><fieldset class="mb-6"><legend class="font-bold mb-3">A · Wie ist die finanzielle Situation?</legend><div class="grid sm:grid-cols-3 gap-3"><label class="choice"><input type="radio" name="situation" value="surplus">Ein Überschuss bleibt.</label><label class="choice"><input type="radio" name="situation" value="balanced">Der Haushalt ist ausgeglichen.</label><label class="choice"><input type="radio" name="situation" value="deficit">Es gibt einen Fehlbetrag.</label></div></fieldset><fieldset class="mb-6"><legend class="font-bold mb-3">B · Welche zwei Aussagen passen zum Plan?</legend><div class="grid sm:grid-cols-2 gap-3"><label class="choice"><input type="checkbox" name="conclusion" value="reserve">Die Familie kann Geld für unerwartete Ausgaben zurücklegen.</label><label class="choice"><input type="checkbox" name="conclusion" value="spend">Die Familie muss den gesamten Rest sofort ausgeben.</label><label class="choice"><input type="checkbox" name="conclusion" value="save">Die Familie kann einen Teil für eine geplante Anschaffung sparen.</label><label class="choice"><input type="checkbox" name="conclusion" value="console">Eine Konsole für 450,00 € ist allein aus diesem Monatsüberschuss bezahlbar.</label></div></fieldset><label for="reason" class="font-bold block mb-3">C · Deine Entscheidung</label><p id="reason-hint" class="muted mb-3">Wie sollte die Familie den verbleibenden Betrag verwenden? Nenne einen konkreten Vorschlag und begründe ihn.</p><textarea id="reason" aria-describedby="reason-hint" placeholder="Ich würde …, weil …" maxlength="700"></textarea><div class="flex flex-wrap gap-4 mt-5 items-center"><button id="check" class="primary">Rückschlüsse prüfen</button><span id="feedback" role="status"></span></div></section>
-<section id="notebook" class="notebook" hidden aria-labelledby="note-heading"><div class="flex flex-wrap items-center justify-between gap-4 mb-5"><div><div class="eyebrow muted no-print mb-2">4 · Deine Vorlage für den Hefteintrag</div><h2 id="note-heading">Der Haushaltsplan</h2></div><button id="print" class="secondary no-print">Drucken / als PDF sichern</button></div><p>Ein Haushaltsplan stellt geplante Einnahmen und Ausgaben für denselben Zeitraum gegenüber, z. B. für einen Monat.</p><h3 class="mt-5">Monatsplan der Familie Berger</h3><table><thead><tr><th scope="col">Posten</th><th scope="col" style="text-align:right">Betrag</th></tr></thead><tbody id="note-rows"></tbody></table><p class="font-bold">Einnahmen − Ausgaben = Ergebnis<br>4.000,00 € − 3.600,00 € = 400,00 € Überschuss</p><p>Überschuss: Einnahmen &gt; Ausgaben<br>Ausgeglichen: Einnahmen = Ausgaben<br>Fehlbetrag: Einnahmen &lt; Ausgaben</p><p><strong>Meine Entscheidung:</strong> <span id="note-reason"></span></p><p><strong>Ein mögliches Beispiel:</strong> 250,00 € als Rücklage und 150,00 € für ein Sparziel einplanen.</p><p>Auch unregelmäßige Ausgaben berücksichtigen. Jährliche Kosten auf die Monate verteilen. Am Monatsende geplante und tatsächliche Beträge vergleichen und den Plan anpassen.</p><p class="notice font-bold">Merke: Erst notwendige Ausgaben sichern, dann Wünsche planen.</p><p class="no-print muted text-sm mt-4">Übernimm den Plan und die wichtigsten Erkenntnisse in dein Heft. Deinen eigenen Vorschlag kannst du mit der Klasse besprechen.</p></section>
-<footer class="no-print flex flex-wrap gap-3 justify-between mt-8 muted text-sm"><span>BwR 7 IIIa · Wirtschaftliches Handeln im privaten Haushalt</span><span id="save-state">Dein Fortschritt wird auf diesem Gerät gespeichert.</span></footer>
-</main>
-<dialog id="reset-dialog"><h2 class="mb-3">Noch einmal beginnen?</h2><p class="mb-6">Alle eingetragenen Beträge und Antworten werden gelöscht.</p><div class="flex gap-3"><button id="cancel-reset" class="secondary">Abbrechen</button><button id="confirm-reset" class="primary">Zurücksetzen</button></div></dialog>
+<body class="font-sans antialiased">
+
+<div id="app" class="max-w-3xl mx-auto px-4 sm:px-6 pt-5 pb-60">
+  <header class="flex items-center justify-between gap-3 mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-accent text-white grid place-items-center shrink-0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+      </div>
+      <div>
+        <div class="text-xs font-semibold tracking-wide uppercase text-accent">BWR &#xb7; Haushaltsplan</div>
+        <div class="font-serif text-xl font-bold leading-tight">Familie Berger</div>
+      </div>
+    </div>
+    <div id="who" class="text-right text-sm text-muted"></div>
+  </header>
+
+  <nav id="progress" class="mb-5"></nav>
+  <main id="screen"></main>
+
+  <p class="text-xs text-muted mt-10 text-center">Grundlage: Verbraucherzentrale Bayern, &#x201e;Haushaltsbuch f&#xfc;hren: &#xdc;berblick &#xfc;ber Ihre Finanzen&#x201c; (Stand 06.08.2026). Fallbeispiel frei erfunden.</p>
+</div>
+
+<div id="nav" class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-line" style="padding-bottom: env(safe-area-inset-bottom)">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-3">
+    <div id="feedback" class="hidden mb-3 rounded-xl px-4 py-3 text-[15px] font-medium"></div>
+    <div class="flex gap-3">
+      <button id="btnBack" class="btn bg-soft text-ink border border-line">Zur&#xfc;ck</button>
+      <button id="btnCheck" class="btn bg-white text-accent border-2 border-accent flex-1 sm:flex-none">Pr&#xfc;fen</button>
+      <button id="btnNext" class="btn bg-accent text-white flex-1">Weiter</button>
+    </div>
+  </div>
+</div>
+
+<div id="print"></div>
+
 <script>
-'use strict';
-const items=[{id:'salary1',label:'Nettoeinkommen Elternteil 1',type:'in',cents:280000},{id:'salary2',label:'Nettoeinkommen Elternteil 2',type:'in',cents:120000},{id:'home',label:'Wohnen und Energie',type:'out',cents:140000},{id:'food',label:'Lebensmittel und Haushalt',type:'out',cents:80000},{id:'mobility',label:'Mobilität, Verträge und Schule',type:'out',cents:80000},{id:'leisure',label:'Freizeit, Kleidung und Extras',type:'out',cents:60000}];
-const $=id=>document.getElementById(id), key='bwr7-haushaltsplan-v1', euro=c=>new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(c/100);let calculated=false,completed=false;
-function parseMoney(raw){let s=raw.trim().replace(/\s/g,'').replace(/€$/,'');if(!s)return null;if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(s))return null;const [whole,decimal='']=s.replace(/\./g,'').split(',');const n=Number(whole)*100+Number(decimal.padEnd(2,'0'));return Number.isSafeInteger(n)&&n<=999999999?n:null;}
-$('receipts').innerHTML=items.map((x,i)=>`<button class="receipt" id="card-${x.id}" data-target="${x.id}" aria-label="${x.label}: ${euro(x.cents)}. Zur Eingabe"><small>ANGABE ${String(i+1).padStart(2,'0')} · ${x.type==='in'?'EINNAHME':'AUSGABE'}</small><span class="block font-bold mt-2">${x.label}</span><span class="amount mt-2">${euro(x.cents)}</span><small id="state-${x.id}">Im Plan eintragen ↘</small></button>`).join('');
-$('fields').innerHTML=['in','out'].map(type=>`<div class="section-head">${type==='in'?'EINNAHMEN':'AUSGABEN'}</div>${items.filter(x=>x.type===type).map(x=>`<div class="plan-row"><label for="${x.id}">${x.label}</label><div><input id="${x.id}" class="money" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0,00 €" aria-describedby="error-${x.id}"><span id="error-${x.id}" class="field-error"></span></div></div>`).join('')}<div class="plan-row total"><span>${type==='in'?'Einnahmen':'Ausgaben'} insgesamt</span><output id="sum-${type}">Noch offen</output></div>`).join('');
-function valid(){return items.every(x=>parseMoney($(x.id).value)===x.cents)}
-function refresh(){let n=0;for(const x of items){let ok=parseMoney($(x.id).value)===x.cents;if(ok)n++;$('card-'+x.id).classList.toggle('done',ok);$('state-'+x.id).textContent=ok?'✓ Übertragen':'Im Plan eintragen ↘';} $('count').textContent=`${n} von 6 übertragen`;$('progress').value=n;$('calculate').disabled=!valid();$('calc-hint').textContent=valid()?'Alles übertragen. Berechne jetzt die Differenz.':'Übertrage zuerst alle sechs Beträge richtig.';}
-function invalidate(){calculated=false;completed=false;$('result').hidden=true;$('decisions').hidden=true;$('notebook').hidden=true;$('sum-in').textContent='Noch offen';$('sum-out').textContent='Noch offen';$('feedback').textContent='';}
-function save(){try{localStorage.setItem(key,JSON.stringify({values:Object.fromEntries(items.map(x=>[x.id,$(x.id).value])),calculated,completed,situation:document.querySelector('[name=situation]:checked')?.value,conclusions:[...document.querySelectorAll('[name=conclusion]:checked')].map(x=>x.value),reason:$('reason').value}));}catch{$('save-state').textContent='Automatisches Speichern ist in diesem Browser nicht verfügbar.';}}
-for(const x of items){const input=$(x.id);input.addEventListener('input',()=>{input.removeAttribute('aria-invalid');$('error-'+x.id).textContent='';invalidate();refresh();save()});input.addEventListener('blur',()=>{const n=parseMoney(input.value);if(n!==null)input.value=euro(n);const wrong=input.value.trim()!==''&&n!==x.cents;input.setAttribute('aria-invalid',String(wrong));$('error-'+x.id).textContent=wrong?(n===null?'Bitte einen gültigen Betrag eingeben, z. B. 1.400,00.':'Prüfe den Betrag auf der zugehörigen Karte.') : '';refresh();save()});input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const next=items[items.indexOf(x)+1];if(next)$(next.id).focus();else{input.blur();$('calculate').focus()}}});}
-$('receipts').addEventListener('click',e=>{const card=e.target.closest('[data-target]');if(!card)return;const input=$(card.dataset.target);input.scrollIntoView({behavior:'smooth',block:'center'});input.focus({preventScroll:true});input.select()});
-function calculate(scroll=true){if(!valid())return;calculated=true;let income=items.filter(x=>x.type==='in').reduce((a,x)=>a+parseMoney($(x.id).value),0),expenses=items.filter(x=>x.type==='out').reduce((a,x)=>a+parseMoney($(x.id).value),0);$('sum-in').textContent=euro(income);$('sum-out').textContent=euro(expenses);$('equation').textContent=`${euro(income)} − ${euro(expenses)} = ${euro(income-expenses)}`;$('result').hidden=false;$('decisions').hidden=false;if(scroll)$('result').scrollIntoView({behavior:'smooth',block:'center'});save()}
-$('calculate').addEventListener('click',()=>calculate());
-function showNotebook(){completed=true;$('note-rows').innerHTML=[['Verfügbares Einkommen',400000],['Wohnen und Energie',140000],['Lebensmittel und Haushalt',80000],['Mobilität, Verträge und Schule',80000],['Freizeit, Kleidung und Extras',60000],['Ausgaben insgesamt',360000]].map(([label,c])=>`<tr><td>${label}</td><td>${euro(c)}</td></tr>`).join('');$('note-reason').textContent=$('reason').value.trim();$('notebook').hidden=false;}
-function check(scroll=true){if(!calculated||!valid())return false;const situation=document.querySelector('[name=situation]:checked')?.value;const choices=[...document.querySelectorAll('[name=conclusion]:checked')].map(x=>x.value);let msg='';if(!situation)msg='Wähle zuerst die finanzielle Situation aus.';else if(situation!=='surplus')msg='Vergleiche die Einnahmen mit den Ausgaben. Welche Seite ist größer?';else if(choices.length!==2)msg='Wähle genau zwei passende Aussagen aus.';else if(!choices.includes('reserve')||!choices.includes('save'))msg='Prüfe deine Aussagen: Muss der Rest ausgegeben werden? Reicht er für 450,00 €?';else if($('reason').value.trim().length<15)msg='Ergänze einen konkreten Vorschlag mit einer kurzen Begründung.';if(msg){$('feedback').textContent=msg;return false;}$('feedback').textContent='A und B stimmen! Besprecht eure eigenen Vorschläge in der Klasse.';showNotebook();save();if(scroll)$('notebook').scrollIntoView({behavior:'smooth',block:'start'});return true;}
-$('check').addEventListener('click',()=>check());$('decisions').addEventListener('input',()=>{completed=false;$('notebook').hidden=true;$('feedback').textContent='';save()});$('print').addEventListener('click',()=>window.print());$('reset').addEventListener('click',()=>$('reset-dialog').showModal());$('cancel-reset').addEventListener('click',()=>$('reset-dialog').close());$('confirm-reset').addEventListener('click',()=>{for(const x of items){$(x.id).value='';$(x.id).removeAttribute('aria-invalid');$('error-'+x.id).textContent='';}document.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(x=>x.checked=false);$('reason').value='';invalidate();refresh();save();$('reset-dialog').close();window.scrollTo({top:0,behavior:'smooth'})});
-try{const state=JSON.parse(localStorage.getItem(key)||'null');if(state){for(const x of items)if(typeof state.values?.[x.id]==='string')$(x.id).value=state.values[x.id];document.querySelectorAll('[name=situation]').forEach(x=>x.checked=x.value===state.situation);document.querySelectorAll('[name=conclusion]').forEach(x=>x.checked=Array.isArray(state.conclusions)&&state.conclusions.includes(x.value));$('reason').value=typeof state.reason==='string'?state.reason.slice(0,700):'';if(state.calculated&&valid())calculate(false);if(state.completed&&calculated)check(false);}}catch{}refresh();
+// ---------- Fallbeispiel ----------
+var INCOME = [
+  { id:'i1', datum:'01.11.', text:'Lohn Thomas Berger (Mayer Metallbau)', betrag:2450, ok:true },
+  { id:'i2', datum:'01.11.', text:'Gehalt Sabine Berger (Teilzeit, Modehaus Lindner)', betrag:1180, ok:true },
+  { id:'i3', datum:'05.11.', text:'Familienkasse: Kindergeld Mia', betrag:259, ok:true },
+  { id:'i4', datum:'05.11.', text:'Familienkasse: Kindergeld Ben', betrag:259, ok:true },
+  { id:'i5', datum:'12.11.', text:'\u00dcberweisung Oma Gerda: Geburtstagsgeld f\u00fcr Ben', betrag:50, ok:false },
+  { id:'i6', datum:'27.11.', text:'Weihnachtsgeld Thomas', betrag:900, ok:false }
+];
+var INCOME_SUM = 4148;
+
+var FIX = [
+  { id:'f1', text:'Miete inkl. Nebenkosten', rhythm:'monatlich', betrag:1250 },
+  { id:'f2', text:'Strom (Abschlag)', rhythm:'monatlich', betrag:95 },
+  { id:'f3', text:'Internet und Handyvertr\u00e4ge', rhythm:'monatlich', betrag:85 },
+  { id:'f4', text:'Streaming-Abo', rhythm:'monatlich', betrag:18 },
+  { id:'f5', text:'Sportverein Mia und Ben', rhythm:'monatlich', betrag:30 },
+  { id:'f6', text:'Deutschlandticket Sabine', rhythm:'monatlich', betrag:63 },
+  { id:'f7', text:'Autokredit (Rate)', rhythm:'monatlich', betrag:180 },
+  { id:'f8', text:'Kfz-Versicherung', rhythm:'j\u00e4hrlich', betrag:480, monat:40 },
+  { id:'f9', text:'Kfz-Steuer', rhythm:'j\u00e4hrlich', betrag:156, monat:13 },
+  { id:'f10', text:'Haftpflicht- und Hausratversicherung', rhythm:'j\u00e4hrlich', betrag:120, monat:10 }
+];
+var FIX_SUM = 1784;
+var BUDGET = 2364, WEEK = 591;
+
+var CATS = ['Lebensmittel','Drogerie','Kleidung','Tanken','Freizeit','Essen au\u00dfer Haus','Schule','Sonstiges'];
+var BELEGE = [
+  { id:'b1', wer:'Supermarkt', text:'4 Wocheneink\u00e4ufe (Sammelbeleg)', betrag:860, cat:'Lebensmittel' },
+  { id:'b2', wer:'Tankstelle', text:'2 \u2219 Tanken Familienauto', betrag:190, cat:'Tanken' },
+  { id:'b3', wer:'Pizzeria Da Gino', text:'Abendessen der ganzen Familie', betrag:95, cat:'Essen au\u00dfer Haus' },
+  { id:'b4', wer:'Sporthaus', text:'Sportschuhe Mia', betrag:80, cat:'Kleidung' },
+  { id:'b5', wer:'Notizzettel', text:'B\u00e4ckerei, viele kleine Eink\u00e4ufe', betrag:120, cat:'Lebensmittel' },
+  { id:'b6', wer:'Drogeriemarkt', text:'Shampoo, Zahnpasta, Waschmittel', betrag:120, cat:'Drogerie' },
+  { id:'b7', wer:'Schule', text:'Schulausflug und Hefte', betrag:90, cat:'Schule' },
+  { id:'b8', wer:'Kartenzahlung', text:'Mittagessen Thomas in der Kantine', betrag:205, cat:'Essen au\u00dfer Haus' },
+  { id:'b9', wer:'Modehaus', text:'Winterjacke Ben', betrag:130, cat:'Kleidung' },
+  { id:'b10', wer:'Friseur', text:'Haare schneiden (Sabine und Ben)', betrag:90, cat:'Sonstiges' },
+  { id:'b11', wer:'Kino und Freizeitpark', text:'Ausfl\u00fcge am Wochenende', betrag:160, cat:'Freizeit' },
+  { id:'b12', wer:'Spielwarenladen', text:'Geburtstagsgeschenk f\u00fcr Mias Freundin', betrag:60, cat:'Sonstiges' }
+];
+var VAR_SUM = 2200, RESULT = 164;
+
+var QUESTIONS = [
+  'Entscheide, in welcher Kategorie Familie Berger am leichtesten sparen k\u00f6nnte. Begr\u00fcnde deine Entscheidung.',
+  'Nenne zwei sinnvolle Verwendungsm\u00f6glichkeiten f\u00fcr das Geld, das am Monatsende \u00fcbrig bleibt.',
+  'Begr\u00fcnde, warum das Weihnachtsgeld nicht zu den regelm\u00e4\u00dfigen Einnahmen z\u00e4hlt.'
+];
+
+var STEPS = ['Einnahmen','Feste Ausgaben','Budget','Ver\u00e4nderliche Ausgaben','Bilanz'];
+
+// ---------- Zustand ----------
+var KEY = 'haushaltsplan-berger-v1';
+function blank() {
+  return { step:0, name:'', klasse:'', inc:{}, incSum:'', fix:{}, fixSum:'', budget:'', week:'', cats:{}, varSum:'', result:'', ans:['','',''], checked:{} };
+}
+var S = blank();
+try { var raw = localStorage.getItem(KEY); if (raw) { S = Object.assign(blank(), JSON.parse(raw)); } } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+// ---------- Hilfen ----------
+function fmt(n) { return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u00a0\u20ac'; }
+function parse(v) {
+  if (v === null || v === undefined) return NaN;
+  v = String(v).replace(/[\u20ac\s]/g, '').replace(/\./g, '').replace(',', '.');
+  if (v === '') return NaN;
+  return Number(v);
+}
+function eq(v, target) { var n = parse(v); return !isNaN(n) && Math.abs(n - target) < 0.005; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function $(id) { return document.getElementById(id); }
+
+function moneyInput(key, label, hint) {
+  return '<label class="block">' +
+    '<span class="block text-[15px] font-semibold mb-1.5">' + label + '</span>' +
+    '<div class="relative"><input class="money " id="in_' + key + '" data-key="' + key + '" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + esc(S[key] || '') + '">' +
+    '<span class="absolute right-4 top-1/2 -translate-y-1/2 text-muted num pointer-events-none">\u20ac</span></div>' +
+    (hint ? '<span class="block text-sm text-muted mt-1">' + hint + '</span>' : '') +
+    '</label>';
+}
+function task(text) {
+  return '<div class="rounded-2xl bg-ink text-white px-5 py-4 mb-5"><div class="text-xs uppercase tracking-wide font-semibold text-[#a5a0ff] mb-1">Arbeitsauftrag</div><div class="text-[17px] leading-snug">' + text + '</div></div>';
+}
+function info(text) {
+  return '<div class="rounded-xl border border-line bg-white px-4 py-3 mb-5 text-[15px] text-muted flex gap-3"><span class="text-accent font-bold shrink-0">i</span><span>' + text + '</span></div>';
+}
+function card(inner, cls) { return '<div class="bg-white rounded-2xl border border-line shadow-sm p-4 sm:p-5 ' + (cls || '') + '">' + inner + '</div>'; }
+function stepTitle(n, t) {
+  return '<h1 class="font-serif text-[28px] sm:text-[32px] font-bold leading-tight mb-4"><span class="text-accent">Schritt ' + n + ':</span> ' + t + '</h1>';
+}
+
+// ---------- Fortschritt ----------
+function renderProgress() {
+  var p = $('progress');
+  if (S.step === 0) { p.innerHTML = ''; return; }
+  var h = '<div class="flex gap-1.5">';
+  for (var i = 1; i <= 5; i++) {
+    var c = i < S.step ? 'bg-accent' : (i === S.step ? 'bg-accent' : 'bg-line');
+    var o = i < S.step ? ' opacity-50' : '';
+    h += '<button data-go="' + i + '" class="flex-1 text-left"><div class="h-2 rounded-full ' + c + o + '"></div>' +
+      '<div class="hidden sm:block text-xs mt-1.5 ' + (i === S.step ? 'text-ink font-semibold' : 'text-muted') + '">' + i + ' ' + STEPS[i-1] + '</div></button>';
+  }
+  h += '</div><div class="sm:hidden text-xs text-muted mt-1.5">Schritt ' + S.step + ' von 5 \u00b7 ' + STEPS[S.step-1] + '</div>';
+  p.innerHTML = h;
+  p.querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { go(+b.dataset.go); }; });
+}
+
+// ---------- Bildschirme ----------
+function screenStart() {
+  return '<div class="fade">' +
+    '<h1 class="font-serif text-[34px] sm:text-[40px] font-bold leading-tight mb-3">Wo bleibt eigentlich das Geld?</h1>' +
+    '<p class="text-[17px] text-muted mb-6">Familie Berger hat am Monatsende oft weniger Geld \u00fcbrig als gedacht. Du erstellst f\u00fcr sie einen Haushaltsplan f\u00fcr den Monat November \u2013 in f\u00fcnf Schritten, so wie es die Verbraucherzentrale empfiehlt.</p>' +
+    card(
+      '<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-1">' +
+      person('Thomas','Vater, Industriemechaniker','T') + person('Sabine','Mutter, Verk\u00e4uferin (Teilzeit)','S') +
+      person('Mia','Tochter, 12 Jahre','M') + person('Ben','Sohn, 9 Jahre','B') + '</div>', 'mb-5') +
+    card(
+      '<div class="grid sm:grid-cols-2 gap-4">' +
+      '<label class="block"><span class="block text-[15px] font-semibold mb-1.5">Dein Name</span><input id="nm" class="money !text-left !font-sans !pr-4" value="' + esc(S.name) + '" placeholder="Vorname Nachname" autocomplete="off"></label>' +
+      '<label class="block"><span class="block text-[15px] font-semibold mb-1.5">Klasse</span><input id="kl" class="money !text-left !font-sans !pr-4" value="' + esc(S.klasse) + '" placeholder="z. B. 7b" autocomplete="off"></label>' +
+      '</div>', 'mb-5') +
+    '<div class="grid sm:grid-cols-5 gap-2 text-sm">' +
+    STEPS.map(function (s, i) { return '<div class="rounded-xl bg-white border border-line px-3 py-2"><span class="num text-accent font-semibold">' + (i+1) + '</span> ' + s + '</div>'; }).join('') +
+    '</div>' +
+    ((S.name || S.incSum) ? '<button id="reset" class="mt-6 text-sm text-muted underline">Alles l\u00f6schen und neu beginnen</button>' : '') +
+    '</div>';
+}
+function person(n, r, l) {
+  return '<div class="flex flex-col items-center text-center p-2"><div class="w-14 h-14 rounded-full bg-[#f3f2ff] text-accent font-serif font-bold text-2xl grid place-items-center mb-2">' + l + '</div><div class="font-semibold">' + n + '</div><div class="text-xs text-muted leading-tight">' + r + '</div></div>';
+}
+
+function screen1() {
+  var rows = INCOME.map(function (it) {
+    var on = S.inc[it.id] ? ' on' : '';
+    return '<button data-inc="' + it.id + '" class="pick' + on + ' w-full text-left bg-white rounded-xl px-4 py-3 flex items-center gap-3 min-h-[64px]">' +
+      '<span class="box w-7 h-7 rounded-lg border-2 border-line grid place-items-center shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>' +
+      '<span class="num text-sm text-muted w-14 shrink-0">' + it.datum + '</span>' +
+      '<span class="flex-1 text-[16px] leading-snug">' + it.text + '</span>' +
+      '<span class="num font-semibold text-[17px] text-[#0e8a55] whitespace-nowrap">+ ' + fmt(it.betrag) + '</span></button>';
+  }).join('');
+  return '<div class="fade">' + stepTitle(1, 'Regelm\u00e4\u00dfige Einnahmen') +
+    task('W\u00e4hle aus dem Kontoauszug alle <b>regelm\u00e4\u00dfigen</b> Einnahmen aus. Ermittle anschlie\u00dfend die Summe der regelm\u00e4\u00dfigen Einnahmen.') +
+    info('Regelm\u00e4\u00dfig sind Einnahmen, mit denen die Familie <b>jeden Monat</b> sicher rechnen kann. Geldgeschenke geh\u00f6ren nicht dazu.') +
+    card('<div class="flex items-center justify-between mb-3"><div class="font-semibold">Kontoauszug November \u00b7 Gutschriften</div><div class="text-xs text-muted">Tippe zum Ausw\u00e4hlen</div></div><div class="space-y-2.5">' + rows + '</div>', 'mb-5') +
+    card(moneyInput('incSum', 'Summe der regelm\u00e4\u00dfigen Einnahmen pro Monat'), '') +
+    '</div>';
+}
+
+function screen2() {
+  var rows = FIX.map(function (it) {
+    var cell;
+    if (it.rhythm === 'monatlich') {
+      cell = '<div class="num text-right text-[17px] font-semibold pr-1">' + fmt(it.betrag) + '</div>';
+    } else {
+      cell = '<div class="relative"><input class="money !text-[18px] !min-h-[46px] !py-2 " data-fix="' + it.id + '" id="fx_' + it.id + '" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + esc(S.fix[it.id] || '') + '"><span class="absolute right-3 top-1/2 -translate-y-1/2 text-muted num pointer-events-none">\u20ac</span></div>';
+    }
+    return '<div class="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_150px_140px] gap-x-3 gap-y-1 items-center py-3 border-b border-line last:border-0">' +
+      '<div class="text-[16px] leading-snug">' + it.text + (it.rhythm === 'j\u00e4hrlich' ? ' <span class="inline-block text-[11px] font-semibold uppercase tracking-wide bg-[#fff4e5] text-[#b25e09] rounded px-1.5 py-0.5 align-middle">j\u00e4hrlich</span>' : '') + '</div>' +
+      '<div class="num text-muted text-right text-[15px] sm:block ' + (it.rhythm === 'j\u00e4hrlich' ? '' : 'hidden sm:block') + '">' + fmt(it.betrag) + (it.rhythm === 'j\u00e4hrlich' ? ' / Jahr' : '') + '</div>' +
+      '<div class="col-span-2 sm:col-span-1">' + cell + '</div></div>';
+  }).join('');
+  return '<div class="fade">' + stepTitle(2, 'Feste Ausgaben') +
+    task('Vervollst\u00e4ndige die Spalte \u201epro Monat\u201c f\u00fcr die Zahlungen, die nur einmal im Jahr anfallen. Ermittle anschlie\u00dfend die Summe der festen Ausgaben pro Monat.') +
+    info('Feste Ausgaben fallen regelm\u00e4\u00dfig an und lassen sich kurzfristig nicht \u00e4ndern. J\u00e4hrliche Zahlungen werden auf einen Monat umgerechnet: Jahresbetrag : 12. Diesen Betrag legt die Familie jeden Monat zur\u00fcck.') +
+    card('<div class="hidden sm:grid grid-cols-[1fr_150px_140px] gap-3 text-xs uppercase tracking-wide text-muted font-semibold pb-2 border-b border-line"><div>Ausgabe</div><div class="text-right">laut Vertrag</div><div class="text-right">pro Monat</div></div>' + rows, 'mb-5') +
+    card(moneyInput('fixSum', 'Summe der festen Ausgaben pro Monat'), '') +
+    '</div>';
+}
+
+function screen3() {
+  var inc = isNaN(parse(S.incSum)) ? '\u2013' : fmt(parse(S.incSum));
+  var fix = isNaN(parse(S.fixSum)) ? '\u2013' : fmt(parse(S.fixSum));
+  return '<div class="fade">' + stepTitle(3, 'Budget f\u00fcr die ver\u00e4nderlichen Ausgaben') +
+    task('Ermittle das Geld, das Familie Berger nach Abzug der festen Ausgaben zum Leben bleibt. Ermittle anschlie\u00dfend, wie viel Geld pro Woche zur Verf\u00fcgung steht.') +
+    info('Einnahmen \u2212 feste Ausgaben = Budget f\u00fcr die ver\u00e4nderlichen Ausgaben (\u201eGeld zum Leben\u201c). Teilst du diesen Betrag durch 4, wei\u00dft du, wie viel pro Woche ausgegeben werden darf.') +
+    card(
+      '<div class="space-y-2 text-[17px]">' +
+      '<div class="flex justify-between"><span>Regelm\u00e4\u00dfige Einnahmen <span class="text-muted text-sm">(Schritt 1)</span></span><span class="num font-semibold">' + inc + '</span></div>' +
+      '<div class="flex justify-between border-b border-line pb-2"><span>\u2212 Feste Ausgaben <span class="text-muted text-sm">(Schritt 2)</span></span><span class="num font-semibold">' + fix + '</span></div>' +
+      '</div><div class="mt-4">' + moneyInput('budget', '= Budget f\u00fcr die ver\u00e4nderlichen Ausgaben pro Monat') + '</div>', 'mb-5') +
+    card(moneyInput('week', 'Budget pro Woche', 'Monatsbudget : 4'), '') +
+    '</div>';
+}
+
+function catTotals(useStudent) {
+  var t = {}; CATS.forEach(function (c) { t[c] = 0; });
+  BELEGE.forEach(function (b) {
+    var c = useStudent ? S.cats[b.id] : b.cat;
+    if (c) t[c] += b.betrag;
+  });
+  return t;
+}
+
+function screen4() {
+  var opts = function (sel) {
+    return '<option value=""' + (sel ? '' : ' selected') + ' disabled>Kategorie w\u00e4hlen \u2026</option>' +
+      CATS.map(function (c) { return '<option' + (sel === c ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+  };
+  var done = BELEGE.filter(function (b) { return S.cats[b.id]; }).length;
+  var cards = BELEGE.map(function (b) {
+    return '<div class="bg-white rounded-xl border border-line p-3.5 flex flex-col gap-2.5">' +
+      '<div class="flex justify-between gap-2"><div><div class="text-xs uppercase tracking-wide font-semibold text-muted">' + b.wer + '</div><div class="text-[16px] leading-snug mt-0.5">' + b.text + '</div></div>' +
+      '<div class="num font-semibold text-[17px] whitespace-nowrap text-[#c23b45]">\u2212 ' + fmt(b.betrag) + '</div></div>' +
+      '<select class="cat" data-cat="' + b.id + '" id="ct_' + b.id + '">' + opts(S.cats[b.id]) + '</select></div>';
+  }).join('');
+  return '<div class="fade">' + stepTitle(4, 'Ver\u00e4nderliche Ausgaben') +
+    task('Ordne jeden Beleg einer Kategorie zu. Ermittle anschlie\u00dfend die Summe der ver\u00e4nderlichen Ausgaben im November.') +
+    info('Ver\u00e4nderliche Ausgaben sind jeden Monat anders. Auch kleine Betr\u00e4ge ohne Beleg (Notizzettel) und Kartenzahlungen geh\u00f6ren dazu \u2013 sonst stimmt die Rechnung am Ende nicht.') +
+    '<div class="flex justify-between items-center mb-3"><div class="font-semibold">Belege aus der Belegbox</div><div class="text-sm text-muted"><span class="num" id="done">' + done + '</span> von ' + BELEGE.length + ' zugeordnet</div></div>' +
+    '<div class="grid sm:grid-cols-2 gap-3 mb-5">' + cards + '</div>' +
+    card(moneyInput('varSum', 'Summe der ver\u00e4nderlichen Ausgaben'), '') +
+    '</div>';
+}
+
+function chart() {
+  var t = catTotals(true);
+  var arr = CATS.map(function (c) { return { c: c, v: t[c] }; }).filter(function (x) { return x.v > 0; }).sort(function (a, b) { return b.v - a.v; });
+  if (!arr.length) return '<div class="text-muted text-[15px]">Ordne in Schritt 4 die Belege zu, dann erscheint hier dein Diagramm.</div>';
+  var max = arr[0].v;
+  return '<div class="space-y-2.5">' + arr.map(function (x) {
+    return '<div class="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] items-center gap-3">' +
+      '<div class="text-[15px] leading-tight">' + x.c + '</div>' +
+      '<div class="flex items-center gap-2"><div class="h-7 rounded-md bg-accent" style="width:' + Math.max(4, Math.round(x.v / max * 78)) + '%"></div><span class="num text-[14px] font-semibold whitespace-nowrap">' + fmt(x.v) + '</span></div></div>';
+  }).join('') + '</div>';
+}
+
+function screen5() {
+  var b = isNaN(parse(S.budget)) ? '\u2013' : fmt(parse(S.budget));
+  var v = isNaN(parse(S.varSum)) ? '\u2013' : fmt(parse(S.varSum));
+  var qs = QUESTIONS.map(function (q, i) {
+    return '<label class="block"><span class="block text-[16px] font-semibold mb-1.5"><span class="text-accent num">' + (i+1) + '.</span> ' + q + '</span>' +
+      '<textarea class="answer" data-ans="' + i + '" id="an_' + i + '" placeholder="Deine Antwort \u2026">' + esc(S.ans[i] || '') + '</textarea></label>';
+  }).join('');
+  return '<div class="fade">' + stepTitle(5, 'Monatsbilanz') +
+    task('Ermittle das Ergebnis der Monatsbilanz. Bearbeite anschlie\u00dfend die drei Aufgaben zur Reflexion.') +
+    info('Ist das Ergebnis positiv, kann die Familie das Geld zur\u00fccklegen \u2013 f\u00fcr Anschaffungen, einen Notgroschen oder die Vorsorge. Ist es negativ, muss sie \u00fcberlegen, in welcher Kategorie sie sparen kann.') +
+    card(
+      '<div class="space-y-2 text-[17px]">' +
+      '<div class="flex justify-between"><span>Budget f\u00fcr ver\u00e4nderliche Ausgaben <span class="text-muted text-sm">(Schritt 3)</span></span><span class="num font-semibold">' + b + '</span></div>' +
+      '<div class="flex justify-between border-b border-line pb-2"><span>\u2212 Ver\u00e4nderliche Ausgaben <span class="text-muted text-sm">(Schritt 4)</span></span><span class="num font-semibold">' + v + '</span></div>' +
+      '</div><div class="mt-4">' + moneyInput('result', '= Ergebnis (\u00fcbrig am Monatsende)', 'Bei einem Minus: Minuszeichen voranstellen') + '</div>', 'mb-5') +
+    card('<div class="font-semibold mb-3">Ausgaben nach Kategorien</div>' + chart(), 'mb-5') +
+    card('<div class="space-y-5">' + qs + '</div>', 'mb-5') +
+    card('<div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between"><div><div class="font-semibold">Fertig?</div><div class="text-sm text-muted">Erstelle die Druckansicht und speichere sie als PDF (Teilen \u2192 Drucken \u2192 Als PDF sichern).</div></div>' +
+      '<button id="btnPrint" class="btn bg-ink text-white whitespace-nowrap">Druckansicht / PDF</button></div>', '') +
+    '</div>';
+}
+
+// ---------- Pr\u00fcfen ----------
+function mark(el, ok) { if (!el) return; el.classList.remove('ok','bad'); el.classList.add(ok ? 'ok' : 'bad'); }
+function showFeedback(ok, text) {
+  var f = $('feedback');
+  f.className = 'mb-3 rounded-xl px-4 py-3 text-[15px] font-medium ' + (ok ? 'bg-[#effbf5] text-[#0e6b44]' : 'bg-[#fff3f4] text-[#a3242e]');
+  f.innerHTML = (ok ? '\u2713 ' : '\u2717 ') + text;
+}
+function hideFeedback() { $('feedback').className = 'hidden'; }
+
+function check() {
+  var s = S.step, ok, msg;
+  if (s === 1) {
+    var selOk = INCOME.every(function (it) { return !!S.inc[it.id] === it.ok; });
+    INCOME.forEach(function (it) { var el = document.querySelector('[data-inc="' + it.id + '"]'); if (!!S.inc[it.id] !== it.ok) mark(el, false); else if (S.inc[it.id]) mark(el, true); else el.classList.remove('ok','bad'); });
+    var sumOk = eq(S.incSum, INCOME_SUM); mark($('in_incSum'), sumOk);
+    ok = selOk && sumOk;
+    msg = ok ? 'Richtig! Die regelm\u00e4\u00dfigen Einnahmen betragen ' + fmt(INCOME_SUM) + '.' :
+      (!selOk ? 'Deine Auswahl stimmt noch nicht. Welche Einnahmen kommen wirklich jeden Monat?' : 'Die Auswahl stimmt, aber die Summe noch nicht. Rechne nach.');
+  }
+  if (s === 2) {
+    var rowsOk = true;
+    FIX.forEach(function (it) { if (it.monat) { var r = eq(S.fix[it.id], it.monat); mark($('fx_' + it.id), r); if (!r) rowsOk = false; } });
+    var fsOk = eq(S.fixSum, FIX_SUM); mark($('in_fixSum'), fsOk);
+    ok = rowsOk && fsOk;
+    msg = ok ? 'Richtig! Die festen Ausgaben betragen ' + fmt(FIX_SUM) + ' pro Monat.' :
+      (!rowsOk ? 'Pr\u00fcfe die Umrechnung: Jahresbetrag : 12 Monate.' : 'Die Umrechnung stimmt. Addiere alle Betr\u00e4ge der Spalte \u201epro Monat\u201c noch einmal.');
+  }
+  if (s === 3) {
+    var bOk = eq(S.budget, BUDGET), wOk = eq(S.week, WEEK);
+    mark($('in_budget'), bOk); mark($('in_week'), wOk);
+    ok = bOk && wOk;
+    msg = ok ? 'Richtig! Familie Berger hat ' + fmt(BUDGET) + ' im Monat bzw. ' + fmt(WEEK) + ' pro Woche zum Leben.' :
+      (!bOk ? 'Das Budget stimmt noch nicht. Pr\u00fcfe auch deine Ergebnisse aus Schritt 1 und 2.' : 'Das Monatsbudget stimmt. Teile es durch 4.');
+  }
+  if (s === 4) {
+    var wrong = 0, missing = 0;
+    BELEGE.forEach(function (b) { var el = $('ct_' + b.id); if (!S.cats[b.id]) { missing++; el.classList.remove('ok','bad'); } else { var r = S.cats[b.id] === b.cat; mark(el, r); if (!r) wrong++; } });
+    var vOk = eq(S.varSum, VAR_SUM); mark($('in_varSum'), vOk);
+    ok = !wrong && !missing && vOk;
+    msg = ok ? 'Richtig! Die ver\u00e4nderlichen Ausgaben betragen ' + fmt(VAR_SUM) + '.' :
+      (missing ? 'Es fehlen noch ' + missing + ' Zuordnungen.' : (wrong ? wrong + ' Beleg(e) sind noch falsch zugeordnet.' : 'Alle Zuordnungen stimmen. Rechne die Summe noch einmal nach.'));
+  }
+  if (s === 5) {
+    var rOk = eq(S.result, RESULT); mark($('in_result'), rOk);
+    var filled = S.ans.filter(function (a) { return a && a.trim().length > 5; }).length;
+    ok = rOk && filled === 3;
+    msg = rOk ? (filled === 3 ? 'Richtig! Am Monatsende bleiben ' + fmt(RESULT) + ' \u00fcbrig. Erstelle jetzt deine Druckansicht.' : 'Das Ergebnis stimmt. Bearbeite noch alle drei Aufgaben.') :
+      'Das Ergebnis stimmt noch nicht: Budget \u2212 ver\u00e4nderliche Ausgaben.';
+  }
+  S.checked[s] = ok; save();
+  showFeedback(ok, msg);
+}
+
+// ---------- Druckansicht ----------
+function tick(ok) { return ok ? ' \u2713' : ' \u2717'; }
+function val(v) { var n = parse(v); return isNaN(n) ? '\u2014' : fmt(n); }
+function buildPrint() {
+  var d = new Date().toLocaleDateString('de-DE');
+  var h = '<h1>Haushaltsplan Familie Berger \u2013 November</h1>' +
+    '<div>Name: <b>' + esc(S.name || '\u2014') + '</b> &nbsp;\u00b7&nbsp; Klasse: <b>' + esc(S.klasse || '\u2014') + '</b> &nbsp;\u00b7&nbsp; Datum: ' + d + '</div>';
+  h += '<section><h2>1 Regelm\u00e4\u00dfige Einnahmen</h2><table><tr><th>Einnahme</th><th class="r">Betrag</th></tr>';
+  INCOME.forEach(function (it) { if (S.inc[it.id]) h += '<tr><td>' + it.text + (it.ok ? '' : ' \u2717') + '</td><td class="r">' + fmt(it.betrag) + '</td></tr>'; });
+  h += '<tr class="sum"><td>Summe regelm\u00e4\u00dfige Einnahmen</td><td class="r">' + val(S.incSum) + tick(eq(S.incSum, INCOME_SUM)) + '</td></tr></table></section>';
+  h += '<section><h2>2 Feste Ausgaben</h2><table><tr><th>Ausgabe</th><th class="r">laut Vertrag</th><th class="r">pro Monat</th></tr>';
+  FIX.forEach(function (it) {
+    var m = it.monat ? val(S.fix[it.id]) + tick(eq(S.fix[it.id], it.monat)) : fmt(it.betrag);
+    h += '<tr><td>' + it.text + '</td><td class="r">' + fmt(it.betrag) + (it.rhythm === 'j\u00e4hrlich' ? ' / Jahr' : '') + '</td><td class="r">' + m + '</td></tr>';
+  });
+  h += '<tr class="sum"><td colspan="2">Summe feste Ausgaben</td><td class="r">' + val(S.fixSum) + tick(eq(S.fixSum, FIX_SUM)) + '</td></tr></table></section>';
+  h += '<section><h2>3 Budget</h2><table>' +
+    '<tr><td>Budget f\u00fcr ver\u00e4nderliche Ausgaben pro Monat</td><td class="r">' + val(S.budget) + tick(eq(S.budget, BUDGET)) + '</td></tr>' +
+    '<tr><td>Budget pro Woche</td><td class="r">' + val(S.week) + tick(eq(S.week, WEEK)) + '</td></tr></table></section>';
+  var t = catTotals(true);
+  h += '<section><h2>4 Ver\u00e4nderliche Ausgaben nach Kategorien</h2><table><tr><th>Kategorie</th><th class="r">Betrag</th></tr>';
+  CATS.forEach(function (c) { h += '<tr><td>' + c + '</td><td class="r">' + fmt(t[c]) + '</td></tr>'; });
+  var wrong = BELEGE.filter(function (b) { return S.cats[b.id] && S.cats[b.id] !== b.cat; }).length;
+  var miss = BELEGE.filter(function (b) { return !S.cats[b.id]; }).length;
+  h += '<tr class="sum"><td>Summe ver\u00e4nderliche Ausgaben</td><td class="r">' + val(S.varSum) + tick(eq(S.varSum, VAR_SUM)) + '</td></tr></table>' +
+    '<div style="font-size:9.5pt">Zuordnung: ' + (BELEGE.length - wrong - miss) + ' von ' + BELEGE.length + ' Belegen richtig' + (miss ? ', ' + miss + ' nicht zugeordnet' : '') + '</div></section>';
+  h += '<section><h2>5 Monatsbilanz</h2><table><tr class="sum"><td>Ergebnis (\u00fcbrig am Monatsende)</td><td class="r">' + val(S.result) + tick(eq(S.result, RESULT)) + '</td></tr></table></section>';
+  h += '<section><h2>Reflexion</h2>';
+  QUESTIONS.forEach(function (q, i) { h += '<div class="q">' + (i+1) + '. ' + q + '</div><div class="a">' + esc(S.ans[i] || '') + '</div>'; });
+  h += '</section>';
+  $('print').innerHTML = h;
+}
+
+// ---------- Steuerung ----------
+var SCREENS = [screenStart, screen1, screen2, screen3, screen4, screen5];
+function render() {
+  $('screen').innerHTML = SCREENS[S.step]();
+  $('who').innerHTML = S.name ? esc(S.name) + (S.klasse ? '<br><span class="text-xs">' + esc(S.klasse) + '</span>' : '') : '';
+  renderProgress(); hideFeedback(); bind();
+  $('btnBack').style.visibility = S.step === 0 ? 'hidden' : 'visible';
+  $('btnCheck').style.display = S.step === 0 ? 'none' : '';
+  $('btnNext').textContent = S.step === 0 ? 'Los geht\u2019s' : (S.step === 5 ? 'Druckansicht' : 'Weiter');
+}
+function go(n) {
+  S.step = Math.max(0, Math.min(5, n)); save(); render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function bind() {
+  document.querySelectorAll('input[data-key]').forEach(function (el) {
+    el.oninput = function () { S[el.dataset.key] = el.value; el.classList.remove('ok','bad'); save(); };
+  });
+  document.querySelectorAll('input[data-fix]').forEach(function (el) {
+    el.oninput = function () { S.fix[el.dataset.fix] = el.value; el.classList.remove('ok','bad'); save(); };
+  });
+  document.querySelectorAll('[data-inc]').forEach(function (el) {
+    el.onclick = function () { var id = el.dataset.inc; S.inc[id] = !S.inc[id]; el.classList.toggle('on', S.inc[id]); el.classList.remove('ok','bad'); save(); };
+  });
+  document.querySelectorAll('select[data-cat]').forEach(function (el) {
+    el.onchange = function () {
+      S.cats[el.dataset.cat] = el.value; el.classList.remove('ok','bad'); save();
+      $('done').textContent = BELEGE.filter(function (b) { return S.cats[b.id]; }).length;
+    };
+  });
+  document.querySelectorAll('textarea[data-ans]').forEach(function (el) {
+    el.oninput = function () { S.ans[+el.dataset.ans] = el.value; save(); };
+  });
+  var nm = $('nm'), kl = $('kl');
+  if (nm) nm.oninput = function () { S.name = nm.value; save(); };
+  if (kl) kl.oninput = function () { S.klasse = kl.value; save(); };
+  var rs = $('reset');
+  if (rs) rs.onclick = function () { if (confirm('Wirklich alle Eingaben l\u00f6schen?')) { S = blank(); save(); render(); } };
+  var bp = $('btnPrint');
+  if (bp) bp.onclick = doPrint;
+}
+function doPrint() { buildPrint(); setTimeout(function () { window.print(); }, 50); }
+
+$('btnBack').onclick = function () { go(S.step - 1); };
+$('btnNext').onclick = function () {
+  if (S.step === 0 && !S.name.trim()) { var n = $('nm'); mark(n, false); n.focus(); return; }
+  if (S.step === 5) { doPrint(); return; }
+  go(S.step + 1);
+};
+$('btnCheck').onclick = check;
+window.addEventListener('beforeprint', buildPrint);
+render();
 </script>
-</body></html>
+</body>
+</html>
