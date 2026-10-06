@@ -616,5 +616,12 @@
     "beschreibung": "Übung zur Eröffnung der Bestandskonten in der Buchhaltung",
     "kategorie": "BWR",
     "lernbereich": "BwR7-IIIa-3"
+  },
+  "haushaltsplan.html": {
+    "fach": "WR",
+    "stufe": "7–9",
+    "beschreibung": "Haushaltsplan-Tool zur Verwaltung von Einnahmen und Ausgaben",
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "BwR7-IIIa-1"
   }
 }
