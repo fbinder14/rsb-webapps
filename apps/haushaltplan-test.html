@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Test Haushaltsplan</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { accent: '#635bff', ink: '#0a2540', muted: '#425466', line: '#e3e8ee', soft: '#f6f9fc' },
+    fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['"Source Serif 4"','Georgia','serif'], mono: ['"JetBrains Mono"','ui-monospace','monospace'] }
+  } }
+};
+</script>
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: #f6f9fc; color: #0a2540; -webkit-tap-highlight-color: transparent; }
+  .num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  input.money, select.cat, input.txt {
+    border: 2px solid #e3e8ee; border-radius: 12px; background: #fff; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input.money { font-family: 'JetBrains Mono', monospace; font-size: 20px; text-align: right; padding: 10px 40px 10px 14px; width: 100%; min-height: 52px; }
+  input.txt { font-size: 17px; padding: 10px 14px; width: 100%; min-height: 52px; }
+  select.cat { font-size: 17px; padding: 10px 12px; width: 100%; min-height: 52px; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23425466' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
+  input.money:focus, select.cat:focus, input.txt:focus { border-color: #635bff; box-shadow: 0 0 0 4px rgba(99,91,255,.15); }
+  input:disabled, select:disabled { opacity: 1; color: #0a2540; -webkit-text-fill-color: #0a2540; }
+  .ok  { border-color: #1aae6f !important; background-color: #effbf5 !important; }
+  .bad { border-color: #e5424d !important; background-color: #fff3f4 !important; }
+  .pick { border: 2px solid #e3e8ee; background: #fff; transition: all .15s; text-align: left; width: 100%; }
+  .pick.on { border-color: #635bff; background: #f3f2ff; }
+  .pick.on .box { background: #635bff; border-color: #635bff; }
+  .pick.on .box svg { opacity: 1; }
+  .pick.ok .box { background: #1aae6f; border-color: #1aae6f; }
+  .pick.ok .box svg { opacity: 1; }
+  .pick.bad .box { background: #e5424d; border-color: #e5424d; }
+  .pick.bad .box svg { opacity: 1; }
+  .box svg { opacity: 0; }
+  .btn { min-height: 52px; border-radius: 14px; font-weight: 600; font-size: 17px; padding: 0 22px; transition: transform .08s, background .15s; }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .4; }
+  .seg { min-height: 52px; border: 2px solid #e3e8ee; background: #fff; border-radius: 12px; font-weight: 600; font-size: 16px; padding: 0 14px; transition: all .15s; }
+  .seg.on { border-color: #635bff; background: #f3f2ff; color: #4a43d9; }
+  .seg.ok { border-color: #1aae6f !important; background: #effbf5 !important; color: #0b7a4b; }
+  .seg.bad { border-color: #e5424d !important; background: #fff3f4 !important; color: #b3202b; }
+  .seg.miss { border-color: #1aae6f; border-style: dashed; }
+  .arrow { width: 52px; height: 52px; border-radius: 12px; border: 2px solid #e3e8ee; background: #fff; display: grid; place-items: center; color: #425466; }
+  .arrow:active { background: #f3f2ff; }
+  .arrow:disabled { opacity: .3; }
+  .grip { width: 48px; height: 52px; border-radius: 12px; display: grid; place-items: center; color: #8898aa; touch-action: none; cursor: grab; flex-shrink: 0; -webkit-user-select: none; user-select: none; }
+  .grip:active { background: #f3f2ff; }
+  .chip { display: inline-flex; align-items: center; min-height: 52px; padding: 0 18px; border-radius: 12px; border: 2px solid #c9c5ff; background: #f3f2ff; color: #3d36c9; font-weight: 600; font-size: 17px; touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; }
+  .chip.sel { border-color: #635bff; box-shadow: 0 0 0 4px rgba(99,91,255,.2); background: #e8e6ff; }
+  .chip.static { cursor: default; touch-action: auto; }
+  .slot { min-height: 64px; border: 2px dashed #b8c2cf; border-radius: 12px; background: #fafcfe; display: flex; align-items: center; padding: 6px 8px; transition: all .12s; }
+  .slot.hot { border-color: #635bff; background: #f3f2ff; }
+  .slot.ok { border-style: solid; }
+  .slot.bad { border-style: solid; }
+  .ghost { position: fixed; z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(10,37,64,.25); transform: scale(1.04); opacity: .95; }
+  .dragging { z-index: 20; box-shadow: 0 12px 30px rgba(10,37,64,.22); position: relative; transition: none !important; }
+  .fade { animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .pop { animation: pop .5s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<div id="app" class="max-w-3xl mx-auto px-4 sm:px-6 pt-5 pb-64">
+  <header class="flex items-center justify-between gap-3 mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-accent text-white grid place-items-center shrink-0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div>
+        <div class="text-xs font-semibold tracking-wide uppercase text-accent">BWR &#xb7; Abschlusstest</div>
+        <div class="font-serif text-xl font-bold leading-tight">Haushaltsplan</div>
+      </div>
+    </div>
+    <div id="who" class="text-right text-sm text-muted"></div>
+  </header>
+
+  <nav id="progress" class="mb-5"></nav>
+  <main id="card" class="fade"></main>
+</div>
+
+<div id="nav" class="fixed bottom-0 inset-x-0 bg-white border-t border-line" style="padding-bottom: env(safe-area-inset-bottom);">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-3">
+    <div id="fb" class="hidden rounded-xl px-4 py-3 mb-3 text-[16px] leading-snug"></div>
+    <div class="flex gap-3">
+      <button id="bBack" class="btn bg-soft text-ink border-2 border-line">Zur&#xfc;ck</button>
+      <button id="bMain" class="btn flex-1 bg-accent text-white"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+var KEY = 'bwr_haushaltstest_v1';
+var S = { name: '', i: -1, a: {}, d: {}, p: {} };
+try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); if (o && o.a) S = o; } } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function fmt(n) { return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u00a0\u20ac'; }
+function parse(v) { v = String(v == null ? '' : v).replace(/[\u20ac\s\u00a0]/g, '').replace(/\./g, '').replace(',', '.'); return v === '' ? NaN : Number(v); }
+function eq(v, t) { var n = parse(v); return !isNaN(n) && Math.abs(n - t) < 0.005; }
+function $(id) { return document.getElementById(id); }
+
+var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+var UP = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+var DOWN = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+
+/* ---------- Aufgaben ---------- */
+var GAPOPTS = ['Feste Ausgaben', 'Budget', 'Ver\u00e4nderliche Ausgaben', 'Ergebnis', 'R\u00fccklage'];
+
+var T = [
+  { id: 1, type: 'mc', badge: 'Multiple Choice', max: 1, title: 'Zweck des Haushaltsplans',
+    q: 'W\u00e4hle die richtige Aussage aus: Was zeigt ein Haushaltsplan?',
+    opts: ['Er zeigt nur, wie viel Geld gerade auf dem Girokonto ist.',
+           'Er sagt voraus, wie hoch das Gehalt im n\u00e4chsten Jahr sein wird.',
+           'Er stellt die Einnahmen und Ausgaben eines Haushalts \u00fcbersichtlich gegen\u00fcber.',
+           'Er listet ausschlie\u00dflich die Ausgaben f\u00fcr Lebensmittel auf.'],
+    correct: 2,
+    merke: 'Ein Haushaltsplan stellt Einnahmen und Ausgaben \u00fcbersichtlich gegen\u00fcber. Er zeigt: Wie viel gebe ich aus? Wof\u00fcr? Wo kann ich sparen?' },
+
+  { id: 2, type: 'sort', badge: 'Zuordnung', max: 2, title: 'Regelm\u00e4\u00dfige Einnahmen',
+    q: 'Ordne die Einnahmen zu: Welche geh\u00f6ren zu den regelm\u00e4\u00dfigen Einnahmen im Haushaltsplan?',
+    left: 'Regelm\u00e4\u00dfig', right: 'Nicht regelm\u00e4\u00dfig',
+    items: [['Gehalt', 0], ['Geldgeschenk zum Geburtstag', 1], ['Kindergeld', 0], ['Weihnachtsgeld', 1]],
+    merke: 'Regelm\u00e4\u00dfige Einnahmen kommen jeden Monat sicher (z. B. Lohn, Gehalt, Kindergeld). Einmalige Zahlungen wie Geldgeschenke oder Weihnachtsgeld geh\u00f6ren nicht dazu.' },
+
+  { id: 3, type: 'order', badge: 'Reihenfolge', max: 2, title: 'Die f\u00fcnf Schritte',
+    q: 'Bringe die Schritte beim Erstellen eines Haushaltsplans in die richtige Reihenfolge. Verschiebe sie per Drag &amp; Drop am Griff links oder mit den Pfeilen.',
+    items: ['Regelm\u00e4\u00dfige Einnahmen erfassen', 'Feste Ausgaben erfassen', 'Budget berechnen', 'Ver\u00e4nderliche Ausgaben erfassen', 'Bilanz ziehen und Ergebnis auswerten'],
+    start: [3, 0, 4, 2, 1],
+    merke: 'Reihenfolge: 1. Regelm\u00e4\u00dfige Einnahmen, 2. Feste Ausgaben, 3. Budget berechnen, 4. Ver\u00e4nderliche Ausgaben erfassen, 5. Bilanz ziehen.' },
+
+  { id: 4, type: 'sort', badge: 'Zuordnung', max: 2, title: 'Feste und ver\u00e4nderliche Ausgaben',
+    q: 'Ordne die Ausgaben zu: Welche sind feste Ausgaben, welche sind ver\u00e4nderliche Ausgaben?',
+    left: 'Feste Ausgabe', right: 'Ver\u00e4nderliche Ausgabe',
+    items: [['Lebensmittel', 1], ['Miete', 0], ['Kinobesuch', 1], ['Handyvertrag', 0], ['Tanken', 1], ['Vereinsbeitrag', 0]],
+    merke: 'Feste Ausgaben sind regelm\u00e4\u00dfig und kurzfristig nicht \u00e4nderbar (Miete, Handyvertrag, Vereinsbeitrag). Ver\u00e4nderliche Ausgaben schwanken von Monat zu Monat (Lebensmittel, Freizeit, Tanken).' },
+
+  { id: 5, type: 'num', badge: 'Rechnen', max: 1, title: 'Jahresbetr\u00e4ge umrechnen',
+    q: 'Die Hausratversicherung kostet 276,00 \u20ac im Jahr und wird einmal j\u00e4hrlich abgebucht. Ermittle den Betrag, der pro Monat als feste Ausgabe zur\u00fcckgelegt werden muss.',
+    hint: '276,00 \u20ac : 12', answer: 23, unit: '\u20ac pro Monat',
+    merke: 'Jahresbetr\u00e4ge werden durch 12 geteilt und als monatliche R\u00fccklage angesetzt: 276,00 \u20ac : 12 = 23,00 \u20ac.' },
+
+  { id: 6, type: 'num', badge: 'Rechnen', max: 1, title: 'Budget berechnen',
+    q: 'Eine Familie hat regelm\u00e4\u00dfige Einnahmen von 3.150,00 \u20ac im Monat. Die festen Ausgaben betragen 1.870,00 \u20ac. Ermittle das Budget f\u00fcr die ver\u00e4nderlichen Ausgaben.',
+    hint: 'Regelm\u00e4\u00dfige Einnahmen \u2212 Feste Ausgaben', answer: 1280, unit: '\u20ac Budget',
+    merke: 'Budget = Regelm\u00e4\u00dfige Einnahmen \u2212 Feste Ausgaben: 3.150,00 \u20ac \u2212 1.870,00 \u20ac = 1.280,00 \u20ac.' },
+
+  { id: 7, type: 'num', badge: 'Rechnen', max: 1, title: 'Wochenbudget',
+    q: 'Das Monatsbudget betr\u00e4gt 1.280,00 \u20ac. Ermittle das Wochenbudget (4 Wochen pro Monat).',
+    hint: 'Monatsbudget : 4', answer: 320, unit: '\u20ac pro Woche',
+    merke: 'Wochenbudget = Monatsbudget : 4: 1.280,00 \u20ac : 4 = 320,00 \u20ac.' },
+
+  { id: 8, type: 'gap', badge: 'L\u00fcckenschema', max: 2, title: 'Das Rechenschema',
+    q: 'Vervollst\u00e4ndige das Rechenschema: Ziehe die passenden Begriffe in die L\u00fccken. Du kannst auch erst den Begriff und dann die L\u00fccke antippen. Ein Begriff ist \u00fcberfl\u00fcssig.',
+    gaps: ['Feste Ausgaben', 'Budget', 'Ver\u00e4nderliche Ausgaben', 'Ergebnis'],
+    merke: 'Regelm\u00e4\u00dfige Einnahmen \u2212 Feste Ausgaben = Budget f\u00fcr ver\u00e4nderliche Ausgaben \u2212 Ver\u00e4nderliche Ausgaben = Ergebnis.' },
+
+  { id: 9, type: 'multi', badge: 'Mehrfachauswahl', max: 1, title: 'Ver\u00e4nderliche Ausgaben erfassen',
+    q: 'W\u00e4hle alle richtigen Aussagen zum Erfassen der ver\u00e4nderlichen Ausgaben aus. (Es gibt drei richtige Aussagen.)',
+    opts: ['Auch Kleinbetr\u00e4ge ohne Beleg werden notiert.',
+           'Kartenzahlungen m\u00fcssen nicht erfasst werden, weil das Geld ja automatisch abgebucht wird.',
+           'Die Ausgaben werden Kategorien wie Lebensmittel oder Freizeit zugeordnet.',
+           'Nur Ausgaben \u00fcber 50,00 \u20ac sind wichtig.',
+           'Das Ergebnis ist nur aussagekr\u00e4ftig, wenn alle Ausgaben vollst\u00e4ndig erfasst sind.'],
+    correct: [0, 2, 4],
+    merke: 'Alle ver\u00e4nderlichen Ausgaben werden vollst\u00e4ndig erfasst, auch Kleinbetr\u00e4ge ohne Beleg und Kartenzahlungen, und Kategorien zugeordnet. Sonst stimmt das Ergebnis nicht.' },
+
+  { id: 10, type: 'bilanz', badge: 'Bilanz', max: 2, title: 'Bilanz ziehen',
+    q: 'Das Monatsbudget betr\u00e4gt 1.280,00 \u20ac. Die ver\u00e4nderlichen Ausgaben betragen 1.395,00 \u20ac. Ermittle das Ergebnis und entscheide, was die Familie tun sollte.',
+    hint: 'Budget \u2212 Ver\u00e4nderliche Ausgaben', value: 115, sign: -1,
+    opts: ['Das Minus ignorieren, es gleicht sich von selbst wieder aus.',
+           'Die festen Ausgaben im n\u00e4chsten Monat nicht bezahlen.',
+           'Sparm\u00f6glichkeiten in den Kategorien suchen, z. B. weniger Essen au\u00dfer Haus oder den Einkauf besser planen.',
+           'Das Geld als Notgroschen zur\u00fccklegen.'],
+    correct: 2,
+    merke: 'Ergebnis = 1.280,00 \u20ac \u2212 1.395,00 \u20ac = \u2212115,00 \u20ac. Bei einem negativen Ergebnis werden Sparm\u00f6glichkeiten in den Kategorien gesucht. Ein positives Ergebnis wird zur\u00fcckgelegt (z. B. Notgroschen, Urlaub).' }
+];
+var MAX = T.reduce(function (s, t) { return s + t.max; }, 0);
+
+/* ---------- Auswertung je Aufgabe ---------- */
+function ans(t) { return S.a[t.id]; }
+function ensure(t) {
+  if (S.a[t.id] != null) return;
+  if (t.type === 'mc') S.a[t.id] = null;
+  else if (t.type === 'multi') S.a[t.id] = [];
+  else if (t.type === 'sort') S.a[t.id] = {};
+  else if (t.type === 'order') S.a[t.id] = t.start.slice();
+  else if (t.type === 'num') S.a[t.id] = '';
+  else if (t.type === 'gap') S.a[t.id] = {};
+  else if (t.type === 'bilanz') S.a[t.id] = { sign: null, v: '', mc: null };
+}
+function ready(t) {
+  var a = ans(t);
+  switch (t.type) {
+    case 'mc': return a !== null;
+    case 'multi': return a.length > 0;
+    case 'sort': return t.items.every(function (x, i) { return a[i] === 0 || a[i] === 1; });
+    case 'order': return true;
+    case 'num': return String(a).trim() !== '';
+    case 'gap': return t.gaps.every(function (x, i) { return typeof a[i] === 'string' && a[i] !== ''; });
+    case 'bilanz': return a.sign !== null && String(a.v).trim() !== '' && a.mc !== null;
+  }
+}
+function score(t) {
+  var a = ans(t), w;
+  switch (t.type) {
+    case 'mc': return a === t.correct ? 1 : 0;
+    case 'multi': return (a.length === t.correct.length && t.correct.every(function (c) { return a.indexOf(c) >= 0; })) ? 1 : 0;
+    case 'sort': w = t.items.filter(function (x, i) { return a[i] !== x[1]; }).length; return w === 0 ? 2 : (w === 1 ? 1 : 0);
+    case 'order':
+      var right = a.filter(function (v, i) { return v === i; }).length;
+      return right === 5 ? 2 : (right >= 3 ? 1 : 0);
+    case 'num': return eq(a, t.answer) ? 1 : 0;
+    case 'gap': w = t.gaps.filter(function (g, i) { return a[i] !== g; }).length; return w === 0 ? 2 : (w === 1 ? 1 : 0);
+    case 'bilanz': return ((a.sign === t.sign && eq(a.v, t.value)) ? 1 : 0) + (a.mc === t.correct ? 1 : 0);
+  }
+}
+
+/* ---------- Rendering ---------- */
+function progress() {
+  var h = '<div class="flex gap-1.5">';
+  T.forEach(function (t, i) {
+    var c = '#e3e8ee';
+    if (S.d[t.id]) c = S.p[t.id] === t.max ? '#1aae6f' : (S.p[t.id] > 0 ? '#f5a524' : '#e5424d');
+    else if (i === S.i) c = '#635bff';
+    h += '<div class="h-2 flex-1 rounded-full" style="background:' + c + '"></div>';
+  });
+  $('progress').innerHTML = h + '</div>';
+  $('progress').style.display = (S.i >= 0 && S.i < T.length) ? '' : 'none';
+}
+
+function head(t, i) {
+  return '<div class="flex items-center justify-between gap-2 mb-3">' +
+    '<div class="text-sm font-semibold text-muted">Aufgabe ' + (i + 1) + ' von ' + T.length + '</div>' +
+    '<div class="flex items-center gap-2"><span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white border border-line text-muted">' + t.badge + '</span>' +
+    '<span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent">' + t.max + (t.max === 1 ? ' Punkt' : ' Punkte') + '</span></div></div>' +
+    '<h2 class="font-serif text-2xl font-bold mb-2">' + t.title + '</h2>' +
+    '<p class="text-[18px] leading-relaxed mb-5">' + t.q + '</p>';
+}
+
+function renderStart() {
+  $('card').innerHTML =
+    '<div class="bg-white rounded-2xl border border-line p-6 sm:p-8 shadow-sm">' +
+    '<h1 class="font-serif text-3xl font-bold mb-2">Test zum Haushaltsplan</h1>' +
+    '<p class="text-[18px] text-muted mb-5">' + T.length + ' Aufgaben &middot; ' + MAX + ' Punkte &middot; ca. 10 Minuten</p>' +
+    '<ul class="space-y-2 text-[17px] mb-6">' +
+    '<li class="flex gap-3"><span class="text-accent font-bold">1</span><span>L\u00f6se eine Aufgabe nach der anderen und tippe auf <b>Pr\u00fcfen</b>.</span></li>' +
+    '<li class="flex gap-3"><span class="text-accent font-bold">2</span><span>Du siehst sofort, ob deine Antwort stimmt, und bekommst einen Merksatz.</span></li>' +
+    '<li class="flex gap-3"><span class="text-accent font-bold">3</span><span>Am Ende erf\u00e4hrst du, wie viele Punkte du erreicht hast.</span></li></ul>' +
+    '<label class="block text-sm font-semibold text-muted mb-1.5" for="nm">Dein Name</label>' +
+    '<input id="nm" class="txt" type="text" autocomplete="off" autocapitalize="words" placeholder="Vorname" value="' + (S.name || '').replace(/"/g, '&quot;') + '"></div>';
+  $('nm').addEventListener('input', function () { S.name = this.value; save(); });
+}
+
+function renderTask() {
+  var t = T[S.i], i = S.i, a, h = head(t, i), done = !!S.d[t.id];
+  ensure(t); a = ans(t);
+
+  if (t.type === 'mc' || t.type === 'multi') {
+    h += '<div class="space-y-3">';
+    t.opts.forEach(function (o, k) {
+      var on = t.type === 'mc' ? a === k : a.indexOf(k) >= 0;
+      var good = t.type === 'mc' ? k === t.correct : t.correct.indexOf(k) >= 0;
+      var cls = 'pick rounded-2xl px-4 py-4 flex items-start gap-4 min-h-[60px]';
+      if (done) { if (on && good) cls += ' ok'; else if (on && !good) cls += ' bad'; else if (!on && good) cls += ' ok'; }
+      else if (on) cls += ' on';
+      var shape = t.type === 'mc' ? 'rounded-full' : 'rounded-md';
+      h += '<button class="' + cls + '" data-act="pick" data-k="' + k + '"' + (done ? ' disabled' : '') + '>' +
+        '<span class="box mt-0.5 w-7 h-7 shrink-0 ' + shape + ' border-2 border-line bg-white grid place-items-center">' + CHECK + '</span>' +
+        '<span class="text-[18px] leading-snug">' + o + '</span></button>';
+    });
+    h += '</div>';
+  }
+
+  if (t.type === 'sort') {
+    h += '<div class="space-y-3">';
+    t.items.forEach(function (it, k) {
+      h += '<div class="bg-white rounded-2xl border border-line p-3 sm:p-4"><div class="text-[18px] font-semibold mb-2.5">' + it[0] + '</div><div class="grid grid-cols-2 gap-2.5">';
+      [t.left, t.right].forEach(function (lab, v) {
+        var cls = 'seg';
+        if (done) { if (a[k] === v) cls += (v === it[1] ? ' ok' : ' bad'); else if (v === it[1]) cls += ' miss'; }
+        else if (a[k] === v) cls += ' on';
+        h += '<button class="' + cls + '" data-act="sort" data-k="' + k + '" data-v="' + v + '"' + (done ? ' disabled' : '') + '>' + lab + '</button>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+
+  if (t.type === 'order') {
+    h += '<div class="space-y-3" data-list="1">';
+    a.forEach(function (id, pos) {
+      var cls = 'bg-white rounded-2xl border-2 border-line px-3 py-3 flex items-center gap-3';
+      if (done) cls += id === pos ? ' ok' : ' bad';
+      h += '<div class="' + cls + '" data-row="1" data-id="' + id + '">' + (done ? '' : '<div class="grip" data-grip="1" aria-label="Ziehen"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></div>') + '<div class="w-9 h-9 rounded-full bg-soft border border-line grid place-items-center font-bold text-muted shrink-0 num">' + (pos + 1) + '</div>' +
+        '<div class="flex-1 text-[18px] leading-snug">' + t.items[id] + '</div>' +
+        '<button class="arrow" data-act="up" data-k="' + pos + '" aria-label="nach oben"' + (done || pos === 0 ? ' disabled' : '') + '>' + UP + '</button>' +
+        '<button class="arrow" data-act="dn" data-k="' + pos + '" aria-label="nach unten"' + (done || pos === a.length - 1 ? ' disabled' : '') + '>' + DOWN + '</button></div>';
+    });
+    h += '</div>';
+  }
+
+  if (t.type === 'num') {
+    h += '<div class="bg-white rounded-2xl border border-line p-4 sm:p-5">' +
+      '<div class="text-sm text-muted mb-2">Rechenhilfe: <span class="num">' + t.hint + '</span></div>' +
+      '<div class="flex items-center gap-3"><div class="relative flex-1 max-w-xs">' +
+      '<input id="inp" class="money' + (done ? (eq(a, t.answer) ? ' ok' : ' bad') : '') + '" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + String(a).replace(/"/g, '') + '"' + (done ? ' disabled' : '') + '>' +
+      '<span class="absolute right-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none">\u20ac</span></div>' +
+      '<div class="text-[16px] text-muted">' + t.unit.replace('\u20ac ', '') + '</div></div></div>';
+  }
+
+  if (t.type === 'gap') {
+    var used = [];
+    t.gaps.forEach(function (g, k) { if (a[k]) used.push(a[k]); });
+    h += '<div class="bg-white rounded-2xl border border-line p-4 sm:p-5 space-y-3">' +
+      '<div class="rounded-xl bg-soft border border-line px-4 py-3 text-[18px] font-semibold">Regelm\u00e4\u00dfige Einnahmen</div>';
+    t.gaps.forEach(function (g, k) {
+      var v = a[k], cls = 'slot flex-1';
+      if (done) cls += v === g ? ' ok' : ' bad';
+      var inner = v ? '<span class="chip' + (done ? ' static' : '') + (selChip === v ? ' sel' : '') + '" data-chip="' + v + '">' + v + '</span>' : '<span class="text-muted text-[16px] px-2">hier ablegen</span>';
+      h += '<div class="flex items-center gap-3"><div class="w-9 text-center text-2xl font-bold text-accent shrink-0 num">' + (k === 1 || k === 3 ? '=' : '\u2212') + '</div>' +
+        '<div class="' + cls + '" data-act="slot" data-k="' + k + '">' + inner + '</div></div>';
+    });
+    h += '</div>';
+    if (!done) {
+      h += '<div class="mt-4"><div class="text-sm font-semibold text-muted mb-2">Begriffe</div><div class="flex flex-wrap gap-3" id="bank">';
+      GAPOPTS.forEach(function (o) { if (used.indexOf(o) < 0) h += '<span class="chip' + (selChip === o ? ' sel' : '') + '" data-chip="' + o + '">' + o + '</span>'; });
+      h += '</div></div>';
+    }
+  }
+
+  if (t.type === 'bilanz') {
+    var okNum = (a.sign === t.sign && eq(a.v, t.value));
+    h += '<div class="bg-white rounded-2xl border border-line p-4 sm:p-5 mb-4">' +
+      '<div class="text-sm text-muted mb-2">Rechenhilfe: <span class="num">' + t.hint + '</span></div>' +
+      '<div class="flex flex-wrap items-center gap-3">' +
+      '<div class="flex gap-2">';
+    [[1, '+'], [-1, '\u2212']].forEach(function (s) {
+      var cls = 'seg w-16 text-2xl';
+      if (done) { if (a.sign === s[0]) cls += (okNum || s[0] === t.sign) ? ' ok' : ' bad'; }
+      else if (a.sign === s[0]) cls += ' on';
+      h += '<button class="' + cls + '" data-act="sign" data-v="' + s[0] + '" aria-label="Vorzeichen"' + (done ? ' disabled' : '') + '>' + s[1] + '</button>';
+    });
+    h += '</div><div class="relative flex-1 min-w-[160px] max-w-xs">' +
+      '<input id="inp" class="money' + (done ? (okNum ? ' ok' : ' bad') : '') + '" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + String(a.v).replace(/"/g, '') + '"' + (done ? ' disabled' : '') + '>' +
+      '<span class="absolute right-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none">\u20ac</span></div></div></div>' +
+      '<div class="space-y-3">';
+    t.opts.forEach(function (o, k) {
+      var on = a.mc === k, good = k === t.correct;
+      var cls = 'pick rounded-2xl px-4 py-4 flex items-start gap-4 min-h-[60px]';
+      if (done) { if (on && good) cls += ' ok'; else if (on && !good) cls += ' bad'; else if (!on && good) cls += ' ok'; }
+      else if (on) cls += ' on';
+      h += '<button class="' + cls + '" data-act="bmc" data-k="' + k + '"' + (done ? ' disabled' : '') + '>' +
+        '<span class="box mt-0.5 w-7 h-7 shrink-0 rounded-full border-2 border-line bg-white grid place-items-center">' + CHECK + '</span>' +
+        '<span class="text-[18px] leading-snug">' + o + '</span></button>';
+    });
+    h += '</div>';
+  }
+
+  var c = $('card'); c.className = ''; void c.offsetWidth; c.className = 'fade';
+  c.innerHTML = h;
+  var inp = $('inp');
+  if (inp && !done) inp.addEventListener('input', function () {
+    if (t.type === 'num') S.a[t.id] = this.value; else S.a[t.id].v = this.value;
+    save(); buttons();
+  });
+}
+
+function renderResult() {
+  var tot = 0; T.forEach(function (t) { tot += S.p[t.id] || 0; });
+  var pct = tot / MAX, msg, col;
+  if (pct >= 0.9) { msg = 'Sehr stark! Den Haushaltsplan hast du richtig gut verstanden.'; col = '#1aae6f'; }
+  else if (pct >= 0.7) { msg = 'Gut gemacht! Du hast das Wichtigste sicher im Griff.'; col = '#1aae6f'; }
+  else if (pct >= 0.5) { msg = 'Solide Grundlage. Schau dir die markierten Aufgaben noch einmal an.'; col = '#f5a524'; }
+  else { msg = 'Da ist noch Luft nach oben. Lies den Hefteintrag in Ruhe durch und versuche den Test noch einmal.'; col = '#e5424d'; }
+  var h = '<div class="bg-white rounded-2xl border border-line p-6 sm:p-8 shadow-sm text-center mb-5 pop">' +
+    (S.name ? '<div class="text-muted text-[17px] mb-1">' + S.name.replace(/</g, '&lt;') + '</div>' : '') +
+    '<div class="text-sm font-semibold tracking-wide uppercase text-muted mb-2">Dein Ergebnis</div>' +
+    '<div class="font-serif font-bold leading-none mb-3" style="font-size:64px;color:' + col + '"><span class="num">' + tot + '</span> <span class="text-3xl text-muted">von</span> <span class="num">' + MAX + '</span></div>' +
+    '<div class="text-xl font-semibold mb-4">Punkten erreicht</div>' +
+    '<div class="h-3 rounded-full bg-line overflow-hidden max-w-sm mx-auto mb-4"><div class="h-full rounded-full" style="width:' + Math.round(pct * 100) + '%;background:' + col + '"></div></div>' +
+    '<p class="text-[18px] text-muted">' + msg + '</p></div>' +
+    '<div class="space-y-2.5">';
+  T.forEach(function (t, i) {
+    var p = S.p[t.id] || 0, full = p === t.max, bg = full ? '#effbf5' : (p > 0 ? '#fff9ec' : '#fff3f4'), bc = full ? '#1aae6f' : (p > 0 ? '#f5a524' : '#e5424d');
+    h += '<div class="rounded-2xl border-2 px-4 py-3" style="background:' + bg + ';border-color:' + bc + '"><div class="flex items-center justify-between gap-3">' +
+      '<div class="text-[17px]"><span class="font-semibold">' + (i + 1) + '. ' + t.title + '</span></div>' +
+      '<div class="num font-semibold whitespace-nowrap">' + p + ' / ' + t.max + '</div></div>' +
+      (full ? '' : '<div class="text-[15px] text-muted mt-1.5 leading-snug">' + t.merke + '</div>') + '</div>';
+  });
+  h += '</div>';
+  $('card').className = ''; void $('card').offsetWidth; $('card').className = 'fade';
+  $('card').innerHTML = h;
+}
+
+function feedback() {
+  var b = $('fb'), t = T[S.i];
+  if (!t || !S.d[t.id]) { b.className = 'hidden'; return; }
+  var p = S.p[t.id], full = p === t.max;
+  var cls = full ? 'bg-[#effbf5] text-[#0b5c3a]' : (p > 0 ? 'bg-[#fff9ec] text-[#7a4a00]' : 'bg-[#fff3f4] text-[#8f1f28]');
+  b.className = 'rounded-xl px-4 py-3 mb-3 text-[16px] leading-snug ' + cls;
+  var lead = full ? 'Richtig!' : (p > 0 ? 'Teilweise richtig.' : 'Leider nicht richtig.');
+  b.innerHTML = '<b>' + lead + '</b> <span class="num">' + p + ' von ' + t.max + (t.max === 1 ? ' Punkt' : ' Punkten') + '.</span> ' + t.merke;
+}
+
+function buttons() {
+  var back = $('bBack'), main = $('bMain'), t = T[S.i];
+  back.style.display = (S.i > 0) ? '' : 'none';
+  if (S.i < 0) { main.textContent = 'Test starten'; main.disabled = false; return; }
+  if (S.i >= T.length) { main.textContent = 'Test noch einmal machen'; main.disabled = false; back.style.display = 'none'; return; }
+  if (S.d[t.id]) { main.textContent = S.i === T.length - 1 ? 'Ergebnis anzeigen' : 'Weiter'; main.disabled = false; }
+  else { main.textContent = 'Pr\u00fcfen'; ensure(t); main.disabled = !ready(t); }
+}
+
+function render() {
+  selChip = null;
+  $('who').textContent = S.name || '';
+  progress();
+  if (S.i < 0) renderStart();
+  else if (S.i >= T.length) renderResult();
+  else renderTask();
+  feedback(); buttons();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Interaktion ---------- */
+function rerenderKeep() {
+  var y = window.scrollY; var t = T[S.i];
+  renderTask(); buttons(); window.scrollTo(0, y);
+}
+
+$('card').addEventListener('click', function (e) {
+  if (e.target.closest('[data-chip]')) return;
+  var el = e.target.closest('[data-act]'); if (!el) return;
+  var t = T[S.i]; if (!t || S.d[t.id]) return;
+  var act = el.getAttribute('data-act'), k = +el.getAttribute('data-k'), a = ans(t);
+  if (act === 'pick') {
+    if (t.type === 'mc') S.a[t.id] = k;
+    else { var ix = a.indexOf(k); if (ix >= 0) a.splice(ix, 1); else a.push(k); }
+  } else if (act === 'sort') { a[k] = +el.getAttribute('data-v'); }
+  else if (act === 'up' && k > 0) { var x = a[k]; a[k] = a[k - 1]; a[k - 1] = x; }
+  else if (act === 'dn' && k < a.length - 1) { var y = a[k]; a[k] = a[k + 1]; a[k + 1] = y; }
+  else if (act === 'sign') { a.sign = +el.getAttribute('data-v'); }
+  else if (act === 'bmc') { a.mc = k; }
+  else if (act === 'slot') { if (selChip) placeChip(k, selChip); else return; }
+  save(); rerenderKeep();
+});
+$('bBack').addEventListener('click', function () { if (S.i > 0) { S.i--; save(); render(); } });
+$('bMain').addEventListener('click', function () {
+  if (S.i < 0) { S.i = 0; save(); render(); return; }
+  if (S.i >= T.length) { S = { name: S.name, i: -1, a: {}, d: {}, p: {} }; save(); render(); return; }
+  var t = T[S.i];
+  if (!S.d[t.id]) {
+    if (!ready(t)) return;
+    S.p[t.id] = score(t); S.d[t.id] = true; save();
+    rerenderKeep(); progress(); feedback(); buttons();
+    return;
+  }
+  S.i++; save(); render();
+});
+
+/* ---------- Drag & Drop (Pointer Events: Maus, Finger, Stift) ---------- */
+var selChip = null, cd = null, od = null;
+function placeChip(k, name) {
+  var t = T[S.i], a = ans(t);
+  Object.keys(a).forEach(function (x) { if (a[x] === name) delete a[x]; });
+  a[k] = name; selChip = null; save(); rerenderKeep();
+}
+function removeChip(name) {
+  var a = ans(T[S.i]);
+  Object.keys(a).forEach(function (x) { if (a[x] === name) delete a[x]; });
+  selChip = null; save(); rerenderKeep();
+}
+function slotAt(x, y) { var el = document.elementFromPoint(x, y); return el ? el.closest('[data-act="slot"]') : null; }
+
+$('card').addEventListener('pointerdown', function (e) {
+  var t = T[S.i]; if (!t || S.d[t.id]) return;
+  if (t.type === 'gap') {
+    var chip = e.target.closest('[data-chip]'); if (!chip) return;
+    e.preventDefault();
+    cd = { name: chip.getAttribute('data-chip'), el: chip, x: e.clientX, y: e.clientY, moved: false, ghost: null, inSlot: !!chip.closest('[data-act="slot"]') };
+  } else if (t.type === 'order') {
+    var g = e.target.closest('[data-grip]'); if (!g) return;
+    e.preventDefault();
+    var row = g.closest('[data-row]');
+    od = { row: row, list: row.parentNode, y0: e.clientY, top0: row.getBoundingClientRect().top };
+    row.classList.add('dragging');
+  }
+});
+window.addEventListener('pointermove', function (e) {
+  if (cd) {
+    if (!cd.moved && Math.abs(e.clientX - cd.x) + Math.abs(e.clientY - cd.y) > 8) {
+      cd.moved = true;
+      var r = cd.el.getBoundingClientRect(), gh = cd.el.cloneNode(true);
+      gh.className = 'chip ghost'; gh.style.width = r.width + 'px'; gh.removeAttribute('data-chip');
+      document.body.appendChild(gh); cd.ghost = gh; cd.w = r.width; cd.h = r.height; cd.el.style.opacity = '.3';
+    }
+    if (cd.ghost) {
+      e.preventDefault();
+      cd.ghost.style.left = (e.clientX - cd.w / 2) + 'px'; cd.ghost.style.top = (e.clientY - cd.h / 2) + 'px';
+      var hot = slotAt(e.clientX, e.clientY);
+      document.querySelectorAll('.slot.hot').forEach(function (s) { if (s !== hot) s.classList.remove('hot'); });
+      if (hot) hot.classList.add('hot');
+    }
+  } else if (od) {
+    e.preventDefault();
+    var row = od.row;
+    row.style.transform = 'translateY(' + (e.clientY - od.y0) + 'px)';
+    var vr = row.getBoundingClientRect(), center = vr.top + vr.height / 2;
+    var sibs = Array.prototype.filter.call(od.list.children, function (c) { return c !== row; });
+    var want = sibs.filter(function (c) { var r = c.getBoundingClientRect(); return r.top + r.height / 2 < center; }).length;
+    var cur = Array.prototype.indexOf.call(od.list.children, row);
+    if (want !== cur) {
+      var visTop = vr.top;
+      od.list.insertBefore(row, sibs[want] || null);
+      row.style.transform = 'none';
+      var nat = row.getBoundingClientRect().top;
+      od.y0 = e.clientY - (visTop - nat);
+      row.style.transform = 'translateY(' + (visTop - nat) + 'px)';
+    }
+  }
+}, { passive: false });
+function endDrag(e, cancel) {
+  if (cd) {
+    var c = cd; cd = null;
+    if (c.ghost) c.ghost.remove();
+    document.querySelectorAll('.slot.hot').forEach(function (s) { s.classList.remove('hot'); });
+    if (cancel) { rerenderKeep(); return; }
+    if (!c.moved) {
+      if (c.inSlot) removeChip(c.name);
+      else { selChip = (selChip === c.name) ? null : c.name; rerenderKeep(); }
+    } else {
+      var s = slotAt(e.clientX, e.clientY);
+      if (s) placeChip(+s.getAttribute('data-k'), c.name);
+      else if (c.inSlot) removeChip(c.name);
+      else rerenderKeep();
+    }
+  } else if (od) {
+    var o = od; od = null;
+    var t = T[S.i];
+    if (!cancel) S.a[t.id] = Array.prototype.map.call(o.list.children, function (r) { return +r.getAttribute('data-id'); });
+    save(); rerenderKeep();
+  }
+}
+window.addEventListener('pointerup', function (e) { endDrag(e, false); });
+window.addEventListener('pointercancel', function (e) { endDrag(e, true); });
+
+render();
+</script>
+</body>
+</html>
