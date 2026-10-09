@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f9fc">
+<title>Lösung Aufgabe Z4 · Konto 2800 BK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { fontFamily: {
+    sans: ['Inter','system-ui','sans-serif'],
+    mono: ['JetBrains Mono','ui-monospace','monospace'],
+    serif: ['Source Serif 4','Georgia','serif']
+  } } }
+}
+</script>
+<style>
+  :root{
+    --bg:#f6f9fc; --card:#fff; --line:#e3e8ee; --ink:#1a1f36; --ink2:#4f566b; --muted:#8792a2;
+    --acc:#635bff; --accbg:#f0eeff; --ok:#047a42; --okbg:#eafbf1; --warn:#9a5b00; --warnbg:#fff6e5;
+  }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ background:var(--bg); color:var(--ink); touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 2px 8px rgba(50,50,93,.06); padding:18px; }
+  @media (min-width:640px){ .card{ padding:26px; } }
+
+  .step{ scroll-margin-top:128px; }
+  .step.show{ animation:fadeUp .45s ease both; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;} }
+
+  .lbl{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--acc); font-weight:700; }
+  .ttl{ font-family:'Source Serif 4',serif; font-size:24px; font-weight:700; line-height:1.2; margin-top:4px; }
+  @media (min-width:640px){ .ttl{ font-size:30px; } }
+
+  .task{ margin:14px 0 4px; background:#f7f8fa; border-left:4px solid var(--muted); border-radius:8px; padding:10px 14px; font-size:16px; color:var(--ink2); line-height:1.5; }
+  .task b{ display:block; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+
+  /* Konten-Überlegung */
+  .konten{ margin-top:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .krow{ display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:12px 14px; border-bottom:1px solid var(--line); }
+  .krow:last-child{ border-bottom:0; }
+  .kk{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; white-space:nowrap; }
+  .kt{ font-size:16px; color:var(--ink2); line-height:1.4; }
+  .badge{ font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; padding:5px 12px; border-radius:999px; white-space:nowrap; }
+  .badge.s{ background:var(--accbg); color:var(--acc); }
+  .badge.h{ background:var(--warnbg); color:var(--warn); }
+
+  /* Buchungssatz */
+  .buchung-wrap{ margin-top:16px; background:var(--accbg); border-radius:12px; padding:14px 10px; overflow-x:auto; }
+  table.buchung{ border-collapse:collapse; margin:0 auto; font-family:'JetBrains Mono',monospace; color:var(--ink); }
+  table.buchung th{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:500; padding:0 8px 6px; text-align:left; }
+  table.buchung th.r{ text-align:right; }
+  table.buchung td{ padding:5px 8px; font-size:15px; font-weight:500; white-space:nowrap; }
+  table.buchung td.b{ text-align:right; color:var(--acc); font-weight:700; }
+  table.buchung td.an{ color:var(--muted); text-align:center; }
+  @media (min-width:640px){ table.buchung td{ font-size:21px; padding:7px 12px; } table.buchung th{ font-size:12px; } }
+
+  /* T-Konto */
+  .tk{ margin-top:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; font-family:'JetBrains Mono',monospace; }
+  .tk-h{ display:grid; grid-template-columns:1fr auto 1fr; background:#f7f8fa; border-bottom:2px solid var(--ink); padding:8px 14px; font-weight:700; font-size:15px; }
+  .tk-h span:nth-child(2){ text-align:center; }
+  .tk-h span:last-child{ text-align:right; }
+  .tk-r{ display:grid; grid-template-columns:1fr 1fr; border-bottom:1px dashed var(--line); min-height:44px; }
+  .tk-c{ display:flex; justify-content:space-between; gap:8px; align-items:center; padding:8px 12px; font-size:13px; }
+  .tk-c:first-child{ border-right:2px solid var(--ink); }
+  .tk-c .a{ color:var(--ink2); }
+  .tk-c .v{ font-weight:700; white-space:nowrap; }
+  .tk-c.hl{ background:var(--accbg); }
+  .tk-c.hl .v{ color:var(--acc); }
+  @media (min-width:640px){ .tk-c{ font-size:18px; padding:8px 18px; } .tk-h{ font-size:18px; } }
+
+  /* Rechnen */
+  .dz{ margin-top:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .dz-r{ display:grid; grid-template-columns:76px 1fr auto; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); align-items:center; font-size:15px; }
+  .dz-r:last-child{ border-bottom:0; }
+  .dz-r:nth-child(n+2){ background:#fafbff; }
+  .dz-p{ font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--acc); }
+  .dz-v{ font-family:'JetBrains Mono',monospace; font-weight:700; white-space:nowrap; }
+  .dz-l{ color:var(--ink2); }
+  .formula{ margin-top:12px; background:var(--accbg); color:var(--acc); border-radius:12px; padding:14px 10px; text-align:center; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:16px; }
+  .formula b{ font-weight:700; }
+  @media (min-width:640px){ .formula{ font-size:23px; } .dz-r{ font-size:18px; grid-template-columns:100px 1fr auto; } }
+
+  .calc{ margin-top:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .calc-r{ display:flex; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); font-size:16px; }
+  .calc-r span:last-child{ font-family:'JetBrains Mono',monospace; font-weight:500; white-space:nowrap; }
+  .calc-r.res{ background:var(--okbg); color:var(--ok); font-weight:700; border-top:2px solid var(--ok); border-bottom:0; }
+  .calc-r.res span:last-child{ font-weight:700; }
+
+  .erkl{ margin-top:16px; background:#f0f6ff; border:1px solid #cfe0ff; border-radius:12px; padding:14px 16px; font-size:16px; line-height:1.55; color:#23325c; }
+  .erkl .h{ font-weight:700; margin-bottom:4px; }
+  .erkl p + p{ margin-top:8px; }
+  .merke{ margin-top:12px; background:var(--warnbg); border:1px solid #f3dca8; border-radius:12px; padding:12px 16px; font-size:16px; line-height:1.55; color:#5c3a00; }
+  .probe{ margin-top:12px; background:var(--okbg); border:1px solid #bfe9d0; border-radius:12px; padding:12px 16px; font-size:16px; line-height:1.55; color:var(--ok); }
+  .zusatz{ display:inline-block; margin-left:8px; font-size:11px; background:var(--warnbg); color:var(--warn); padding:2px 8px; border-radius:999px; letter-spacing:.08em; vertical-align:middle; }
+
+  .chk{ display:flex; gap:12px; align-items:flex-start; padding:12px 6px; font-size:17px; line-height:1.45; border-bottom:1px solid var(--line); }
+  .chk:last-child{ border-bottom:0; }
+  .chk input{ width:26px; height:26px; flex:none; accent-color:var(--acc); margin-top:1px; }
+
+  .chip{ flex:none; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); background:#fff; }
+  .chip.done{ background:var(--okbg); color:var(--ok); border-color:#bfe9d0; }
+  .chip.cur{ background:var(--acc); color:#fff; border-color:var(--acc); }
+
+  button:disabled{ opacity:.4; }
+  #chips::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-[#e3e8ee]" style="padding-top:env(safe-area-inset-top)">
+  <div class="max-w-3xl mx-auto px-4 pt-2.5 pb-2">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="bg-[#635bff] text-white font-mono text-xs font-bold tracking-widest px-2.5 py-1 rounded-md whitespace-nowrap">AUFGABE Z4</span>
+        <span class="text-sm text-[#4f566b] truncate">Arbeitsbuch · Seite 32</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="count" class="font-mono text-xs text-[#4f566b] whitespace-nowrap"></span>
+        <button id="reset" aria-label="Neu starten" class="w-9 h-9 rounded-lg border border-[#e3e8ee] bg-white text-lg text-[#4f566b] active:bg-[#f0eeff]">↺</button>
+      </div>
+    </div>
+    <div id="chips" class="flex gap-1.5 overflow-x-auto mt-2 pb-1"></div>
+    <div class="h-1 bg-[#e3e8ee] rounded-full overflow-hidden"><div id="bar" class="h-1 bg-[#635bff] rounded-full transition-all duration-500" style="width:0"></div></div>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 pt-5 pb-48 space-y-5">
+
+  <section class="card">
+    <div class="flex flex-wrap gap-2 mb-3">
+      <span class="bg-[#635bff] text-white font-mono text-xs font-bold tracking-widest px-2.5 py-1 rounded-md">AUFGABE Z4</span>
+      <span class="bg-[#f0eeff] text-[#635bff] font-mono text-xs font-bold tracking-widest px-2.5 py-1 rounded-md">ARBEITSBUCH · SEITE 32</span>
+    </div>
+    <h1 class="font-serif text-[28px] sm:text-4xl font-bold leading-tight">Konto 2800 Bank – Buchungen im Januar</h1>
+    <p class="mt-3 text-[17px] text-[#4f566b] leading-relaxed">
+      Max, der Auszubildende, erfasst kurz nach Neujahr Geschäftsfälle, die das Konto <b class="font-mono text-[#1a1f36]">2800 BK</b> betreffen.
+      Den Anfangsbestand findest du in der Eröffnungsbilanz auf <b>Seite 33</b>.
+    </p>
+    <div class="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
+      <div class="rounded-xl bg-[#f7f8fa] py-3 px-1"><div class="font-mono font-bold text-[#635bff] text-lg">1</div>Konto eröffnen</div>
+      <div class="rounded-xl bg-[#f7f8fa] py-3 px-1"><div class="font-mono font-bold text-[#635bff] text-lg">2.1–2.6</div>Buchungssätze</div>
+      <div class="rounded-xl bg-[#f7f8fa] py-3 px-1"><div class="font-mono font-bold text-[#635bff] text-lg">3</div>Konto führen</div>
+    </div>
+    <div class="mt-4 rounded-xl bg-[#fff6e5] border border-[#f3dca8] p-4 text-[16px] leading-relaxed text-[#5c3a00]">
+      <b>So gehst du vor:</b>
+      <ol class="list-decimal pl-5 mt-1 space-y-1">
+        <li>Bearbeite die Aufgabe zuerst <b>selbst im Arbeitsbuch</b>.</li>
+        <li>Decke dann Schritt für Schritt auf und vergleiche.</li>
+        <li>Fehler nicht ausradieren, sondern mit <b>anderer Farbe</b> verbessern.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div id="steps" class="space-y-5"></div>
+</main>
+
+<footer class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-[#e3e8ee]">
+  <div class="max-w-3xl mx-auto px-4 pt-3 flex gap-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+    <button id="prev" class="h-14 w-28 rounded-xl border border-[#e3e8ee] bg-white text-[#4f566b] font-semibold text-base active:bg-[#f0eeff]">← Zurück</button>
+    <button id="next" class="h-14 flex-1 rounded-xl bg-[#635bff] text-white font-semibold text-lg shadow-md active:bg-[#4f46e5]">Ersten Schritt aufdecken →</button>
+  </div>
+</footer>
+
+<script>
+/* ---------- Bausteine ---------- */
+const e = v => v + '\u00a0€';
+
+function konten(rows){
+  return '<div class="konten">' + rows.map(r =>
+    `<div class="krow"><span class="kk">${r[0]}</span><span class="kt">${r[1]}</span><span class="badge ${r[2]==='Soll'?'s':'h'}">${r[2]}</span></div>`
+  ).join('') + '</div>';
+}
+
+function buchung(soll, haben){
+  const rows = soll.map((r,i) => {
+    const last = i === soll.length-1;
+    return `<tr><td>${r[0]}</td><td class="b">${r[1]}</td><td class="an">${last?'an':''}</td><td>${last?haben[0]:''}</td><td class="b">${last?haben[1]:''}</td></tr>`;
+  }).join('');
+  return `<div class="buchung-wrap"><table class="buchung">
+    <tr><th>Soll</th><th class="r">Betrag</th><th></th><th>Haben</th><th class="r">Betrag</th></tr>${rows}</table></div>`;
+}
+
+function tkonto(soll, haben, opt){
+  opt = opt || {};
+  const n = Math.max(soll.length, haben.length, opt.min || 6);
+  let rows = '';
+  for(let i=0;i<n;i++){
+    const s = soll[i], h = haben[i];
+    rows += `<div class="tk-r">
+      <div class="tk-c ${opt.hl==='S'&&s?'hl':''}">${s?`<span class="a">${s[0]}</span><span class="v">${s[1]}</span>`:''}</div>
+      <div class="tk-c ${opt.hl==='H'&&h?'hl':''}">${h?`<span class="a">${h[0]}</span><span class="v">${h[1]}</span>`:''}</div>
+    </div>`;
+  }
+  return `<div class="tk"><div class="tk-h"><span>S</span><span>2800 BK</span><span>H</span></div>${rows}</div>`;
+}
+
+function dreisatz(rows){
+  return '<div class="dz">' + rows.map(r =>
+    `<div class="dz-r"><span class="dz-p">${r[0]}</span><span class="dz-l">${r[1]}</span><span class="dz-v">${r[2]}</span></div>`
+  ).join('') + '</div>';
+}
+const formula = t => `<div class="formula">${t}</div>`;
+const erkl = (...p) => `<div class="erkl"><div class="h">💡 Erklärung</div>${p.map(x=>`<p>${x}</p>`).join('')}</div>`;
+const merke = t => `<div class="merke"><b>Merke:</b> ${t}</div>`;
+const probe = t => `<div class="probe"><b>✓ Probe:</b> ${t}</div>`;
+function calc(rows){
+  return '<div class="calc">' + rows.map(r =>
+    `<div class="calc-r ${r[2]?'res':''}"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('') + '</div>';
+}
+
+/* ---------- Inhalte ---------- */
+const steps = [
+
+/* Aufgabe 1 */
+{ sec:'1', label:'Konto 2800 BK eröffnen',
+  task:'Eröffne das Konto 2800 Bank (siehe Seite 33). Laut Eröffnungsbilanz beträgt der Anfangsbestand 84.500,00 €.',
+  html: tkonto([['AB', e('84.500,00')]], [], {hl:'S'}) +
+    erkl('Das Konto <b>2800 BK</b> ist ein <b>Aktivkonto</b>: Das Bankguthaben steht in der Bilanz auf der Aktivseite.',
+         'Bei Aktivkonten steht der Anfangsbestand (<b>AB</b>) deshalb im <b>Soll</b> (links) – dort, wo er auch in der Bilanz steht.') +
+    merke('Aktivkonto: Anfangsbestand und Mehrungen links (Soll), Minderungen rechts (Haben).')
+},
+
+/* 2.1 */
+{ sec:'2.1', label:'Überlegung', task:'2.1 Bareinzahlung auf das Geschäftsbankkonto, 2.400,00 €',
+  html: konten([
+      ['2800 BK','Bank nimmt zu (+ 2.400,00 €)','Soll'],
+      ['2880 KA','Kasse nimmt ab (– 2.400,00 €)','Haben']]) +
+    erkl('Bargeld aus der Kasse wird zur Bank gebracht. Das Geld wechselt nur den Ort: Ein Aktivkonto nimmt zu, ein anderes nimmt ab (<b>Aktivtausch</b>).')
+},
+{ sec:'2.1', label:'Buchungssatz',
+  html: buchung([['2800 BK', e('2.400,00')]], ['2880 KA', e('2.400,00')]) +
+    probe('84.500,00 € + 2.400,00 € = 86.900,00 € – das ist der „Alte Kontostand“ auf dem Kontoauszug in Aufgabe 2.2.')
+},
+
+/* 2.2 */
+{ sec:'2.2', label:'Überlegung',
+  task:'2.2 Beleg: Kontoauszug der Donaubank Ingolstadt vom 03.01. – Überweisung an Tiretec GmbH, Rechnung Nr. 050304782/20.. vom 02.01.20.., Betrag 3.808,00 €.',
+  html: konten([
+      ['4400 VE','Verbindlichkeit gegenüber Tiretec GmbH nimmt ab (– 3.808,00 €)','Soll'],
+      ['2800 BK','Bank nimmt ab (– 3.808,00 €)','Haben']]) +
+    erkl('Auf dem Beleg siehst du: Wir <b>bezahlen eine Rechnung</b> unseres Lieferers. Die Verbindlichkeit besteht schon seit dem Rechnungseingang – sie wird jetzt <b>beglichen</b>.',
+         '<b>4400 VE</b> ist ein Passivkonto. Bei Passivkonten stehen Minderungen im <b>Soll</b>. Es gibt keinen neuen Einkauf und keine neue Vorsteuer.')
+},
+{ sec:'2.2', label:'Buchungssatz',
+  html: buchung([['4400 VE', e('3.808,00')]], ['2800 BK', e('3.808,00')]) +
+    probe('86.900,00 € – 3.808,00 € = 83.092,00 € – das ist der „Neue Kontostand“ auf dem Kontoauszug.')
+},
+
+/* 2.3 */
+{ sec:'2.3', label:'Überlegung', task:'2.3 Banklastschrift: Abschlagszahlung (Januar) für Strom, 595,00 €',
+  html: konten([
+      ['6030 AWB','Aufwand für Strom (Betriebsstoffe) nimmt zu – Nettobetrag','Soll'],
+      ['2600 VORST','Vorsteuer (Anspruch gegenüber dem Finanzamt) nimmt zu','Soll'],
+      ['2800 BK','Bank nimmt ab – Bruttobetrag 595,00 €','Haben']]) +
+    erkl('Der Stromanbieter bucht den Betrag per Lastschrift von unserem Bankkonto ab. Die Bank nimmt also ab – und zwar um den <b>Bruttobetrag</b> (mit Umsatzsteuer).',
+         'Aufwand und Vorsteuer müssen <b>getrennt</b> gebucht werden. Dafür brauchst du Netto- und Steuerbetrag (nächster Schritt).')
+},
+{ sec:'2.3', label:'Brutto → Netto',
+  html: dreisatz([
+      ['119 %','Bruttobetrag (gegeben)', e('595,00')],
+      ['100 %','Nettobetrag (Aufwand)', e('500,00')],
+      ['19 %','Vorsteuer', e('95,00')]]) +
+    formula('595,00 € : 1,19 = <b>500,00 €</b>') +
+    formula('595,00 € – 500,00 € = <b>95,00 €</b>') +
+    erkl('Im Bruttobetrag steckt die Umsatzsteuer: Brutto = 119 %, Netto = 100 %.',
+         'Nettobetrag = Brutto : 1,19. Vorsteuer = Brutto – Netto.')
+},
+{ sec:'2.3', label:'Buchungssatz',
+  html: buchung([['6030 AWB', e('500,00')], ['2600 VORST', e('95,00')]], ['2800 BK', e('595,00')]) +
+    probe('Soll-Summe 500,00 € + 95,00 € = 595,00 € = Haben-Summe. Auf dem Kontoauszug: 83.092,00 € – 595,00 € = 82.497,00 € (Alter Kontostand).')
+},
+
+/* 2.4 */
+{ sec:'2.4', label:'Überlegung',
+  task:'2.4 Beleg: Kontoauszug der Donaubank Ingolstadt vom 05.01. – Gutschrift Darlehen (Laufzeit: 2 Jahre), Darlehensnr. 72751500800030543210, Betrag 65.000,00 €.',
+  html: konten([
+      ['2800 BK','Bank nimmt zu (+ 65.000,00 €)','Soll'],
+      ['4250 LBKV','Verbindlichkeit gegenüber der Bank (Darlehen) nimmt zu','Haben']]) +
+    erkl('Die Bank schreibt uns das Darlehen gut: Wir haben mehr Geld auf dem Konto, aber auch <b>Schulden bei der Bank</b>.',
+         'Ein Aktivkonto nimmt zu (Soll), ein Passivkonto nimmt zu (Haben). Das nennt man <b>Aktiv-Passiv-Mehrung</b>.')
+},
+{ sec:'2.4', label:'Buchungssatz',
+  html: buchung([['2800 BK', e('65.000,00')]], ['4250 LBKV', e('65.000,00')]) +
+    probe('82.497,00 € + 65.000,00 € = 147.497,00 € – das ist der „Neue Kontostand“ auf dem Kontoauszug.')
+},
+
+/* 2.5 */
+{ sec:'2.5', label:'Überlegung', task:'2.5 Barabhebung vom Geschäftsbankkonto, 640,00 €',
+  html: konten([
+      ['2880 KA','Kasse nimmt zu (+ 640,00 €)','Soll'],
+      ['2800 BK','Bank nimmt ab (– 640,00 €)','Haben']]) +
+    erkl('Das ist das Gegenteil von 2.1: Wir heben Bargeld von der Bank ab und legen es in die Kasse. Wieder ein <b>Aktivtausch</b>.',
+         'Achte auf die Richtung: Hier wird die <b>Kasse</b> mehr, deshalb steht sie im Soll.')
+},
+{ sec:'2.5', label:'Buchungssatz',
+  html: buchung([['2880 KA', e('640,00')]], ['2800 BK', e('640,00')])
+},
+
+/* 2.6 */
+{ sec:'2.6', label:'Überlegung', task:'2.6 Kauf von Schrauben und Zahlung mit Girocard, brutto 238,00 €',
+  html: konten([
+      ['6020 AWH','Schrauben sind Hilfsstoffe – Aufwand (Nettobetrag) nimmt zu','Soll'],
+      ['2600 VORST','Vorsteuer nimmt zu','Soll'],
+      ['2800 BK','Bank nimmt ab – Bruttobetrag 238,00 €','Haben']]) +
+    erkl('Bei der Zahlung mit Girocard wird der Betrag sofort vom Bankkonto abgebucht (<b>Bruttobetrag</b>).',
+         'Schrauben sind ein Hilfsstoff: Sie werden Bestandteil des Produkts, machen aber nur einen kleinen Anteil aus. Wie in 2.3 trennst du Netto und Vorsteuer.')
+},
+{ sec:'2.6', label:'Brutto → Netto',
+  html: dreisatz([
+      ['119 %','Bruttobetrag (gegeben)', e('238,00')],
+      ['100 %','Nettobetrag (Aufwand)', e('200,00')],
+      ['19 %','Vorsteuer', e('38,00')]]) +
+    formula('238,00 € : 1,19 = <b>200,00 €</b>') +
+    formula('238,00 € – 200,00 € = <b>38,00 €</b>')
+},
+{ sec:'2.6', label:'Buchungssatz',
+  html: buchung([['6020 AWH', e('200,00')], ['2600 VORST', e('38,00')]], ['2800 BK', e('238,00')]) +
+    probe('Soll-Summe 200,00 € + 38,00 € = 238,00 € = Haben-Summe.')
+},
+
+/* Aufgabe 3 */
+{ sec:'3', label:'Soll-Seite des Kontos', task:'3. Erfasse die Buchungen auf dem Konto Bank.',
+  html: tkonto([['AB', e('84.500,00')], ['1. KA', e('2.400,00')], ['4. LBKV', e('65.000,00')]], [], {hl:'S'}) +
+    erkl('Du übertragst die Buchungssätze in das T-Konto. Zuerst die, in denen <b>2800 BK im Soll</b> steht: die Buchungssätze <b>1</b> und <b>4</b>.',
+         'Eingetragen werden die <b>Nummer des Geschäftsfalls</b>, das <b>Gegenkonto</b> (das andere Konto des Buchungssatzes) und der Betrag. Der Anfangsbestand steht schon dort.')
+},
+{ sec:'3', label:'Haben-Seite des Kontos',
+  html: tkonto([['AB', e('84.500,00')], ['1. KA', e('2.400,00')], ['4. LBKV', e('65.000,00')]],
+               [['2. VE', e('3.808,00')], ['3. AWB, VORST', e('595,00')], ['5. KA', e('640,00')], ['6. AWH, VORST', e('238,00')]], {hl:'H'}) +
+    erkl('Jetzt die Buchungssätze, in denen <b>2800 BK im Haben</b> steht: <b>2, 3, 5</b> und <b>6</b>.',
+         'Bei 3 und 6 gibt es zwei Gegenkonten (Aufwand und Vorsteuer). Im Konto Bank steht aber nur <b>ein</b> Betrag: der Bruttobetrag.')
+},
+{ sec:'3', label:'Kontostand prüfen <span class="zusatz">ZUSATZ</span>',
+  html: calc([
+      ['Summe Soll-Seite', e('151.900,00')],
+      ['Summe Haben-Seite', e('5.281,00')],
+      ['Saldo = Endbestand Bank', e('146.619,00'), true]]) +
+    probe('Kontoauszug-Stand 147.497,00 € – Buchung 5 (640,00 €) – Buchung 6 (238,00 €) = 146.619,00 €.') +
+    erkl('Dieser Schritt steht nicht in der Lösung im Arbeitsbuch. Er zeigt dir aber, dass deine Buchungen zusammenpassen.',
+         'Die Soll-Seite ist größer, deshalb steht der Saldo auf der <b>Haben-Seite</b>.')
+},
+
+/* Abschluss */
+{ sec:'✓', label:'Selbstkontrolle', special:true,
+  html: `<div class="mt-3">
+    <label class="chk"><input type="checkbox"><span>Bei jedem Buchungssatz: <b>Soll-Summe = Haben-Summe</b>.</span></label>
+    <label class="chk"><input type="checkbox"><span>Bei Bruttobeträgen: <b>Netto + Vorsteuer = Brutto</b>.</span></label>
+    <label class="chk"><input type="checkbox"><span>Im T-Konto stehen <b>Nummer, Gegenkonto und Betrag</b>.</span></label>
+    <label class="chk"><input type="checkbox"><span>Fehler sind <b>mit anderer Farbe</b> verbessert.</span></label>
+    <label class="chk"><input type="checkbox"><span>Offene Fragen habe ich mir <b>notiert</b>.</span></label>
+  </div>` +
+  `<div class="mt-4 rounded-xl bg-[#eafbf1] text-[#047a42] text-center font-semibold text-lg p-4">Geschafft! 🎉 Aufgabe Z4 ist gelöst.</div>`
+}
+];
+
+/* ---------- Rendering ---------- */
+const wrap = document.getElementById('steps');
+const cnt = {}, seen = {};
+steps.forEach(s => cnt[s.sec] = (cnt[s.sec]||0) + 1);
+const secs = [...new Set(steps.map(s => s.sec))];
+const lastIdxOfSec = {};
+steps.forEach((s,i) => lastIdxOfSec[s.sec] = i);
+
+steps.forEach((s,i) => {
+  seen[s.sec] = (seen[s.sec]||0) + 1;
+  const k = seen[s.sec];
+  const lbl = s.special ? 'Abschluss'
+    : `Aufgabe ${s.sec}` + (cnt[s.sec] > 1 ? ` · Schritt ${k} von ${cnt[s.sec]}` : '');
+  const el = document.createElement('section');
+  el.className = 'card step hidden';
+  el.id = 'step-' + i;
+  el.innerHTML = `<div class="lbl">${lbl}</div><h2 class="ttl">${s.label}</h2>` +
+    (s.task ? `<div class="task"><b>Aufgabenstellung</b>${s.task}</div>` : '') + s.html;
+  wrap.appendChild(el);
+});
+
+const chipsEl = document.getElementById('chips');
+secs.forEach(sec => {
+  const c = document.createElement('span');
+  c.className = 'chip'; c.id = 'chip-' + sec; c.textContent = sec;
+  chipsEl.appendChild(c);
+});
+
+let shown = 0;
+const N = steps.length;
+const $ = id => document.getElementById(id);
+
+function update(){
+  $('bar').style.width = (shown / N * 100) + '%';
+  $('count').textContent = shown === 0 ? '0 / ' + N : 'Schritt ' + shown + ' / ' + N;
+  const cur = shown > 0 ? steps[shown-1].sec : null;
+  secs.forEach(sec => {
+    const c = $('chip-' + sec);
+    c.className = 'chip' + (lastIdxOfSec[sec] < shown ? ' done' : (sec === cur ? ' cur' : ''));
+  });
+  const curChip = cur ? $('chip-' + cur) : null;
+  if (curChip) curChip.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
+  $('prev').disabled = shown === 0;
+  const nx = $('next');
+  if (shown >= N){ nx.disabled = true; nx.textContent = 'Fertig ✓'; }
+  else { nx.disabled = false; nx.textContent = shown === 0 ? 'Ersten Schritt aufdecken →' : 'Nächster Schritt →'; }
+}
+
+function next(){
+  if (shown >= N) return;
+  const el = $('step-' + shown);
+  el.classList.remove('hidden'); el.classList.add('show');
+  shown++; update();
+  requestAnimationFrame(() => el.scrollIntoView({behavior:'smooth', block:'start'}));
+}
+function prev(){
+  if (shown <= 0) return;
+  shown--;
+  const el = $('step-' + shown);
+  el.classList.add('hidden'); el.classList.remove('show');
+  update();
+  if (shown > 0) $('step-' + (shown-1)).scrollIntoView({behavior:'smooth', block:'start'});
+  else window.scrollTo({top:0, behavior:'smooth'});
+}
+function reset(){
+  if (shown > 0 && !confirm('Alle Schritte wieder verdecken?')) return;
+  steps.forEach((s,i) => { const el = $('step-' + i); el.classList.add('hidden'); el.classList.remove('show'); });
+  document.querySelectorAll('.chk input').forEach(c => c.checked = false);
+  shown = 0; update(); window.scrollTo({top:0, behavior:'smooth'});
+}
+
+$('next').addEventListener('click', next);
+$('prev').addEventListener('click', prev);
+$('reset').addEventListener('click', reset);
+document.addEventListener('keydown', ev => {
+  if (ev.key === ' ' || ev.key === 'ArrowRight'){ ev.preventDefault(); next(); }
+  else if (ev.key === 'ArrowLeft'){ prev(); }
+  else if (ev.key === 'Escape'){ reset(); }
+});
+update();
+</script>
+</body>
+</html>
