@@ -644,5 +644,12 @@
     "beschreibung": "Zeitreisebüro: Wirtschaftsgeschichte von Jägern bis zur Globalisierung",
     "kategorie": "Wirtschaft & Recht",
     "lernbereich": "WR8-II-1"
+  },
+  "loesung_z4_konto_bank.html": {
+    "fach": "BWR",
+    "stufe": "7–8",
+    "beschreibung": "Lösung einer Buchungsaufgabe zum Konto 2800 Bank",
+    "kategorie": "BWR",
+    "lernbereich": "BwR7-IIIa-3"
   }
 }
