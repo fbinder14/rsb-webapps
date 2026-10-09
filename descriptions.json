@@ -637,5 +637,12 @@
     "beschreibung": "Haushaltsplan: Einnahmen und Ausgaben verwalten und kategorisieren",
     "kategorie": "Wirtschaft & Recht",
     "lernbereich": "BwR7-IIIa-1"
+  },
+  "entwicklungwirtschaften.html": {
+    "fach": "WR",
+    "stufe": "8",
+    "beschreibung": "Zeitreisebüro: Wirtschaftsgeschichte von Jägern bis zur Globalisierung",
+    "kategorie": "Wirtschaft & Recht",
+    "lernbereich": "WR8-II-1"
   }
 }
