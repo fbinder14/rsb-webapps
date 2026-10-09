@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zeitreisebüro">
+<meta name="theme-color" content="#1B2A41">
+<meta name="format-detection" content="telephone=no">
+<title>Zeitreisebüro – Reiseprospekt</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%95%B0%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: #F1F3F5; color: #1B2A41;
+    hyphens: none; -webkit-hyphens: none; word-break: normal; overflow-wrap: break-word;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+  }
+  textarea, input { font-size: 18px; font-family: inherit; } /* mind. 16 px: kein Auto-Zoom in Safari */
+  textarea { resize: none; overflow: hidden; }
+  button { font-family: inherit; }
+  .safe { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  :focus-visible { outline: 3px solid #1864AB; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<noscript><p style="padding:24px;font-size:20px">Bitte JavaScript aktivieren, damit das Zeitreisebüro funktioniert.</p></noscript>
+<div id="app" class="safe"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Inhalte ---------- */
+const STAGES = [
+  { id: 1, name: 'Jäger und Sammler', zeit: 'bis ca. 10.000 v. Chr.', head: '#FFD43B', light: '#FFF9DB',
+    abschnitt: '„1. Frühgeschichte der Menschheit“ (S. 10) und der Anfang von „Von der Selbstversorgung zur Fremdversorgung“ (S. 10, links)',
+    tipp: 'Wie groß sind die Gemeinschaften? Wer stellt Nahrung, Kleidung und Werkzeug her?' },
+  { id: 2, name: 'Agrarrevolution und städtische Wirtschaft', zeit: 'ab ca. 10.000 v. Chr.', head: '#69DB7C', light: '#EBFBEE',
+    abschnitt: '„2. Agrarrevolution und städtische Wirtschaft“ (S. 10) und Abbildung 2',
+    tipp: 'Was ändert sich durch den Ackerbau? Wer lebt auf dem Land, wer in der Stadt?' },
+  { id: 3, name: 'Industrielle Revolution und Volkswirtschaft', zeit: 'ab dem 18. Jahrhundert n. Chr.', head: '#FF8787', light: '#FFF5F5',
+    abschnitt: '„3. Industrielle Revolution und Volkswirtschaft“ (S. 11) und Abbildung 3',
+    tipp: 'Was ändert sich durch Maschinen? Welche neuen Berufe entstehen? Wie geht es den Arbeitern?' },
+  { id: 4, name: 'Globalisierung und Weltwirtschaft', zeit: 'nach dem Zweiten Weltkrieg', head: '#74C0FC', light: '#E7F5FF',
+    abschnitt: '„4. Globalisierung und Weltwirtschaft“ (S. 11) und Abbildung 4',
+    tipp: 'Welche Rolle spielen Konzerne, Handel und Digitalisierung? Wo arbeiten heute die meisten Menschen?' },
+];
+const ARTEN = ['Selbstversorgung', 'Fremdversorgung', 'Beides'];
+const KEY = 'zeitreisebuero.reiseprospekt.v1';
+
+/* ---------- Zustand ---------- */
+const state = { screen: 'start', group: null, stage: null, data: {}, presenting: false, confirmReset: false };
+let storageOK = true, savedAt = null, saveTimer = null, wakeLock = null;
+
+const newEntry = () => ({ punkte: [''], berufe: [], art: '', begruendung: '' });
+const stageOf = id => STAGES.find(s => s.id === id);
+const entry = id => (state.data[id] ||= newEntry());
+
+function load() {
+  try {
+    localStorage.setItem(KEY + '.test', '1'); localStorage.removeItem(KEY + '.test');
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    if (Number.isInteger(o.group) && o.group >= 1 && o.group <= 8) state.group = o.group;
+    if (Number.isInteger(o.stage) && stageOf(o.stage)) state.stage = o.stage;
+    for (const s of STAGES) {
+      const e = o.data && o.data[s.id]; if (!e) continue;
+      const clean = newEntry();
+      if (Array.isArray(e.punkte)) clean.punkte = e.punkte.map(String).slice(0, 20); if (!clean.punkte.length) clean.punkte = [''];
+      if (Array.isArray(e.berufe)) clean.berufe = e.berufe.map(String).slice(0, 30);
+      if (ARTEN.includes(e.art)) clean.art = e.art;
+      if (typeof e.begruendung === 'string') clean.begruendung = e.begruendung.slice(0, 600);
+      state.data[s.id] = clean;
+    }
+    if (o.screen === 'edit' && state.group && state.stage) state.screen = 'edit';
+  } catch (e) { storageOK = false; }
+}
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ screen: state.screen, group: state.group, stage: state.stage, data: state.data }));
+      savedAt = new Date(); storageOK = true;
+    } catch (e) { storageOK = false; }
+    updateSaveStatus();
+  }, 250);
+}
+function updateSaveStatus() {
+  const el = document.getElementById('saveStatus'); if (!el) return;
+  if (!storageOK) { el.textContent = 'Automatisches Speichern ist auf diesem iPad nicht verfügbar.'; return; }
+  el.textContent = savedAt ? 'Automatisch gespeichert um ' + savedAt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' Uhr' : 'Eingaben werden automatisch gespeichert.';
+}
+
+/* ---------- DOM-Helfer ---------- */
+function h(tag, props = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'style') el.setAttribute('style', v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (v === true) el.setAttribute(k, '');
+    else el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const autosize = ta => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+const btn = 'inline-flex items-center justify-center gap-2 min-h-[52px] px-5 rounded-2xl font-semibold text-[18px] select-none active:scale-[0.98] transition';
+
+/* ---------- Startseite ---------- */
+function renderStart() {
+  const ready = state.group && state.stage;
+  const hasData = Object.values(state.data).some(e => e.punkte.some(t => t.trim()) || e.berufe.length || e.art || e.begruendung.trim());
+  return h('div', { class: 'min-h-[100dvh] flex flex-col' },
+    h('header', { class: 'px-6 pt-6 pb-5 text-white', style: 'background:#1B2A41' },
+      h('div', { class: 'max-w-5xl mx-auto' },
+        h('p', { class: 'text-[15px] tracking-wide uppercase opacity-80' }, 'WR 8 II · Die Entwicklung des Wirtschaftens'),
+        h('h1', { class: 'text-4xl md:text-5xl font-extrabold mt-1' }, 'Zeitreisebüro'),
+        h('p', { class: 'text-xl mt-2 opacity-90' }, 'Erstellt euren Reiseprospekt. Wählt zuerst eure Gruppe und das Reiseziel von eurem Ticket.'))),
+    h('main', { class: 'flex-1 px-6 py-6' },
+      h('div', { class: 'max-w-5xl mx-auto space-y-7' },
+        h('section', { 'aria-labelledby': 'g1' },
+          h('h2', { id: 'g1', class: 'text-2xl font-bold mb-4' }, h('span', { class: 'inline-flex w-9 h-9 rounded-full bg-[#1B2A41] text-white items-center justify-center mr-3 text-lg' }, '1'), 'Gruppe wählen'),
+          h('div', { class: 'grid grid-cols-4 min-[900px]:grid-cols-8 gap-3 md:gap-4', role: 'radiogroup', 'aria-label': 'Gruppe' },
+            Array.from({ length: 8 }, (_, i) => i + 1).map(n => {
+              const on = state.group === n;
+              return h('button', { type: 'button', role: 'radio', 'aria-checked': String(on),
+                class: 'min-h-[76px] rounded-2xl border-2 text-3xl font-extrabold transition ' + (on ? 'bg-[#1B2A41] text-white border-[#1B2A41] shadow-lg' : 'bg-white border-slate-300 hover:border-slate-500'),
+                onClick: () => { state.group = n; save(); render(); } }, n);
+            }))),
+        h('section', { 'aria-labelledby': 'g2' },
+          h('h2', { id: 'g2', class: 'text-2xl font-bold mb-4' }, h('span', { class: 'inline-flex w-9 h-9 rounded-full bg-[#1B2A41] text-white items-center justify-center mr-3 text-lg' }, '2'), 'Reiseziel wählen'),
+          h('div', { class: 'grid grid-cols-1 min-[700px]:grid-cols-2 gap-4', role: 'radiogroup', 'aria-label': 'Reiseziel' },
+            STAGES.map(s => {
+              const on = state.stage === s.id;
+              return h('button', { type: 'button', role: 'radio', 'aria-checked': String(on),
+                class: 'text-left rounded-3xl overflow-hidden border-4 bg-white transition shadow-sm ' + (on ? 'shadow-xl' : 'hover:shadow-md'),
+                style: 'border-color:' + (on ? '#1B2A41' : '#CED4DA'),
+                onClick: () => { state.stage = s.id; save(); render(); } },
+                h('div', { class: 'px-5 py-3 flex items-center justify-between', style: 'background:' + s.head },
+                  h('span', { class: 'font-bold text-lg' }, 'Ticket ' + s.id),
+                  on ? h('span', { class: 'font-bold text-lg' }, '✓ gewählt') : null),
+                h('div', { class: 'px-5 py-4 min-h-[92px]', style: 'background:' + s.light },
+                  h('div', { class: 'text-2xl font-extrabold leading-snug' }, s.name),
+                  h('div', { class: 'text-lg mt-1 font-semibold', style: 'color:#C2255C' }, s.zeit)));
+            }))),
+        h('div', { class: 'flex flex-wrap items-center gap-4 pt-2' },
+          h('button', { type: 'button', disabled: !ready,
+            class: btn + ' text-xl min-h-[64px] px-8 ' + (ready ? 'bg-[#1864AB] text-white shadow-lg' : 'bg-slate-300 text-slate-500 cursor-not-allowed'),
+            onClick: () => { if (!ready) return; state.screen = 'edit'; entry(state.stage); save(); render(); window.scrollTo(0, 0); } },
+            hasData && ready ? 'Weiterarbeiten →' : 'Reise starten →'),
+          !ready ? h('p', { class: 'text-lg text-slate-600' }, 'Wähle eine Gruppe und ein Reiseziel.') : null))),
+    h('footer', { class: 'px-6 py-6 text-[15px] text-slate-600' },
+      h('div', { class: 'max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3' },
+        h('span', {}, 'Eure Eingaben bleiben nur auf diesem iPad gespeichert.'),
+        h('button', { type: 'button', class: 'underline min-h-[44px] px-2', onClick: () => { state.confirmReset = true; render(); } }, 'Alle Eingaben auf diesem iPad löschen'))));
+}
+
+/* ---------- Editor ---------- */
+function progress(d) { return { a: d.punkte.some(t => t.trim()), b: d.berufe.length > 0, c: !!d.art && d.begruendung.trim().length > 0 }; }
+function updateProgress() {
+  const d = entry(state.stage), p = progress(d), n = [p.a, p.b, p.c].filter(Boolean).length;
+  [['a', 'A'], ['b', 'B'], ['c', 'C']].forEach(([k, l]) => {
+    const el = document.getElementById('prog' + l); if (!el) return;
+    el.className = 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[16px] font-bold border-2 ' + (p[k] ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white/80 text-slate-700 border-slate-400');
+    el.textContent = (p[k] ? '✓ ' : '') + l;
+  });
+  const t = document.getElementById('progText'); if (t) t.textContent = n + ' von 3 Teilen ausgefüllt';
+}
+function changed() { save(); updateProgress(); }
+
+function punkteRows(d) {
+  const rows = d.punkte.map((txt, i) => {
+    const ta = h('textarea', { rows: 1, maxlength: 200, 'aria-label': 'Stichpunkt ' + (i + 1), enterkeyhint: 'next', autocapitalize: 'sentences', placeholder: 'Stichpunkt eingeben',
+      class: 'flex-1 min-h-[52px] px-4 py-3 rounded-2xl border-2 border-slate-300 bg-white leading-snug focus:border-[#1864AB] focus:outline-none',
+      onInput: e => { d.punkte[i] = e.target.value; autosize(e.target); changed(); },
+      onKeyDown: e => {
+        if (e.key === 'Enter') { e.preventDefault(); d.punkte.splice(i + 1, 0, ''); refreshPunkte(i + 1); changed(); }
+        else if (e.key === 'Backspace' && !e.target.value && d.punkte.length > 1) { e.preventDefault(); d.punkte.splice(i, 1); refreshPunkte(Math.max(0, i - 1)); changed(); }
+      } });
+    ta.value = txt;
+    return h('div', { class: 'flex items-start gap-3' },
+      h('span', { class: 'mt-3 w-3 h-3 rounded-full bg-[#1B2A41] shrink-0', 'aria-hidden': 'true' }),
+      ta,
+      h('button', { type: 'button', 'aria-label': 'Stichpunkt ' + (i + 1) + ' löschen', class: 'min-w-[52px] min-h-[52px] rounded-2xl border-2 border-slate-300 bg-white text-2xl text-slate-600 active:bg-slate-100',
+        onClick: () => { if (d.punkte.length > 1) d.punkte.splice(i, 1); else d.punkte[0] = ''; refreshPunkte(0, false); changed(); } }, '×'));
+  });
+  return rows;
+}
+function refreshPunkte(focusIdx, focus = true) {
+  const d = entry(state.stage), c = document.getElementById('punkte'); if (!c) return;
+  c.replaceChildren(...punkteRows(d));
+  const tas = c.querySelectorAll('textarea'); tas.forEach(autosize);
+  if (focus && tas[focusIdx]) tas[focusIdx].focus();
+}
+function berufeChips(d) {
+  const c = document.getElementById('chips'); if (!c) return;
+  c.replaceChildren(...d.berufe.map((b, i) => h('span', { class: 'inline-flex items-center gap-1 pl-4 pr-1 py-1 rounded-full bg-slate-100 border-2 border-slate-300 text-[19px] font-semibold' },
+    b, h('button', { type: 'button', 'aria-label': b + ' entfernen', class: 'min-w-[44px] min-h-[44px] rounded-full text-xl text-slate-600 active:bg-slate-200', onClick: () => { d.berufe.splice(i, 1); berufeChips(d); changed(); } }, '×'))));
+  if (!d.berufe.length) c.append(h('span', { class: 'text-slate-500 text-[17px] py-2' }, 'Noch kein Beruf eingetragen.'));
+}
+function addBeruf(d, input) {
+  const v = input.value.replace(/[,;]+$/g, '').trim();
+  if (!v) return;
+  if (!d.berufe.some(b => b.toLowerCase() === v.toLowerCase()) && d.berufe.length < 30) d.berufe.push(v.slice(0, 40));
+  input.value = ''; berufeChips(d); changed(); input.focus();
+}
+
+function card(letter, title, hint, body) {
+  return h('section', { class: 'bg-white rounded-3xl border border-slate-200 shadow-sm p-5 md:p-6' },
+    h('div', { class: 'flex items-start gap-3 mb-4' },
+      h('span', { class: 'inline-flex w-10 h-10 rounded-xl bg-[#1B2A41] text-white items-center justify-center text-xl font-extrabold shrink-0' }, letter),
+      h('div', {}, h('h3', { class: 'text-2xl font-extrabold leading-tight' }, title), hint ? h('p', { class: 'text-[17px] text-slate-600 mt-0.5' }, hint) : null)),
+    body);
+}
+
+function renderEdit() {
+  const s = stageOf(state.stage), d = entry(s.id);
+  const stepNo = 'inline-flex w-8 h-8 rounded-full bg-[#1B2A41] text-white items-center justify-center font-bold text-base shrink-0 mt-0.5';
+  const ta = h('textarea', { rows: 3, maxlength: 600, id: 'begr', 'aria-label': 'Begründung', placeholder: 'Begründet in 1 bis 2 Sätzen.',
+    class: 'w-full min-h-[110px] px-4 py-3 rounded-2xl border-2 border-slate-300 bg-white leading-snug focus:border-[#1864AB] focus:outline-none',
+    onInput: e => { d.begruendung = e.target.value; autosize(e.target); changed(); } });
+  ta.value = d.begruendung;
+  const artRow = h('div', { class: 'grid grid-cols-1 min-[640px]:grid-cols-3 gap-3 mb-4', role: 'radiogroup', 'aria-label': 'Selbst- oder Fremdversorgung' },
+    ARTEN.map(a => h('button', { type: 'button', role: 'radio', 'aria-checked': String(d.art === a),
+      class: 'min-h-[60px] rounded-2xl border-2 text-xl font-bold transition ' + (d.art === a ? 'bg-[#1B2A41] text-white border-[#1B2A41]' : 'bg-white border-slate-300'),
+      onClick: e => { d.art = d.art === a ? '' : a; [...artRow.children].forEach((b, i) => { const on = d.art === ARTEN[i]; b.setAttribute('aria-checked', String(on));
+        b.className = 'min-h-[60px] rounded-2xl border-2 text-xl font-bold transition ' + (on ? 'bg-[#1B2A41] text-white border-[#1B2A41]' : 'bg-white border-slate-300'); }); changed(); } }, a)));
+  const beruf = h('input', { type: 'text', maxlength: 40, enterkeyhint: 'done', autocapitalize: 'words', 'aria-label': 'Beruf eingeben', placeholder: 'Beruf eingeben',
+    class: 'flex-1 min-w-[180px] min-h-[52px] px-4 rounded-2xl border-2 border-slate-300 bg-white focus:border-[#1864AB] focus:outline-none',
+    onKeyDown: e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addBeruf(d, e.target); } } });
+
+  const root = h('div', { class: 'min-h-[100dvh] flex flex-col' },
+    h('header', { class: 'px-5 md:px-8 py-5', style: 'background:' + s.head },
+      h('div', { class: 'max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4' },
+        h('div', { class: 'min-w-0' },
+          h('div', { class: 'flex flex-wrap items-center gap-3 text-lg font-bold' },
+            h('span', { class: 'px-3 py-1 rounded-full bg-[#1B2A41] text-white' }, 'Gruppe ' + state.group), h('span', {}, 'Ticket ' + s.id)),
+          h('h1', { class: 'text-3xl md:text-4xl font-extrabold leading-tight mt-1' }, s.name),
+          h('p', { class: 'text-xl font-semibold', style: 'color:#7A1237' }, s.zeit)),
+        h('div', { class: 'flex flex-wrap gap-3' },
+          h('button', { type: 'button', class: btn + ' bg-white/90 border-2 border-[#1B2A41]', onClick: () => { state.screen = 'start'; save(); render(); } }, '← Reiseziel ändern'),
+          h('button', { type: 'button', class: btn + ' bg-[#1B2A41] text-white', onClick: () => { state.presenting = true; render(); lockScreen(); } }, '▶ Präsentieren')))),
+    h('main', { class: 'flex-1 px-5 md:px-8 py-6' },
+      h('div', { class: 'max-w-6xl mx-auto grid grid-cols-1 min-[900px]:grid-cols-[21rem_1fr] gap-6 items-start' },
+        h('aside', { class: 'space-y-5' },
+          h('section', { class: 'bg-white rounded-3xl border border-slate-200 shadow-sm p-5' },
+            h('h2', { class: 'text-2xl font-extrabold mb-3' }, 'Euer Auftrag'),
+            h('ol', { class: 'space-y-3 text-[18px] leading-snug' },
+              h('li', { class: 'flex gap-3' }, h('span', { class: stepNo }, '1'), h('span', {}, 'Recherchiert im Schulbuch den Abschnitt ', h('strong', {}, s.abschnitt), '.')),
+              h('li', { class: 'flex gap-3' }, h('span', { class: stepNo }, '2'), h('span', {}, 'Erstellt rechts euren Reiseprospekt (A, B, C).')),
+              h('li', { class: 'flex gap-3' }, h('span', { class: stepNo }, '3'), h('span', {}, 'Entscheidet, ob die Menschen eher Selbst- oder Fremdversorger sind, und begründet kurz.')),
+              h('li', { class: 'flex gap-3' }, h('span', { class: stepNo }, '4'), h('span', {}, 'Wählt einen Reiseführer aus. Er beschreibt euer Reiseziel in einer Minute.')))),
+          h('section', { class: 'rounded-3xl border-2 p-5', style: 'background:' + s.light + ';border-color:' + s.head },
+            h('h2', { class: 'text-xl font-extrabold mb-1' }, 'Tipp'),
+            h('p', { class: 'text-[18px] leading-snug' }, 'Achtet auf: ' + s.tipp.replace(/^Achtet auf: /, ''))),
+          h('section', { class: 'bg-white rounded-3xl border border-slate-200 shadow-sm p-5' },
+            h('h2', { class: 'text-lg font-extrabold mb-2' }, 'Fortschritt'),
+            h('div', { class: 'flex gap-2 mb-2' }, h('span', { id: 'progA' }), h('span', { id: 'progB' }), h('span', { id: 'progC' })),
+            h('p', { id: 'progText', class: 'text-[17px] text-slate-700' }))),
+        h('div', { class: 'space-y-6' },
+          card('A', 'So wirtschaften die Menschen', 'Stichpunkte zu eurem Reiseziel. Mit der Eingabetaste beginnt ihr einen neuen Stichpunkt.',
+            h('div', {}, h('div', { id: 'punkte', class: 'space-y-3' }),
+              h('button', { type: 'button', class: btn + ' mt-4 bg-white border-2 border-dashed border-slate-400 w-full min-[640px]:w-auto', onClick: () => { d.punkte.push(''); refreshPunkte(d.punkte.length - 1); changed(); } }, '＋ Stichpunkt hinzufügen'))),
+          card('B', 'Typische Berufe', 'Tippt einen Beruf ein und bestätigt mit „Hinzufügen“.',
+            h('div', {}, h('div', { id: 'chips', class: 'flex flex-wrap gap-3 mb-4 min-h-[52px] items-center' }),
+              h('div', { class: 'flex flex-wrap gap-3' }, beruf, h('button', { type: 'button', class: btn + ' bg-[#1864AB] text-white', onClick: () => addBeruf(d, beruf) }, 'Hinzufügen')))),
+          card('C', 'Selbst- oder Fremdversorgung?', 'Entscheidet euch und begründet.', h('div', {}, artRow, ta))))),
+    h('footer', { class: 'px-5 md:px-8 py-4 text-[15px] text-slate-600' },
+      h('div', { class: 'max-w-6xl mx-auto', id: 'saveStatus', 'aria-live': 'polite' })));
+  return root;
+}
+
+/* ---------- Präsentationsansicht (AirPlay / Beamer) ---------- */
+function renderPresent() {
+  const s = stageOf(state.stage), d = entry(s.id);
+  const big = 'font-size:clamp(1.5rem,2.7vw,2.9rem);line-height:1.3';
+  const punkte = d.punkte.map(t => t.trim()).filter(Boolean);
+  const label = t => h('h2', { class: 'font-extrabold uppercase tracking-wide text-slate-500', style: 'font-size:clamp(1rem,1.5vw,1.5rem)' }, t);
+  return h('div', { class: 'fixed inset-0 z-50 overflow-auto bg-white safe', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Präsentation Reiseprospekt' },
+    h('div', { class: 'min-h-full flex flex-col' },
+      h('header', { class: 'px-8 py-5 flex items-start justify-between gap-4', style: 'background:' + s.head },
+        h('div', {},
+          h('p', { class: 'font-bold', style: 'font-size:clamp(1.1rem,1.8vw,1.8rem)' }, 'Gruppe ' + state.group + ' · Ticket ' + s.id),
+          h('h1', { class: 'font-extrabold leading-tight', style: 'font-size:clamp(1.9rem,4vw,4rem)' }, s.name),
+          h('p', { class: 'font-semibold', style: 'color:#7A1237;font-size:clamp(1.2rem,2.2vw,2.2rem)' }, s.zeit)),
+        h('button', { type: 'button', class: btn + ' bg-white/90 border-2 border-[#1B2A41] shrink-0', onClick: closePresent }, 'Schließen ✕')),
+      h('main', { class: 'flex-1 p-8 grid grid-cols-1 min-[900px]:grid-cols-2 gap-10 content-start' },
+        h('section', { class: 'space-y-4' }, label('So wirtschaften die Menschen'),
+          punkte.length ? h('ul', { class: 'space-y-3' }, punkte.map(t => h('li', { class: 'flex gap-4 font-semibold', style: big }, h('span', { class: 'mt-[0.55em] w-3 h-3 rounded-full bg-[#1B2A41] shrink-0', 'aria-hidden': 'true' }), h('span', {}, t))))
+            : h('p', { class: 'text-slate-400', style: big }, 'Noch keine Stichpunkte.')),
+        h('div', { class: 'space-y-10' },
+          h('section', { class: 'space-y-4' }, label('Typische Berufe'),
+            d.berufe.length ? h('div', { class: 'flex flex-wrap gap-3' }, d.berufe.map(b => h('span', { class: 'rounded-full border-2 border-slate-400 bg-slate-100 px-5 py-2 font-bold', style: 'font-size:clamp(1.3rem,2.4vw,2.6rem)' }, b)))
+              : h('p', { class: 'text-slate-400', style: big }, 'Noch keine Berufe.')),
+          h('section', { class: 'space-y-4' }, label('Selbst- oder Fremdversorgung?'),
+            d.art ? h('p', { class: 'inline-block rounded-2xl bg-[#1B2A41] px-6 py-3 font-extrabold text-white', style: 'font-size:clamp(1.5rem,2.8vw,3rem)' }, d.art) : h('p', { class: 'text-slate-400', style: big }, 'Noch keine Entscheidung.'),
+            d.begruendung.trim() ? h('p', { class: 'font-semibold', style: big }, d.begruendung.trim()) : null)))));
+}
+async function lockScreen() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { /* optional */ } }
+function closePresent() { state.presenting = false; try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; render(); }
+
+/* ---------- Dialog: alles löschen ---------- */
+function renderReset() {
+  return h('div', { class: 'fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'rt' },
+    h('div', { class: 'bg-white rounded-3xl p-7 max-w-lg w-full shadow-2xl' },
+      h('h2', { id: 'rt', class: 'text-2xl font-extrabold' }, 'Alle Eingaben löschen?'),
+      h('p', { class: 'text-lg mt-2 text-slate-700' }, 'Gruppe, Reiseziel und alle Texte auf diesem iPad werden entfernt. Das lässt sich nicht rückgängig machen.'),
+      h('div', { class: 'flex flex-wrap gap-3 mt-6 justify-end' },
+        h('button', { type: 'button', class: btn + ' bg-white border-2 border-slate-400', onClick: () => { state.confirmReset = false; render(); } }, 'Abbrechen'),
+        h('button', { type: 'button', class: btn + ' bg-red-700 text-white', onClick: () => {
+          try { localStorage.removeItem(KEY); } catch (e) {}
+          Object.assign(state, { screen: 'start', group: null, stage: null, data: {}, presenting: false, confirmReset: false }); render(); } }, 'Alles löschen'))));
+}
+
+/* ---------- Render ---------- */
+function render() {
+  const app = document.getElementById('app');
+  const main = state.screen === 'edit' && state.group && state.stage ? renderEdit() : renderStart();
+  app.replaceChildren(main);
+  if (state.screen === 'edit' && state.group && state.stage) { refreshPunkte(0, false); berufeChips(entry(state.stage)); updateProgress(); updateSaveStatus(); const b = document.getElementById('begr'); if (b) autosize(b); }
+  if (state.presenting && state.stage) app.append(renderPresent());
+  if (state.confirmReset) app.append(renderReset());
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (state.presenting) closePresent(); else if (state.confirmReset) { state.confirmReset = false; render(); } } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.presenting) lockScreen(); });
+window.addEventListener('pagehide', () => { try { localStorage.setItem(KEY, JSON.stringify({ screen: state.screen, group: state.group, stage: state.stage, data: state.data })); } catch (e) {} });
+
+load(); render(); updateSaveStatus();
+})();
+</script>
+</body>
+</html>
