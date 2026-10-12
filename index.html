@@ -1270,7 +1270,7 @@
         if (!cfg.token) return;
 
         try {
-            const resp = await fetch(`${repoApiBase()}/descriptions.json`, { headers: apiHeaders() });
+            const resp = await fetch(`${repoApiBase()}/descriptions.json`, { headers: apiHeaders(), cache: 'no-store' });
             if (!resp.ok) return;
             const data = await resp.json();
             descriptionsSha = data.sha;
@@ -1299,12 +1299,14 @@
                 headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            if (resp.ok) {
-                const data = await resp.json();
-                descriptionsSha = data.content.sha;
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                throw new Error(errData.message || `HTTP ${resp.status}`);
             }
+            const data = await resp.json();
+            descriptionsSha = data.content.sha;
         } catch (e) {
-            console.error('Fehler beim Speichern der Beschreibungen:', e);
+            showStatus(`Beschreibungen konnten nicht gespeichert werden: ${e.message}`, 'error');
         }
     }
 
@@ -1898,7 +1900,7 @@
                 body.message = `Update ${filename}`;
             } else {
                 try {
-                    const checkResp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders() });
+                    const checkResp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders(), cache: 'no-store' });
                     if (checkResp.ok) {
                         const existing = await checkResp.json();
                         body.sha = existing.sha;
@@ -1998,6 +2000,85 @@
         return list.length > 5 ? `${shown}\n   \u2026 und ${list.length - 5} weitere` : shown;
     }
 
+    // ----- KI-Beschreibung: API-Anfrage -----
+    function getLernbereichIds() {
+        const ids = [];
+        for (const fach of Object.values(LEHRPLAN)) {
+            fach.gruppen.forEach(g => g.lernbereiche.forEach(lb => ids.push(lb.id)));
+        }
+        return ids;
+    }
+
+    async function requestAiDescription(content) {
+        const cfg = getConfig();
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': cfg.claudeKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: cfg.claudeModel,
+                // Die aktuellen Modelle denken vor der Antwort nach – das braucht Platz
+                max_tokens: 2048,
+                output_config: {
+                    effort: 'low',
+                    format: {
+                        type: 'json_schema',
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                fach: { type: 'string' },
+                                stufe: { type: 'string' },
+                                beschreibung: { type: 'string' },
+                                kategorie: { type: 'string', enum: KATEGORIEN },
+                                lernbereich: { type: 'string', enum: ['', ...getLernbereichIds()] }
+                            },
+                            required: ['fach', 'stufe', 'beschreibung', 'kategorie', 'lernbereich'],
+                            additionalProperties: false
+                        }
+                    }
+                },
+                messages: [{
+                    role: 'user',
+                    content: `Analysiere diese HTML-Webapp für Schüler einer bayerischen Realschule und fülle diese Felder:
+- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Französisch", "Deutsch", "Informatik", "Geographie", "Sport", "Fächerübergreifend" oder "Tool")
+- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8–10", "5–6")
+- "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
+- "kategorie": Die passende Kategorie
+- "lernbereich": Falls BWR oder WR: der passende Lernbereich-Code aus der Liste unten, sonst ""
+
+Verfügbare Lernbereiche:
+${getLehrplanPromptText()}
+
+HTML-Code:
+${content.substring(0, 6000)}`
+                }]
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.error?.message || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        if (data.stop_reason === 'refusal') {
+            throw new Error('Das Modell hat die Anfrage abgelehnt.');
+        }
+        if (data.stop_reason === 'max_tokens') {
+            throw new Error('Die Antwort wurde abgeschnitten.');
+        }
+        // Vor der eigentlichen Antwort kann ein Denk-Block stehen
+        const textBlock = data.content.find(block => block.type === 'text');
+        if (!textBlock) {
+            throw new Error('Die Antwort enthielt keinen Text.');
+        }
+        return JSON.parse(textBlock.text);
+    }
+
     // ----- Lehrplan Prompt Helper -----
     function getLehrplanPromptText() {
         const lines = [];
@@ -2020,41 +2101,7 @@
         // Fire and forget - runs in background
         (async () => {
             try {
-                const resp = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': cfg.claudeKey,
-                        'anthropic-version': '2023-06-01',
-                        'anthropic-dangerous-direct-browser-access': 'true'
-                    },
-                    body: JSON.stringify({
-                        model: cfg.claudeModel,
-                        max_tokens: 300,
-                        messages: [{
-                            role: 'user',
-                            content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen f\u00fcnf Feldern:
-- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Franz\u00f6sisch", "Deutsch", "Informatik", "Geographie", "Sport", "F\u00e4cher\u00fcbergreifend" oder "Tool")
-- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8\u201310", "5\u20136")
-- "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
-- "kategorie": Eine der folgenden Kategorien: ${KATEGORIEN.join(', ')}
-- "lernbereich": Falls BWR oder WR: der passende Lernbereich-Code aus der Liste unten, sonst ""
-
-Verf\u00fcgbare Lernbereiche:
-${getLehrplanPromptText()}
-
-HTML-Code:
-${content.substring(0, 6000)}`
-                        }]
-                    })
-                });
-
-                if (!resp.ok) return;
-
-                const data = await resp.json();
-                let text = data.content[0].text.trim();
-                text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-                const parsed = JSON.parse(text);
+                const parsed = await requestAiDescription(content);
 
                 // Reload descriptions to avoid race conditions
                 await loadDescriptions();
@@ -2072,8 +2119,9 @@ ${content.substring(0, 6000)}`
                 await saveDescriptions();
                 buildFachFilter();
                 renderApps();
+                showStatus(`KI-Beschreibung für „${filename}“ gespeichert.`, 'success');
             } catch (e) {
-                console.log('Auto-Beschreibung fehlgeschlagen:', e);
+                showStatus(`Automatische KI-Beschreibung für „${filename}“ fehlgeschlagen: ${e.message}`, 'error');
             }
         })();
     }
@@ -2089,7 +2137,7 @@ ${content.substring(0, 6000)}`
 
         const content = editor.getValue();
         if (!content.trim()) {
-            showStatus('Der Editor ist leer \u2013 bitte zuerst Code einf\u00fcgen.', 'error');
+            showStatus('Der Editor ist leer – bitte zuerst Code einfügen.', 'error');
             return;
         }
 
@@ -2101,44 +2149,7 @@ ${content.substring(0, 6000)}`
         document.getElementById('descBox').classList.add('active');
 
         try {
-            const resp = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': cfg.claudeKey,
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerous-direct-browser-access': 'true'
-                },
-                body: JSON.stringify({
-                    model: cfg.claudeModel,
-                    max_tokens: 300,
-                    messages: [{
-                        role: 'user',
-                        content: `Analysiere diese HTML-Webapp f\u00fcr Sch\u00fcler einer bayerischen Realschule. Antworte NUR mit einem JSON-Objekt (ohne Markdown, ohne Code-Block), mit genau diesen f\u00fcnf Feldern:
-- "fach": Das Unterrichtsfach (z.B. "BWR", "Englisch", "Mathematik", "WR", "Physik", "Biologie", "Franz\u00f6sisch", "Deutsch", "Informatik", "Geographie", "Sport", "F\u00e4cher\u00fcbergreifend" oder "Tool")
-- "stufe": Die passende Jahrgangsstufe(n) (z.B. "7", "8\u201310", "5\u20136")
-- "beschreibung": Eine kurze Beschreibung der App in einem Satz (max. 80 Zeichen, auf Deutsch)
-- "kategorie": Eine der folgenden Kategorien: ${KATEGORIEN.join(', ')}
-- "lernbereich": Falls BWR oder WR: der passende Lernbereich-Code aus der Liste unten, sonst ""
-
-Verf\u00fcgbare Lernbereiche:
-${getLehrplanPromptText()}
-
-HTML-Code:
-${content.substring(0, 6000)}`
-                    }]
-                })
-            });
-
-            if (!resp.ok) {
-                const err = await resp.json();
-                throw new Error(err.error?.message || `HTTP ${resp.status}`);
-            }
-
-            const data = await resp.json();
-            let text = data.content[0].text.trim();
-            text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-            const parsed = JSON.parse(text);
+            const parsed = await requestAiDescription(content);
 
             document.getElementById('descFach').value = parsed.fach || '';
             document.getElementById('descStufe').value = parsed.stufe || '';
@@ -2146,7 +2157,7 @@ ${content.substring(0, 6000)}`
             document.getElementById('descKategorie').value = parsed.kategorie || '';
             populateLernbereichSelect(parsed.lernbereich || '');
 
-            showStatus('Beschreibung generiert! Bitte pr\u00fcfen und bei Bedarf anpassen.', 'success');
+            showStatus('Beschreibung generiert! Bitte prüfen und bei Bedarf anpassen.', 'success');
         } catch (err) {
             showStatus(`KI-Beschreibung fehlgeschlagen: ${err.message}`, 'error');
         } finally {
@@ -2160,7 +2171,7 @@ ${content.substring(0, 6000)}`
         showStatus('Lade Datei...', 'info');
 
         try {
-            const resp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders() });
+            const resp = await fetch(`${apiBase()}/${filename}`, { headers: apiHeaders(), cache: 'no-store' });
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
             const data = await resp.json();
