@@ -207,6 +207,33 @@
             font-size: 1.2rem;
         }
 
+        .drop-zone {
+            border: 2px dashed #c7cfe0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .drop-zone:hover,
+        .drop-zone:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            color: #333;
+        }
+
+        .drop-zone.dragover {
+            border-color: #4a6cf7;
+            background: #eef2ff;
+            color: #2563eb;
+        }
+
+        .drop-zone strong { color: #4a6cf7; }
+
         .filename-row {
             display: flex;
             gap: 0.8rem;
@@ -857,9 +884,15 @@
     <!-- Editor -->
     <div class="editor-section">
         <h2>Editor</h2>
+        <div class="drop-zone" id="dropZone" tabindex="0" role="button"
+             onclick="document.getElementById('fileInput').click()"
+             onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
+            HTML-Datei hierher ziehen oder <strong>Datei ausw&auml;hlen</strong>
+        </div>
+        <input type="file" id="fileInput" accept=".html,.htm,text/html" hidden onchange="handleFileInput(event)">
         <div class="filename-row">
-            <input type="text" id="filename" placeholder="dateiname (ohne .html)">
-            <span>.html</span>
+            <input type="text" id="filename" placeholder="dateiname (ohne Endung)">
+            <span id="filenameExt">.html</span>
         </div>
         <textarea id="editor"></textarea>
 
@@ -1103,6 +1136,7 @@
     let editor;
     let editingSha = null;
     let editingFilename = null;
+    let fileExtension = '.html';
     let descriptions = {};
     let descriptionsSha = null;
     let allAppFiles = [];
@@ -1123,6 +1157,8 @@
         });
 
         editor.setValue('<!DOCTYPE html>\n<html lang="de">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Meine App</title>\n  <style>\n    body { font-family: sans-serif; padding: 2rem; }\n  </style>\n</head>\n<body>\n  <h1>Hallo Welt!</h1>\n\n  <script>\n    // Dein JavaScript hier\n  <\/script>\n</body>\n</html>');
+
+        initDropZone();
 
         if (!getConfig().token) {
             document.getElementById('setupBanner').style.display = 'block';
@@ -1803,13 +1839,12 @@
         }
 
         // Sanitize filename
-        filename = filename.replace(/\.html$/i, '');
-        filename = filename.replace(/[^a-zA-Z0-9_\-]/g, '-').toLowerCase();
+        filename = sanitizeBaseName(filename);
         if (!filename) {
             showStatus('Ung\u00fcltiger Dateiname.', 'error');
             return;
         }
-        filename += '.html';
+        filename += fileExtension;
 
         const content = editor.getValue();
         if (!content.trim()) {
@@ -2057,26 +2092,11 @@ ${content.substring(0, 6000)}`
 
             editor.setValue(content);
             document.getElementById('filename').value = filename.replace(/\.html?$/i, '');
+            setFileExtension(filename);
             editingSha = data.sha;
             editingFilename = filename;
 
-            // Load existing description if available
-            const desc = descriptions[filename];
-            if (desc) {
-                document.getElementById('descFach').value = desc.fach || '';
-                document.getElementById('descStufe').value = desc.stufe || '';
-                document.getElementById('descText').value = desc.beschreibung || '';
-                document.getElementById('descKategorie').value = desc.kategorie || '';
-                populateLernbereichSelect(desc.lernbereich || '');
-                document.getElementById('descBox').classList.add('active');
-            } else {
-                document.getElementById('descFach').value = '';
-                document.getElementById('descStufe').value = '';
-                document.getElementById('descText').value = '';
-                document.getElementById('descKategorie').value = '';
-                populateLernbereichSelect('');
-                document.getElementById('descBox').classList.remove('active');
-            }
+            fillDescriptionFields(descriptions[filename]);
 
             document.getElementById('cancelEditBtn').style.display = 'inline-block';
             showStatus(`Bearbeite: ${filename}`, 'info');
@@ -2086,9 +2106,33 @@ ${content.substring(0, 6000)}`
         }
     }
 
+    function fillDescriptionFields(desc) {
+        document.getElementById('descFach').value = desc?.fach || '';
+        document.getElementById('descStufe').value = desc?.stufe || '';
+        document.getElementById('descText').value = desc?.beschreibung || '';
+        document.getElementById('descKategorie').value = desc?.kategorie || '';
+        populateLernbereichSelect(desc?.lernbereich || '');
+        document.getElementById('descBox').classList.toggle('active', !!desc);
+    }
+
+    function sanitizeBaseName(name) {
+        const umlaute = { '\u00e4': 'ae', '\u00f6': 'oe', '\u00fc': 'ue', '\u00df': 'ss' };
+        return name
+            .replace(/\.html?$/i, '')
+            .toLowerCase()
+            .replace(/[\u00e4\u00f6\u00fc\u00df]/g, c => umlaute[c])
+            .replace(/[^a-z0-9_\-]/g, '-');
+    }
+
+    function setFileExtension(filename) {
+        fileExtension = /\.htm$/i.test(filename) ? '.htm' : '.html';
+        document.getElementById('filenameExt').textContent = fileExtension;
+    }
+
     function cancelEdit() {
         editingSha = null;
         editingFilename = null;
+        setFileExtension('');
         document.getElementById('cancelEditBtn').style.display = 'none';
         document.getElementById('filename').value = '';
         document.getElementById('descFach').value = '';
@@ -2097,6 +2141,81 @@ ${content.substring(0, 6000)}`
         document.getElementById('descKategorie').value = '';
         document.getElementById('descLernbereich').innerHTML = '<option value="">\u2014 Kein Lernbereich \u2014</option>';
         document.getElementById('descBox').classList.remove('active');
+    }
+
+    // ----- File Upload -----
+    const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
+
+    function initDropZone() {
+        const zone = document.getElementById('dropZone');
+
+        // Verhindert, dass der Browser eine danebengefallene Datei öffnet
+        ['dragover', 'drop'].forEach(type => {
+            window.addEventListener(type, e => e.preventDefault());
+        });
+
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+        zone.addEventListener('dragleave', e => {
+            if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover');
+        });
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 1) {
+                showStatus('Bitte nur eine Datei auf einmal hochladen.', 'error');
+                return;
+            }
+            if (files.length === 1) loadFileIntoEditor(files[0]);
+        });
+    }
+
+    function handleFileInput(event) {
+        const file = event.target.files[0];
+        if (file) loadFileIntoEditor(file);
+        event.target.value = '';
+    }
+
+    function loadFileIntoEditor(file) {
+        if (!/\.html?$/i.test(file.name)) {
+            showStatus(`\u201e${file.name}\u201c ist keine HTML-Datei (.html oder .htm).`, 'error');
+            return;
+        }
+        if (file.size > MAX_UPLOAD_SIZE) {
+            showStatus(`\u201e${file.name}\u201c ist zu gro\u00df (max. 5 MB).`, 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const content = reader.result;
+            if (!content.trim()) {
+                showStatus(`\u201e${file.name}\u201c ist leer.`, 'error');
+                return;
+            }
+
+            const baseName = sanitizeBaseName(file.name);
+            const filename = baseName + (/\.htm$/i.test(file.name) ? '.htm' : '.html');
+
+            cancelEdit();
+            editor.setValue(content);
+            document.getElementById('filename').value = baseName;
+            setFileExtension(filename);
+
+            const exists = allAppFiles.some(f => f.name === filename);
+            fillDescriptionFields(exists ? descriptions[filename] : null);
+
+            if (exists) {
+                showStatus(`\u201e${filename}\u201c existiert bereits \u2013 beim Deploy wird die bestehende App \u00fcberschrieben.`, 'info');
+            } else {
+                showStatus(`\u201e${file.name}\u201c geladen. Jetzt pr\u00fcfen und auf \u201eDeploy\u201c klicken.`, 'success');
+            }
+        };
+        reader.onerror = () => showStatus(`Datei konnte nicht gelesen werden: ${file.name}`, 'error');
+        reader.readAsText(file, 'UTF-8');
     }
 
     // ----- Delete App -----

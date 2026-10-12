@@ -5,6 +5,7 @@ Management-Dashboard für interaktive Lern-Apps der Realschule Bobingen. Die Anw
 ## Features
 
 - **Code-Editor** — CodeMirror 5 mit Syntax-Highlighting (HTML, CSS, JS) und Dracula-Theme
+- **Datei-Upload** — Fertige HTML-Datei per Drag & Drop oder Dateiauswahl in den Editor laden
 - **Live-Vorschau** — Sandboxed Iframe zur direkten Vorschau vor dem Deployment
 - **Ein-Klick-Deploy** — Veröffentlichung auf GitHub Pages über die GitHub REST API
 - **App-Verwaltung** — Bestehende Apps bearbeiten, löschen und mit Metadaten versehen
@@ -65,6 +66,13 @@ rsb-webapps/
 2. HTML/CSS/JS im Editor schreiben
 3. Optional: Vorschau anzeigen
 4. **Deploy** klicken — die App ist sofort unter `https://<user>.github.io/<repo>/apps/<dateiname>.html` erreichbar
+
+### App aus Datei hochladen
+
+1. Eine `.html`- oder `.htm`-Datei auf die Upload-Box über dem Editor ziehen (oder die Box anklicken und die Datei auswählen)
+2. Code und Dateiname werden übernommen — Umlaute werden umgeschrieben (`Übung.html` → `uebung.html`), die Endung `.htm`/`.html` bleibt erhalten
+3. Existiert die App bereits, erscheint ein Hinweis und die vorhandenen Metadaten werden geladen; der Deploy überschreibt dann die bestehende Datei
+4. Wie gewohnt prüfen und **Deploy** klicken
 
 ### App bearbeiten
 
