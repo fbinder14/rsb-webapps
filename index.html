@@ -1852,6 +1852,15 @@
             return;
         }
 
+        const warnings = checkHtml(content);
+        if (warnings.length && !confirm(
+            `Hinweise zu \u201e${filename}\u201c:\n\n` +
+            warnings.map(w => `\u2022 ${w}`).join('\n\n') +
+            '\n\nTrotzdem deployen?'
+        )) {
+            return;
+        }
+
         const deployBtn = document.getElementById('deployBtn');
         deployBtn.disabled = true;
         deployBtn.innerHTML = '<span class="spinner"></span>Deploying...';
@@ -1920,6 +1929,52 @@
             deployBtn.disabled = false;
             deployBtn.textContent = 'Deploy';
         }
+    }
+
+    // ----- HTML-Prüfung vor dem Deploy -----
+    function checkHtml(content) {
+        const doc = new DOMParser().parseFromString(content, 'text/html');
+        const warnings = [];
+
+        if (!doc.querySelector('meta[charset], meta[http-equiv="content-type" i]')) {
+            warnings.push('Kein <meta charset="UTF-8"> \u2013 Umlaute k\u00f6nnen falsch angezeigt werden.');
+        }
+        if (!doc.querySelector('meta[name="viewport" i]')) {
+            warnings.push('Kein <meta name="viewport"> \u2013 auf Handys wird die App winzig dargestellt.');
+        }
+        if (!doc.title.trim()) {
+            warnings.push('Kein <title> \u2013 im Browser-Tab steht dann nur die Adresse.');
+        }
+
+        const appNames = new Set(allAppFiles.map(f => f.name));
+        const missing = new Set();
+        const insecure = new Set();
+        doc.querySelectorAll('[src], link[href], a[href]').forEach(el => {
+            const ref = (el.getAttribute('src') ?? el.getAttribute('href')).trim();
+            if (/^http:\/\//i.test(ref) && el.tagName !== 'A') {
+                insecure.add(ref);
+                return;
+            }
+            if (!ref || ref.startsWith('#') || ref.startsWith('//') || /^[a-z][a-z0-9+.\-]*:/i.test(ref)) return;
+            const path = ref.split(/[?#]/)[0];
+            if (!appNames.has(path)) missing.add(ref);
+        });
+
+        if (missing.size) {
+            warnings.push('Verweise auf Dateien, die nicht im apps-Ordner liegen:\n   ' +
+                listRefs(missing) + '\n   Bilder & Co. am besten direkt einbetten oder per https-Link einbinden.');
+        }
+        if (insecure.size) {
+            warnings.push('Ressourcen \u00fcber unsicheres http:// \u2013 werden auf GitHub Pages blockiert:\n   ' +
+                listRefs(insecure) + '\n   Stattdessen https:// verwenden.');
+        }
+        return warnings;
+    }
+
+    function listRefs(refs) {
+        const list = [...refs];
+        const shown = list.slice(0, 5).join('\n   ');
+        return list.length > 5 ? `${shown}\n   \u2026 und ${list.length - 5} weitere` : shown;
     }
 
     // ----- Lehrplan Prompt Helper -----
