@@ -6,6 +6,7 @@ Management-Dashboard für interaktive Lern-Apps der Realschule Bobingen. Die Anw
 
 - **Code-Editor** — CodeMirror 5 mit Syntax-Highlighting (HTML, CSS, JS) und Dracula-Theme
 - **Datei-Upload** — Fertige HTML-Datei per Drag & Drop oder Dateiauswahl in den Editor laden
+- **Prüfung vor dem Deploy** — Warnt bei fehlendem `charset`/`viewport`/`<title>`, Verweisen auf nicht vorhandene Dateien und unsicheren `http://`-Ressourcen
 - **Live-Vorschau** — Sandboxed Iframe zur direkten Vorschau vor dem Deployment
 - **Ein-Klick-Deploy** — Veröffentlichung auf GitHub Pages über die GitHub REST API
 - **App-Verwaltung** — Bestehende Apps bearbeiten, löschen und mit Metadaten versehen
