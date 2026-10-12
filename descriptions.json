@@ -656,5 +656,11 @@
     "stufe": "Alle",
     "beschreibung": "Dokumentenkamera: Bedienung, Bildgestaltung und gezielter Unterrichtseinsatz.",
     "kategorie": "Tools"
+  },
+  "fahrradpruefung_escape.html": {
+    "fach": "Fächerübergreifend",
+    "stufe": "5–6",
+    "beschreibung": "Spielerisches Verkehrsgarten-Escape-Spiel mit Verkehrsschildern und Aufgaben auf Schildertafeln.",
+    "kategorie": "Sonstiges"
   }
 }
