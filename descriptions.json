@@ -651,5 +651,11 @@
     "beschreibung": "Lösung einer Buchungsaufgabe zum Konto 2800 Bank",
     "kategorie": "BWR",
     "lernbereich": "BwR7-IIIa-3"
+  },
+  "timer.html": {
+    "fach": "Fächerübergreifend",
+    "stufe": "5–10",
+    "beschreibung": "Visueller Arbeitszeit-Timer für Gruppenarbeit und Unterrichtsphasen",
+    "kategorie": "Tools"
   }
 }
