@@ -13,7 +13,7 @@ Management-Dashboard für interaktive Lern-Apps der Realschule Bobingen. Die Anw
 - **Suche & Filter** — Volltextsuche, Filter nach Fach und Kategorie, 6 Sortieroptionen
 - **Ordner-Ansicht** — Gruppierung der Apps nach Kategorien mit aufklappbaren Ordnern
 - **QR-Codes** — Generierung von QR-Codes für jede App zum Teilen im Unterricht
-- **KI-Beschreibungen** — Automatische Metadaten-Generierung (Fach, Stufe, Beschreibung) via Claude API
+- **KI-Beschreibungen** — Automatische Metadaten-Generierung (Fach, Stufe, Beschreibung) via Claude API, Modell in den Einstellungen wählbar
 
 ## Technologie
 
@@ -50,6 +50,7 @@ rsb-webapps/
    - **Repository-Name** (Standard: `rsb-webapps`)
    - **Personal Access Token** — Fine-grained Token mit `Contents: Read and write`-Berechtigung für das Repository
    - **Anthropic API Key** (optional) — für die automatische KI-Beschreibung
+   - **KI-Modell** — Claude Haiku, Sonnet (Standard) oder Opus für die KI-Beschreibung
 
 ### GitHub Token erstellen
 

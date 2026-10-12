@@ -112,7 +112,8 @@
             color: #555;
         }
 
-        .modal input {
+        .modal input,
+        .modal select {
             width: 100%;
             padding: 0.6rem 0.8rem;
             border: 2px solid #e0e0e0;
@@ -122,7 +123,8 @@
             transition: border-color 0.2s;
         }
 
-        .modal input:focus {
+        .modal input:focus,
+        .modal select:focus {
             outline: none;
             border-color: #4a6cf7;
         }
@@ -828,6 +830,8 @@
         <h3>KI-Beschreibung (optional)</h3>
         <label for="inputClaudeKey">Anthropic API Key</label>
         <input type="password" id="inputClaudeKey" placeholder="sk-ant-...">
+        <label for="inputClaudeModel">KI-Modell</label>
+        <select id="inputClaudeModel"></select>
         <div class="help-text">
             <strong>F&uuml;r automatische App-Beschreibungen:</strong><br>
             Wenn ein API-Key hinterlegt ist, kann beim Deployen automatisch eine Beschreibung (Fach, Jahrgangsstufe, Kurzbeschreibung) per Claude generiert werden.<br><br>
@@ -1132,6 +1136,13 @@
       }
     };
 
+    const CLAUDE_MODELS = [
+        { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5 \u2013 schnell & g\u00fcnstig' },
+        { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5 \u2013 ausgewogen (Standard)' },
+        { id: 'claude-opus-5-5', name: 'Claude Opus 5.5 \u2013 am st\u00e4rksten, teurer' }
+    ];
+    const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5-5';
+
     // ----- State -----
     let editor;
     let editingSha = null;
@@ -1176,8 +1187,14 @@
             username: localStorage.getItem('rsb_username') || '',
             repo: localStorage.getItem('rsb_repo') || 'rsb-webapps',
             token: localStorage.getItem('rsb_token') || '',
-            claudeKey: localStorage.getItem('rsb_claude_key') || ''
+            claudeKey: localStorage.getItem('rsb_claude_key') || '',
+            claudeModel: getClaudeModel()
         };
+    }
+
+    function getClaudeModel() {
+        const stored = localStorage.getItem('rsb_claude_model');
+        return CLAUDE_MODELS.some(m => m.id === stored) ? stored : DEFAULT_CLAUDE_MODEL;
     }
 
     function openSettings() {
@@ -1186,6 +1203,9 @@
         document.getElementById('inputRepo').value = cfg.repo;
         document.getElementById('inputToken').value = cfg.token;
         document.getElementById('inputClaudeKey').value = cfg.claudeKey;
+        document.getElementById('inputClaudeModel').innerHTML = CLAUDE_MODELS
+            .map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
+        document.getElementById('inputClaudeModel').value = cfg.claudeModel;
         document.getElementById('settingsModal').classList.add('active');
     }
 
@@ -1208,6 +1228,7 @@
         localStorage.setItem('rsb_repo', repo);
         localStorage.setItem('rsb_token', token);
         localStorage.setItem('rsb_claude_key', claudeKey);
+        localStorage.setItem('rsb_claude_model', document.getElementById('inputClaudeModel').value);
 
         closeSettings();
         document.getElementById('setupBanner').style.display = 'none';
@@ -2008,7 +2029,7 @@
                         'anthropic-dangerous-direct-browser-access': 'true'
                     },
                     body: JSON.stringify({
-                        model: 'claude-sonnet-4-5-20250929',
+                        model: cfg.claudeModel,
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
@@ -2089,7 +2110,7 @@ ${content.substring(0, 6000)}`
                     'anthropic-dangerous-direct-browser-access': 'true'
                 },
                 body: JSON.stringify({
-                    model: 'claude-sonnet-4-5-20250929',
+                    model: cfg.claudeModel,
                     max_tokens: 300,
                     messages: [{
                         role: 'user',
