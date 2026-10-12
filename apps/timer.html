@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zeitgeber">
+<title>Zeitgeber – Arbeitszeit-Timer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --accent:#f59e0b; }
+  body[data-theme=dark]  { --bg:#0b1220; --fg:#f8fafc; --muted:#94a3b8; --panel:#141d30; --line:#26334d; --track:#1e293b; --glass:#cbd5e1; --chip:#1c2740; }
+  body[data-theme=light] { --bg:#f8fafc; --fg:#0f172a; --muted:#64748b; --panel:#ffffff; --line:#cbd5e1; --track:#e2e8f0; --glass:#475569; --chip:#eef2f7; }
+  body[data-theme=board] { --bg:#1f3d33; --fg:#f1f5f0; --muted:#a7c4b5; --panel:#27493d; --line:#3b6455; --track:#2f5546; --glass:#e7efe9; --chip:#2f5546; }
+
+  html, body { height:100%; }
+  body {
+    background:var(--bg); color:var(--fg);
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+    -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation; overscroll-behavior:none; overflow:hidden;
+    transition:background .3s;
+  }
+  input { -webkit-user-select:text; user-select:text; }
+
+  #app {
+    height:100vh; height:100dvh; display:flex; flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .btn {
+    min-height:56px; min-width:56px; padding:0 1.25rem; border-radius:1rem;
+    background:var(--chip); border:1px solid var(--line); color:var(--fg);
+    font-weight:600; font-size:1.1rem; display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+    transition:transform .08s, background .15s;
+  }
+  .btn:active { transform:scale(.96); }
+  .btn.primary { background:var(--accent); color:#111827; border-color:transparent; font-size:1.35rem; min-width:190px; min-height:64px; }
+  .chip {
+    min-height:48px; padding:0 1rem; border-radius:999px; background:var(--chip); border:1px solid var(--line);
+    font-weight:600; font-size:1rem; color:var(--fg); white-space:nowrap; display:inline-flex; align-items:center; gap:.4rem;
+  }
+  .chip.active { background:var(--accent); color:#111827; border-color:transparent; }
+  .chip:active { transform:scale(.96); }
+
+  .switch { width:64px; height:36px; border-radius:999px; background:var(--track); border:1px solid var(--line); position:relative; flex:none; transition:background .15s; }
+  .switch::after { content:""; position:absolute; top:3px; left:3px; width:28px; height:28px; border-radius:50%; background:#fff; transition:transform .15s; }
+  .switch[aria-checked=true] { background:var(--accent); }
+  .switch[aria-checked=true]::after { transform:translateX(28px); }
+
+  .swatch { width:48px; height:48px; border-radius:50%; border:3px solid transparent; }
+  .swatch.active { border-color:var(--fg); }
+
+  #digits {
+    font-variant-numeric:tabular-nums; font-weight:800; line-height:1; letter-spacing:-.02em; white-space:nowrap;
+    font-size:min(22vw, 20vh);
+  }
+  @media (orientation:landscape) {
+    #body { flex-direction:row !important; }
+    #digits { font-size:min(13vw, 26vh); }
+  }
+  body[data-mode=bar] #body { flex-direction:column !important; }
+  body[data-mode=bar] #digits { font-size:min(22vw, 24vh); }
+
+  #visual { position:relative; flex:1 1 0; min-height:0; min-width:0; width:100%; height:100%; }
+  #visual svg { position:absolute; inset:0; width:100%; height:100%; }
+
+  .stream { animation:flow .5s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset:-12; } }
+  .blink { animation:blink .8s steps(2, jump-none) infinite; }
+  @keyframes blink { 50% { opacity:.25; } }
+
+  body.finished { animation:alarm 1.2s ease-in-out infinite; }
+  @keyframes alarm { 50% { background:#7f1d1d; } }
+  body.finished #visual { animation:blink 1.2s ease-in-out infinite; }
+
+  body.ui-hidden header, body.ui-hidden footer { display:none; }
+  #hint { display:none; }
+  body.ui-hidden #hint { display:block; animation:hintFade 4s forwards; }
+  @keyframes hintFade { 0%,70% { opacity:.8; } 100% { opacity:0; } }
+
+  #sheet.hidden, #custom.hidden { display:none; }
+</style>
+</head>
+<body data-theme="dark" data-mode="glass">
+<div id="app">
+
+  <header class="flex items-center gap-3 px-5 pt-4 pb-2">
+    <input id="titleInput" type="text" maxlength="40" placeholder="Titel (z. B. Gruppenarbeit)"
+      class="flex-1 min-w-0 h-14 px-4 rounded-2xl text-xl font-semibold outline-none"
+      style="background:var(--chip);border:1px solid var(--line);color:var(--fg)">
+    <button id="btnHide" class="btn" aria-label="Bedienelemente ausblenden">👁 <span class="hidden md:inline">Beamer-Ansicht</span></button>
+    <button id="btnFs" class="btn" aria-label="Vollbild">⛶</button>
+    <button id="btnSet" class="btn" aria-label="Einstellungen">⚙</button>
+  </header>
+
+  <main id="stage" class="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 px-6 py-2 relative">
+    <div id="stageTitle" class="text-center font-semibold" style="font-size:min(5.5vw,6vh);color:var(--muted)"></div>
+    <div id="body" class="flex-1 min-h-0 w-full flex flex-col items-center justify-center gap-4">
+      <div id="visual"></div>
+      <div id="digits">05:00</div>
+    </div>
+    <div id="hint" class="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium"
+      style="background:var(--panel);border:1px solid var(--line);color:var(--muted)">Tippen für Bedienelemente</div>
+  </main>
+
+  <footer class="px-5 pb-4 pt-2 flex flex-col gap-3 items-center">
+    <div id="modeChips" class="flex flex-wrap justify-center gap-2"></div>
+    <div id="presetChips" class="flex flex-wrap justify-center gap-2"></div>
+    <div class="flex items-center justify-center gap-3 flex-wrap">
+      <button id="btnMinus" class="btn">− 1 Min</button>
+      <button id="btnReset" class="btn" aria-label="Zurücksetzen">↺ Reset</button>
+      <button id="btnStart" class="btn primary">▶ Start</button>
+      <button id="btnPlus" class="btn">+ 1 Min</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Einstellungen -->
+<div id="sheet" class="hidden fixed inset-0 z-40 flex items-end md:items-center justify-center" style="background:rgba(0,0,0,.55)">
+  <div class="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-t-3xl md:rounded-3xl p-6 flex flex-col gap-6"
+       style="background:var(--panel);border:1px solid var(--line);padding-bottom:calc(1.5rem + env(safe-area-inset-bottom))">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Einstellungen</h2>
+      <button id="sheetClose" class="btn">Fertig</button>
+    </div>
+
+    <section>
+      <div class="text-sm font-semibold mb-2" style="color:var(--muted)">DESIGN</div>
+      <div id="themeChips" class="flex gap-2 flex-wrap"></div>
+    </section>
+
+    <section>
+      <div class="text-sm font-semibold mb-2" style="color:var(--muted)">AKZENTFARBE</div>
+      <div id="swatches" class="flex gap-3 flex-wrap"></div>
+    </section>
+
+    <section>
+      <div class="text-sm font-semibold mb-2" style="color:var(--muted)">TITEL-VORLAGEN</div>
+      <div id="titleChips" class="flex gap-2 flex-wrap"></div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <label class="flex items-center justify-between gap-4"><span class="text-lg font-medium">Warnfarben am Ende (Orange → Rot)</span><button class="switch" role="switch" data-key="warn"></button></label>
+      <label class="flex items-center justify-between gap-4"><span class="text-lg font-medium">Ziffern anzeigen</span><button class="switch" role="switch" data-key="digits"></button></label>
+      <label class="flex items-center justify-between gap-4"><span class="text-lg font-medium">Signalton bei Ablauf</span><button class="switch" role="switch" data-key="sound"></button></label>
+      <button id="btnTest" class="btn self-start">🔔 Ton testen</button>
+    </section>
+
+    <p class="text-sm" style="color:var(--muted)">Tipp: Über „Teilen → Zum Home-Bildschirm“ startet die Seite auf dem iPad ohne Browserleiste. Mit „Beamer-Ansicht“ blendest du alle Bedienelemente aus – ein Tippen auf die Fläche holt sie zurück.</p>
+  </div>
+</div>
+
+<!-- Eigene Zeit -->
+<div id="custom" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6" style="background:rgba(0,0,0,.55)">
+  <div class="w-full max-w-sm rounded-3xl p-6 flex flex-col gap-5" style="background:var(--panel);border:1px solid var(--line)">
+    <h2 class="text-2xl font-bold">Eigene Zeit</h2>
+    <div class="flex items-center gap-3 justify-center">
+      <div class="flex flex-col items-center gap-1">
+        <input id="cMin" type="number" inputmode="numeric" min="0" max="180" value="7" class="w-28 h-20 text-center text-4xl font-bold rounded-2xl outline-none" style="background:var(--chip);border:1px solid var(--line);color:var(--fg)">
+        <span class="text-sm" style="color:var(--muted)">Minuten</span>
+      </div>
+      <span class="text-4xl font-bold pb-6">:</span>
+      <div class="flex flex-col items-center gap-1">
+        <input id="cSec" type="number" inputmode="numeric" min="0" max="59" value="0" class="w-28 h-20 text-center text-4xl font-bold rounded-2xl outline-none" style="background:var(--chip);border:1px solid var(--line);color:var(--fg)">
+        <span class="text-sm" style="color:var(--muted)">Sekunden</span>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button id="cCancel" class="btn">Abbrechen</button>
+      <button id="cOk" class="btn primary" style="min-width:120px">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const KEY = 'zeitgeber.v1';
+  const ACCENTS = ['#f59e0b','#22c55e','#38bdf8','#a78bfa','#f472b6','#f87171','#14b8a6','#e2e8f0'];
+  const PRESETS = [1,2,3,5,10,15,20,30,45];
+  const MODES = [['glass','⏳','Sanduhr'],['ring','◯','Ring'],['pie','◔','Kuchen'],['bar','▬','Balken'],['light','🚦','Ampel'],['battery','🔋','Batterie']];
+  const THEMES = [['dark','Dunkel'],['light','Hell'],['board','Tafelgrün']];
+  const TITLES = ['Einzelarbeit','Partnerarbeit','Gruppenarbeit','Bearbeitungszeit','Pause','Aufräumen','Präsentation'];
+
+  const S = { total:300, remaining:300000, running:false, endTs:0, finished:false,
+              mode:'glass', theme:'dark', accent:ACCENTS[0], warn:true, digits:true, sound:true, title:'Bearbeitungszeit' };
+  const PERSIST = ['total','mode','theme','accent','warn','digits','sound','title'];
+  try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  S.running = false; S.finished = false; S.remaining = S.total * 1000;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(PERSIST.map(k => [k, S[k]])))); } catch (e) {} };
+
+  const fmt = ms => {
+    const sec = Math.max(0, Math.ceil(ms / 1000));
+    return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+  };
+  const colorFor = p => !S.warn ? S.accent : p <= .08 ? '#ef4444' : p <= .2 ? '#f97316' : S.accent;
+  const trafficFor = p => p > .4 ? '#22c55e' : p > .15 ? '#facc15' : '#ef4444';
+  const g = id => document.getElementById(id);
+
+  /* ---------- Darstellungen ---------- */
+  const V = {};
+  const svg = (vb, inner) => `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+
+  const GLASS = 'M70,52 L230,52 C230,120 168,185 158,220 C168,255 230,320 230,388 L70,388 C70,320 132,255 142,220 C132,185 70,120 70,52 Z';
+  V.glass = {
+    build: () => svg('0 0 300 440', `
+      <defs><clipPath id="gc"><path d="${GLASS}"/></clipPath></defs>
+      <rect x="52" y="52" width="8" height="336" rx="4" style="fill:var(--glass)" opacity=".45"/>
+      <rect x="240" y="52" width="8" height="336" rx="4" style="fill:var(--glass)" opacity=".45"/>
+      <rect x="44" y="28" width="212" height="24" rx="9" style="fill:var(--glass)"/>
+      <rect x="44" y="388" width="212" height="24" rx="9" style="fill:var(--glass)"/>
+      <path d="${GLASS}" style="fill:var(--glass)" fill-opacity=".08"/>
+      <g clip-path="url(#gc)">
+        <rect id="gTop" x="60" y="52" width="180" height="168"/>
+        <path id="gBot"/>
+        <line id="gStream" x1="150" x2="150" y1="214" y2="380" stroke-width="5" stroke-dasharray="6 6" class="stream"/>
+      </g>
+      <path d="${GLASS}" fill="none" style="stroke:var(--glass)" stroke-width="6" stroke-linejoin="round"/>`),
+    update(p, c) {
+      const th = 168 * p, bh = 168 * (1 - p);
+      const top = g('gTop'); top.setAttribute('y', 220 - th); top.setAttribute('height', th); top.style.fill = c;
+      const bot = g('gBot'); bot.style.fill = c;
+      bot.setAttribute('d', bh < .5 ? '' : `M60,388 V${388 - bh} Q150,${388 - bh - 30} 240,${388 - bh} V388 Z`);
+      const st = g('gStream'); st.style.stroke = c;
+      st.setAttribute('y2', 388 - bh - 6);
+      st.style.opacity = (S.running && p > 0) ? 1 : 0;
+    }
+  };
+
+  const R = 170, CIRC = 2 * Math.PI * R;
+  V.ring = {
+    build: () => svg('0 0 400 400', `
+      <circle cx="200" cy="200" r="${R}" fill="none" style="stroke:var(--track)" stroke-width="32"/>
+      <circle id="rArc" cx="200" cy="200" r="${R}" fill="none" stroke-width="32" stroke-linecap="round"
+        stroke-dasharray="${CIRC}" transform="rotate(-90 200 200)"/>`),
+    update(p, c) {
+      const a = g('rArc'); a.style.stroke = c;
+      a.setAttribute('stroke-dashoffset', CIRC * (1 - p));
+      a.style.opacity = p <= 0 ? 0 : 1;
+    }
+  };
+
+  V.pie = {
+    build: () => {
+      let ticks = '';
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6, x1 = 200 + 178 * Math.sin(a), y1 = 200 - 178 * Math.cos(a), x2 = 200 + 192 * Math.sin(a), y2 = 200 - 192 * Math.cos(a);
+        ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--muted)" stroke-width="5" stroke-linecap="round"/>`;
+      }
+      return svg('0 0 400 400', `
+        <circle cx="200" cy="200" r="${R}" style="fill:var(--track)"/>
+        <circle id="pFull" cx="200" cy="200" r="${R}"/>
+        <path id="pWedge"/>${ticks}`);
+    },
+    update(p, c) {
+      const full = g('pFull'), w = g('pWedge');
+      full.style.fill = c; w.style.fill = c;
+      full.style.display = p >= .9999 ? '' : 'none';
+      if (p >= .9999 || p <= 0) { w.setAttribute('d', ''); return; }
+      const a = p * 2 * Math.PI, x = 200 + R * Math.sin(a), y = 200 - R * Math.cos(a);
+      w.setAttribute('d', `M200,200 L200,${200 - R} A${R},${R} 0 ${a > Math.PI ? 1 : 0} 1 ${x},${y} Z`);
+    }
+  };
+
+  V.bar = {
+    build: () => {
+      let ticks = '';
+      const n = Math.floor(S.total / 60);
+      if (n >= 2 && n <= 30) for (let i = 1; i < n; i++) {
+        const x = 20 + 760 * (i * 60 / S.total);
+        ticks += `<line x1="${x}" y1="60" x2="${x}" y2="160" style="stroke:var(--bg)" stroke-width="5" opacity=".7"/>`;
+      }
+      return svg('0 0 800 220', `
+        <defs><clipPath id="bc"><rect x="20" y="60" width="760" height="100" rx="50"/></clipPath></defs>
+        <rect x="20" y="60" width="760" height="100" rx="50" style="fill:var(--track)"/>
+        <g clip-path="url(#bc)"><rect id="bFill" x="20" y="60" width="760" height="100"/>${ticks}</g>
+        <rect x="20" y="60" width="760" height="100" rx="50" fill="none" style="stroke:var(--line)" stroke-width="4"/>`);
+    },
+    update(p, c) { const f = g('bFill'); f.style.fill = c; f.setAttribute('width', 760 * p); }
+  };
+
+  V.light = {
+    build: () => svg('0 0 220 480', `
+      <rect x="10" y="10" width="200" height="460" rx="46" fill="#111827" stroke="#475569" stroke-width="6"/>
+      <circle id="l0" cx="110" cy="105" r="52" fill="#ef4444"/>
+      <circle id="l1" cx="110" cy="240" r="52" fill="#facc15"/>
+      <circle id="l2" cx="110" cy="375" r="52" fill="#22c55e"/>`),
+    update(p, c) {
+      const on = (S.finished || p <= .15) ? 0 : p <= .4 ? 1 : 2;
+      const cols = ['#ef4444', '#facc15', '#22c55e'];
+      for (let i = 0; i < 3; i++) {
+        const l = g('l' + i), a = i === on;
+        l.style.opacity = a ? 1 : .14;
+        l.style.filter = a ? `drop-shadow(0 0 22px ${cols[i]})` : 'none';
+        l.classList.toggle('blink', a && S.finished);
+      }
+    }
+  };
+
+  V.battery = {
+    build: () => svg('0 0 800 400', `
+      <defs><clipPath id="batc"><rect x="64" y="94" width="632" height="212" rx="22"/></clipPath></defs>
+      <rect x="40" y="70" width="680" height="260" rx="40" fill="none" style="stroke:var(--glass)" stroke-width="12"/>
+      <rect x="732" y="150" width="40" height="100" rx="14" style="fill:var(--glass)"/>
+      <g clip-path="url(#batc)">
+        <rect id="batFill" x="64" y="94" width="632" height="212"/>
+        <line x1="222" y1="94" x2="222" y2="306" style="stroke:var(--bg)" stroke-width="8"/>
+        <line x1="380" y1="94" x2="380" y2="306" style="stroke:var(--bg)" stroke-width="8"/>
+        <line x1="538" y1="94" x2="538" y2="306" style="stroke:var(--bg)" stroke-width="8"/>
+      </g>`),
+    update(p) { const f = g('batFill'); f.style.fill = trafficFor(p); f.setAttribute('width', 632 * p); }
+  };
+
+  const buildVisual = () => { $('#visual').innerHTML = V[S.mode].build(); };
+
+  /* ---------- Rendering ---------- */
+  function render() {
+    const p = S.total > 0 ? Math.max(0, Math.min(1, S.remaining / (S.total * 1000))) : 0;
+    const c = colorFor(p);
+    V[S.mode].update(p, c);
+    const d = $('#digits'), t = fmt(S.remaining);
+    if (d.textContent !== t) { d.textContent = t; document.title = (S.running ? t + ' – ' : '') + 'Zeitgeber'; }
+    d.style.color = (S.warn && p <= .2) ? c : '';
+  }
+
+  function syncUI() {
+    document.body.dataset.theme = S.theme;
+    document.body.dataset.mode = S.mode;
+    document.documentElement.style.setProperty('--accent', S.accent);
+    document.body.classList.toggle('finished', S.finished);
+    $('#digits').style.display = S.digits ? '' : 'none';
+    $('#btnStart').textContent = S.running ? '⏸ Pause' : (S.finished ? '↺ Neu starten' : '▶ Start');
+    $('#titleInput').value = S.title;
+    const st = $('#stageTitle');
+    st.textContent = S.finished ? '⏰ Zeit ist um!' : S.title;
+    st.style.color = S.finished ? '#ef4444' : '';
+    st.style.display = (S.finished || S.title) ? '' : 'none';
+    $$('#modeChips .chip').forEach(b => b.classList.toggle('active', b.dataset.v === S.mode));
+    $$('#presetChips .chip[data-v]').forEach(b => b.classList.toggle('active', +b.dataset.v * 60 === S.total));
+    $$('#themeChips .chip').forEach(b => b.classList.toggle('active', b.dataset.v === S.theme));
+    $$('.swatch').forEach(b => b.classList.toggle('active', b.dataset.v === S.accent));
+    $$('.switch').forEach(b => b.setAttribute('aria-checked', !!S[b.dataset.key]));
+  }
+
+  /* ---------- Timer-Logik ---------- */
+  let wl = null;
+  const lock = async () => { try { if ('wakeLock' in navigator) wl = await navigator.wakeLock.request('screen'); } catch (e) {} };
+  const unlock = () => { try { wl && wl.release(); } catch (e) {} wl = null; };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.running) lock(); });
+
+  let ac;
+  const ensureAudio = () => { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} };
+  function beep(times = 3) {
+    if (!ac) return;
+    const t0 = ac.currentTime;
+    for (let i = 0; i < times; i++) {
+      const o = ac.createOscillator(), gn = ac.createGain(), t = t0 + i * .6;
+      o.type = 'sine'; o.frequency.value = 880; o.connect(gn); gn.connect(ac.destination);
+      gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.45, t + .02); gn.gain.linearRampToValueAtTime(0, t + .45);
+      o.start(t); o.stop(t + .5);
+    }
+  }
+
+  function start() {
+    if (S.remaining <= 0) reset();
+    ensureAudio();
+    S.endTs = Date.now() + S.remaining; S.running = true; S.finished = false;
+    lock(); syncUI();
+  }
+  function pause() { S.remaining = Math.max(0, S.endTs - Date.now()); S.running = false; unlock(); syncUI(); }
+  function reset() { S.running = false; S.finished = false; S.remaining = S.total * 1000; unlock(); syncUI(); }
+  function finish() {
+    S.remaining = 0; S.running = false; S.finished = true; unlock(); syncUI();
+    if (S.sound) beep(3);
+  }
+  function setTotal(sec) {
+    S.total = Math.max(5, Math.min(180 * 60, Math.round(sec)));
+    reset(); buildVisual(); save();
+  }
+  function adjust(deltaSec) {
+    if (S.finished) return;
+    if (deltaSec < 0 && S.remaining <= 60000) return;
+    const rem = (S.running ? S.endTs - Date.now() : S.remaining) + deltaSec * 1000;
+    S.total = Math.max(5, S.total + deltaSec);
+    S.remaining = rem;
+    if (S.running) S.endTs = Date.now() + rem;
+    if (S.remaining > S.total * 1000) S.total = Math.ceil(S.remaining / 1000);
+    buildVisual(); syncUI(); save();
+  }
+
+  function tick() {
+    if (S.running) { S.remaining = S.endTs - Date.now(); if (S.remaining <= 0) finish(); }
+    render();
+  }
+  (function loop() { tick(); requestAnimationFrame(loop); })();
+  setInterval(tick, 1000);
+
+  /* ---------- UI aufbauen ---------- */
+  MODES.forEach(([k, icon, label]) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.dataset.v = k; b.innerHTML = `<span>${icon}</span>${label}`;
+    b.onclick = () => { S.mode = k; buildVisual(); syncUI(); save(); };
+    $('#modeChips').appendChild(b);
+  });
+  PRESETS.forEach(m => {
+    const b = document.createElement('button'); b.className = 'chip'; b.dataset.v = m; b.textContent = m + ' Min';
+    b.onclick = () => { setTotal(m * 60); };
+    $('#presetChips').appendChild(b);
+  });
+  const cb = document.createElement('button'); cb.className = 'chip'; cb.textContent = '✎ Eigene';
+  cb.onclick = () => { $('#cMin').value = Math.floor(S.total / 60); $('#cSec').value = S.total % 60; $('#custom').classList.remove('hidden'); };
+  $('#presetChips').appendChild(cb);
+
+  THEMES.forEach(([k, label]) => {
+    const b = document.createElement('button'); b.className = 'chip'; b.dataset.v = k; b.textContent = label;
+    b.onclick = () => { S.theme = k; syncUI(); save(); };
+    $('#themeChips').appendChild(b);
+  });
+  ACCENTS.forEach(c => {
+    const b = document.createElement('button'); b.className = 'swatch'; b.dataset.v = c; b.style.background = c; b.setAttribute('aria-label', 'Akzentfarbe ' + c);
+    b.onclick = () => { S.accent = c; syncUI(); save(); };
+    $('#swatches').appendChild(b);
+  });
+  TITLES.forEach(t => {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = t;
+    b.onclick = () => { S.title = t; syncUI(); save(); };
+    $('#titleChips').appendChild(b);
+  });
+  $$('.switch').forEach(b => b.onclick = () => { S[b.dataset.key] = !S[b.dataset.key]; syncUI(); save(); });
+
+  $('#titleInput').addEventListener('input', e => {
+    S.title = e.target.value;
+    const st = $('#stageTitle'); if (!S.finished) { st.textContent = S.title; st.style.display = S.title ? '' : 'none'; }
+    save();
+  });
+
+  $('#btnStart').onclick = () => S.running ? pause() : start();
+  $('#btnReset').onclick = reset;
+  $('#btnMinus').onclick = () => adjust(-60);
+  $('#btnPlus').onclick = () => adjust(60);
+
+  $('#btnSet').onclick = () => $('#sheet').classList.remove('hidden');
+  $('#sheetClose').onclick = () => $('#sheet').classList.add('hidden');
+  $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') e.target.classList.add('hidden'); });
+  $('#btnTest').onclick = () => { ensureAudio(); beep(2); };
+
+  $('#cCancel').onclick = () => $('#custom').classList.add('hidden');
+  $('#cOk').onclick = () => {
+    const m = parseInt($('#cMin').value) || 0, s = parseInt($('#cSec').value) || 0;
+    if (m * 60 + s >= 5) { setTotal(m * 60 + s); $('#custom').classList.add('hidden'); }
+  };
+
+  const setUiHidden = h => document.body.classList.toggle('ui-hidden', h);
+  $('#btnHide').onclick = () => setUiHidden(true);
+  $('#stage').addEventListener('click', () => { if (document.body.classList.contains('ui-hidden')) setUiHidden(false); });
+
+  const fsEl = document.documentElement;
+  const reqFs = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen;
+  if (!reqFs) $('#btnFs').style.display = 'none';
+  $('#btnFs').onclick = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else if (reqFs) { try { reqFs.call(fsEl); } catch (e) {} }
+  };
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); S.running ? pause() : start(); }
+    else if (e.key === 'r' || e.key === 'R') reset();
+    else if (e.key === 'h' || e.key === 'H') setUiHidden(!document.body.classList.contains('ui-hidden'));
+    else if (e.key === 'f' || e.key === 'F') $('#btnFs').click();
+  });
+
+  buildVisual(); syncUI(); render();
+})();
+</script>
+</body>
+</html>
