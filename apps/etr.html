@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taschenrechner</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .calculator {
+            max-width: 320px;
+        }
+        .display {
+            font-size: 2rem;
+            text-align: right;
+            height: 70px;
+        }
+        .btn-calc {
+            height: 60px;
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+
+    <div class="card shadow calculator p-3 w-100">
+        <div class="card-body">
+            <!-- Display -->
+            <div class="mb-3">
+                <input type="text" id="display" class="form-control display bg-white" readonly value="0">
+            </div>
+
+            <!-- Tastatur -->
+            <div class="row g-2">
+                <div class="col-3">
+                    <button class="btn btn-secondary w-100 btn-calc" onclick="clearDisplay()">C</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-secondary w-100 btn-calc" onclick="appendValue('(')">(</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-secondary w-100 btn-calc" onclick="appendValue(')')">)</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-warning w-100 btn-calc" onclick="appendValue(':')">:</button>
+                </div>
+
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('7')">7</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('8')">8</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('9')">9</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-warning w-100 btn-calc" onclick="appendValue('.')">·</button>
+                </div>
+
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('4')">4</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('5')">5</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('6')">6</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-warning w-100 btn-calc" onclick="appendValue('-')">-</button>
+                </div>
+
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('1')">1</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('2')">2</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('3')">3</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-warning w-100 btn-calc" onclick="appendValue('+')">+</button>
+                </div>
+
+                <div class="col-6">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue('0')">0</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-light border w-100 btn-calc" onclick="appendValue(',')">,</button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-success w-100 btn-calc" onclick="calculate()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const display = document.getElementById('display');
+
+        function clearDisplay() {
+            display.value = '0';
+        }
+
+        function appendValue(val) {
+            if (display.value === '0' && val !== '.' && val !== ',') {
+                display.value = val;
+            } else {
+                display.value += val;
+            }
+        }
+
+        function calculate() {
+            try {
+                // Ersetze benutzerfreundliche Operatoren durch JavaScript-kompatible Operatoren
+                let expression = display.value
+                    .replace(/·/g, '*')
+                    .replace(/:/g, '/')
+                    .replace(/,/g, '.');
+
+                let result = eval(expression);
+                
+                // Ergebnis zurückwandeln (Dezimaltrenner Komma)
+                display.value = String(result).replace('.', ',');
+            } catch (error) {
+                display.value = 'Fehler';
+                setTimeout(clearDisplay, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
