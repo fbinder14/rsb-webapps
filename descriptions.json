@@ -656,5 +656,11 @@
     "stufe": "Alle",
     "beschreibung": "Dokumentenkamera: Bedienung, Bildgestaltung und gezielter Unterrichtseinsatz.",
     "kategorie": "Tools"
+  },
+  "etr.html": {
+    "fach": "Mathematik",
+    "stufe": "5–10",
+    "beschreibung": "Einfacher Taschenrechner mit Grundrechenarten, Klammern und Dezimalkomma im Browser.",
+    "kategorie": "Tools"
   }
 }
