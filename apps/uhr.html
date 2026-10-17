@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3efff">
+<title>What's the Time?</title>
+<style>
+  :root {
+    --ink: #23264a;
+    --ink-soft: #5a5f86;
+    --muted: #8a8fb2;
+    --card: rgba(255,255,255,.86);
+    --line: #e6e3f5;
+    --violet: #6c5ce7;
+    --violet-soft: #efecff;
+    --coral: #ff7a59;
+    --past: #12a594;
+    --past-soft: #d7f5f0;
+    --to: #f08c00;
+    --to-soft: #ffefd6;
+    --good: #12a594;
+    --warn: #e8590c;
+    --face: #fffdf7;
+    --radius: 26px;
+    --shadow: 0 1px 2px rgba(35,38,74,.05), 0 12px 32px rgba(35,38,74,.09);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    min-height: 100vh;
+    color: var(--ink);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(circle at 8% 12%, #ffe3d6 0, transparent 30%),
+      radial-gradient(circle at 92% 8%, #dff3ff 0, transparent 32%),
+      radial-gradient(circle at 85% 92%, #e4f8ee 0, transparent 30%),
+      linear-gradient(160deg, #f6f3ff, #f2f7ff 55%, #f7fbf6);
+    background-attachment: fixed;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  [hidden] { display: none !important; }
+  .emo { margin-right: 7px; }
+
+  .app { max-width: 1200px; margin: 0 auto; padding: 22px 24px 36px; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+    background: linear-gradient(135deg, #8f7bff, var(--violet)); box-shadow: 0 8px 18px rgba(108,92,231,.3);
+    font-size: 28px;
+  }
+  h1 { margin: 0; font-size: clamp(26px, 3.6vw, 40px); font-weight: 850; letter-spacing: -.01em; line-height: 1.05; }
+  .subtitle { margin: 3px 0 0; color: var(--ink-soft); font-size: 15px; }
+  .icon-btn {
+    border: 1px solid var(--line); background: var(--card); border-radius: 14px;
+    min-height: 44px; padding: 0 14px; font-weight: 750; color: var(--ink-soft); box-shadow: var(--shadow);
+  }
+
+  /* Toolbar */
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .segmented {
+    display: inline-flex; padding: 5px; gap: 4px; border-radius: 18px;
+    background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow);
+  }
+  .segmented button {
+    border: 0; background: transparent; border-radius: 13px; min-height: 42px; padding: 0 16px;
+    font-weight: 800; color: var(--ink-soft); transition: background .2s, color .2s;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--violet); color: #fff; box-shadow: 0 6px 14px rgba(108,92,231,.3); }
+  .level-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .level-info { color: var(--ink-soft); font-size: 14px; font-weight: 700; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: minmax(320px, 1.12fr) minmax(300px, .88fr); gap: 22px; align-items: start; }
+  .card { background: var(--card); border: 1px solid rgba(255,255,255,.9); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .clock-card { padding: clamp(10px, 2.4vw, 24px); }
+  .side { padding: clamp(18px, 2.6vw, 28px); display: grid; gap: 18px; }
+
+  /* Clock */
+  .clock-wrap { width: min(100%, 600px); margin: 0 auto; }
+  svg.clock { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none; }
+  svg.clock.dragging { cursor: grabbing; }
+  svg.clock:focus-visible .face-ring { stroke: var(--violet); stroke-width: 6; }
+  .face { fill: var(--face); filter: drop-shadow(0 16px 24px rgba(35,38,74,.14)); }
+  .face-ring { fill: none; stroke: #ece7ff; stroke-width: 10; }
+  .tick { stroke: #b9bcd4; stroke-linecap: round; stroke-width: 2; }
+  .tick.major { stroke: var(--ink); stroke-width: 5; }
+  .numeral { fill: var(--ink); font-size: 32px; font-weight: 850; text-anchor: middle; dominant-baseline: central; }
+  .minute-number { fill: var(--muted); font-size: 12px; font-weight: 800; text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
+  .hand-line { stroke-linecap: round; }
+  #hourHand .hand-line { stroke: var(--ink); stroke-width: 15; }
+  #minuteHand .hand-line { stroke: var(--violet); stroke-width: 9; }
+  .hand-label {
+    font-size: 12px; font-weight: 850; text-anchor: middle; dominant-baseline: central; letter-spacing: .02em;
+    paint-order: stroke; stroke: var(--face); stroke-width: 4px; stroke-linejoin: round; transition: opacity .25s;
+  }
+  #hourHand .hand-label { fill: var(--ink); }
+  #minuteHand .hand-label { fill: var(--violet); }
+  .center-dot { fill: var(--coral); stroke: #fff; stroke-width: 4; }
+
+  .guides { transition: opacity .3s; }
+  .half-past { fill: var(--past-soft); }
+  .half-to { fill: var(--to-soft); }
+  .guide-word { font-size: 26px; font-weight: 900; text-anchor: middle; dominant-baseline: central; opacity: .75; }
+  .guide-word.past { fill: var(--past); }
+  .guide-word.to { fill: var(--to); }
+  .guide-arc { fill: none; stroke-width: 5; stroke-linecap: round; }
+  .guide-arc.past { stroke: var(--past); }
+  .guide-arc.to { stroke: var(--to); }
+  .pill rect { stroke-width: 2; }
+  .pill text { font-size: 14px; font-weight: 850; text-anchor: middle; dominant-baseline: central; }
+  .pill.neutral rect { fill: #fff; stroke: #d9d4f3; }
+  .pill.neutral text { fill: var(--ink); }
+  .pill.past rect { fill: #fff; stroke: var(--past); }
+  .pill.past text { fill: var(--past); }
+  .pill.to rect { fill: #fff; stroke: var(--to); }
+  .pill.to text { fill: var(--to); }
+  .off { opacity: 0; pointer-events: none; }
+
+  .clock-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 10px;
+    border-radius: 999px; border: 1px solid var(--line); background: #fff; font-weight: 750; font-size: 14px; color: var(--ink-soft);
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .toggle .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #cfd2e6; display: grid; place-items: center; font-size: 12px; color: transparent; transition: .2s; }
+  .toggle[aria-pressed="true"] { background: var(--violet-soft); border-color: #cfc7ff; color: var(--violet); }
+  .toggle[aria-pressed="true"] .dot { background: var(--violet); border-color: var(--violet); color: #fff; }
+  .clock-hint { text-align: center; color: var(--muted); font-size: 13px; margin: 10px 0 2px; }
+
+  /* Side panel */
+  .bubble {
+    position: relative; padding: 18px 20px; border-radius: 22px; text-align: center;
+    background: linear-gradient(135deg, #7d6cf0, var(--violet)); color: #fff; box-shadow: 0 12px 26px rgba(108,92,231,.28);
+  }
+  .bubble small { display: block; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .8; margin-bottom: 4px; }
+  .bubble .big { font-size: clamp(26px, 3.2vw, 38px); font-weight: 850; line-height: 1.15; }
+  .bubble .alt { margin-top: 6px; font-size: 15px; opacity: .85; }
+
+  .answers { display: grid; grid-template-columns: .8fr 1.2fr; gap: 12px; }
+  .tile {
+    border: 2px dashed #d6d0f7; background: #fbfaff; border-radius: 20px; min-height: 118px; padding: 14px;
+    display: grid; place-items: center; text-align: center; transition: background .2s, border-color .2s, transform .15s;
+  }
+  .tile:hover { border-color: var(--violet); }
+  .tile:active { transform: scale(.98); }
+  .tile .tile-label { font-size: 11px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .tile .tile-value { font-weight: 850; color: var(--violet); margin-top: 4px; }
+  .tile .tile-value.q { font-size: 42px; color: #c9c2f5; }
+  .tile.open { border-style: solid; border-color: transparent; background: var(--violet-soft); }
+  #digitalTile.open .tile-value { font-size: clamp(36px, 4.4vw, 52px); font-variant-numeric: tabular-nums; color: var(--ink); }
+  #sentenceTile.open .tile-value { font-size: clamp(20px, 2.3vw, 26px); line-height: 1.25; color: var(--ink); }
+  #sentenceTile .tile-alt { font-size: 14px; color: var(--ink-soft); margin-top: 4px; font-weight: 700; }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    flex: 1 1 auto; min-height: 50px; padding: 0 18px; border-radius: 16px; border: 1px solid var(--line);
+    background: #fff; font-weight: 850; font-size: 16px; transition: transform .15s, box-shadow .2s, background .2s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn.primary { border: 0; color: #fff; background: linear-gradient(135deg, #8a78ff, var(--violet)); box-shadow: 0 8px 18px rgba(108,92,231,.3); }
+  .btn.coral { border: 0; color: #fff; background: linear-gradient(135deg, #ff9a76, var(--coral)); box-shadow: 0 8px 18px rgba(255,122,89,.3); }
+  .btn.ghost { color: var(--ink-soft); }
+
+  .section-title { font-size: 12px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 9px; }
+  .time-form { display: flex; align-items: center; gap: 8px; }
+  .time-form input {
+    width: 76px; height: 50px; border-radius: 14px; border: 2px solid var(--line); background: #fff;
+    text-align: center; font-size: 22px; font-weight: 850; outline: none; -moz-appearance: textfield;
+  }
+  .time-form input::-webkit-outer-spin-button, .time-form input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .time-form input:focus { border-color: var(--violet); box-shadow: 0 0 0 4px rgba(108,92,231,.14); }
+  .time-form .colon { font-size: 26px; font-weight: 900; color: var(--violet); }
+  .time-form .btn { flex: 0 0 auto; min-height: 50px; }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff;
+    font-weight: 800; font-size: 14px; color: var(--ink-soft); transition: background .2s, color .2s, border-color .2s;
+  }
+  .chip:hover { background: var(--violet-soft); color: var(--violet); border-color: #cfc7ff; }
+
+  .feedback {
+    position: relative; min-height: 64px; border-radius: 18px; padding: 14px 16px; display: grid; place-items: center;
+    text-align: center; font-weight: 850; font-size: 19px; background: #f6f5fc; color: var(--ink-soft);
+  }
+  .feedback.good { background: var(--past-soft); color: #0b7a6d; animation: pop .4s cubic-bezier(.2,1.4,.4,1); }
+  .feedback.bad { background: #ffe9dc; color: var(--warn); animation: shake .4s; }
+  @keyframes pop { from { transform: scale(.9); } to { transform: scale(1); } }
+  @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+  .star { position: absolute; left: 50%; top: 50%; font-size: 20px; pointer-events: none; animation: fly .9s ease-out forwards; }
+  @keyframes fly { from { transform: translate(-50%,-50%) scale(.4); opacity: 1; } to { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.1); opacity: 0; } }
+
+  .phrases { border-top: 1px solid var(--line); padding-top: 16px; }
+  .phrase-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .phrase { border-radius: 14px; padding: 9px 12px; background: #f8f7fd; font-size: 14.5px; font-weight: 700; color: var(--ink-soft); }
+  .phrase b { color: var(--ink); }
+  .phrase.past b { color: var(--past); }
+  .phrase.to b { color: var(--to); }
+  .phrase .ex { display: block; font-size: 12.5px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+
+  .toast {
+    position: fixed; z-index: 5; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px);
+    transform: translate(-50%, 180%); transition: transform .35s cubic-bezier(.2,.9,.2,1.1);
+    max-width: calc(100% - 30px); padding: 13px 20px; border-radius: 16px; font-weight: 800;
+    color: #fff; background: var(--ink); box-shadow: 0 12px 30px rgba(35,38,74,.3);
+  }
+  .toast.show { transform: translate(-50%, 0); }
+
+  body.fullscreen .app { max-width: 1600px; padding-top: 12px; }
+  body.fullscreen .subtitle { display: none; }
+  body.fullscreen .layout { grid-template-columns: minmax(380px, 1.3fr) minmax(320px, .7fr); }
+  body.fullscreen .clock-wrap { width: min(100%, 76vh); }
+
+  @media (max-width: 860px) {
+    .app { padding: 16px 14px 28px; }
+    .layout { grid-template-columns: 1fr; gap: 14px; }
+    body.fullscreen .layout { grid-template-columns: 1fr; }
+    .clock-wrap { width: min(100%, 500px); }
+    .toolbar { justify-content: center; }
+  }
+  @media (max-width: 480px) {
+    header { flex-wrap: wrap; }
+    .logo { width: 44px; height: 44px; font-size: 24px; }
+    .answers, .phrase-list { grid-template-columns: 1fr; }
+    .segmented button { padding: 0 11px; }
+    .time-form input { width: 64px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">⏰</div>
+      <div>
+        <h1>What's the time?</h1>
+        <p class="subtitle">Read the clock. Say the time in English.</p>
+      </div>
+    </div>
+    <button class="icon-btn" type="button" id="fullscreen">⛶ Full screen</button>
+  </header>
+
+  <div class="toolbar">
+    <div class="segmented" role="group" aria-label="Mode">
+      <button type="button" data-mode="say" aria-pressed="true"><span class="emo" aria-hidden="true">💬</span>What's the time?</button>
+      <button type="button" data-mode="show" aria-pressed="false"><span class="emo" aria-hidden="true">👉</span>Show me!</button>
+    </div>
+    <div class="level-wrap">
+      <div class="segmented" role="group" aria-label="Level">
+        <button type="button" data-level="1" aria-pressed="true">Level 1</button>
+        <button type="button" data-level="2" aria-pressed="false">2</button>
+        <button type="button" data-level="3" aria-pressed="false">3</button>
+        <button type="button" data-level="4" aria-pressed="false">4</button>
+      </div>
+      <span class="level-info" id="levelInfo"></span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="card clock-card" aria-label="Clock">
+      <div class="clock-wrap">
+        <svg class="clock" id="clock" viewBox="-44 -12 568 504" tabindex="0" role="img" aria-label="Clock. Drag the hands or use the arrow keys to set the time.">
+          <defs>
+            <marker id="arrowPast" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#12a594"/>
+            </marker>
+            <marker id="arrowTo" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#f08c00"/>
+            </marker>
+          </defs>
+          <circle class="face" cx="240" cy="240" r="184"/>
+          <g class="guides" id="guidesInner">
+            <path class="half-past" d="M240,240 L240,56 A184,184 0 0 1 240,424 Z"/>
+            <path class="half-to" d="M240,240 L240,424 A184,184 0 0 1 240,56 Z"/>
+            <text class="guide-word past" x="292" y="292">past</text>
+            <text class="guide-word to" x="190" y="292">to</text>
+          </g>
+          <circle class="face-ring" cx="240" cy="240" r="184"/>
+          <g id="ticks"></g>
+          <g id="minuteLabels"></g>
+          <g id="hourLabels"></g>
+          <g class="guides" id="guidesOuter"></g>
+          <g id="hourHand" class="hand">
+            <line class="hand-line" x1="240" y1="262" x2="240" y2="146"/>
+            <text class="hand-label" x="258" y="190">hour hand</text>
+          </g>
+          <g id="minuteHand" class="hand">
+            <line class="hand-line" x1="240" y1="268" x2="240" y2="84"/>
+            <text class="hand-label" x="254" y="150">minute hand</text>
+          </g>
+          <circle class="center-dot" cx="240" cy="240" r="12"/>
+        </svg>
+        <div class="clock-options">
+          <button class="toggle" type="button" data-toggle="guides" aria-pressed="true"><span class="dot">✓</span>past &amp; to</button>
+          <button class="toggle" type="button" data-toggle="numbers" aria-pressed="true"><span class="dot">✓</span>Minute numbers</button>
+          <button class="toggle" type="button" data-toggle="handNames" aria-pressed="false"><span class="dot">✓</span>Hand names</button>
+        </div>
+        <p class="clock-hint">Drag the short hand or the long hand.</p>
+      </div>
+    </section>
+
+    <section class="card side" aria-label="Practice">
+      <!-- Mode: What's the time? -->
+      <div id="sayPanel" class="side" style="padding:0">
+        <div class="bubble">
+          <small>Ask your partner</small>
+          <div class="big" id="question">What's the time?</div>
+        </div>
+
+        <div class="answers">
+          <button class="tile" type="button" id="digitalTile" aria-live="polite">
+            <div>
+              <div class="tile-label">Digital</div>
+              <div class="tile-value q" id="digitalValue">?</div>
+            </div>
+          </button>
+          <button class="tile" type="button" id="sentenceTile" aria-live="polite">
+            <div>
+              <div class="tile-label">Answer</div>
+              <div class="tile-value q" id="sentenceValue">?</div>
+              <div class="tile-alt" id="sentenceAlt" hidden></div>
+            </div>
+          </button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="randomBtn"><span class="emo" aria-hidden="true">🎲</span>New time</button>
+          <button class="btn ghost" type="button" id="hideBtn"><span class="emo" aria-hidden="true">🙈</span>Hide answers</button>
+        </div>
+
+        <div>
+          <p class="section-title">Set the time</p>
+          <form class="time-form" id="timeForm" autocomplete="off">
+            <input id="hourInput" type="number" min="1" max="12" placeholder="h" inputmode="numeric" aria-label="Hour, 1 to 12">
+            <span class="colon">:</span>
+            <input id="minuteInput" type="number" min="0" max="59" placeholder="min" inputmode="numeric" aria-label="Minutes, 0 to 59">
+            <button class="btn coral" type="submit">Set</button>
+          </form>
+        </div>
+
+        <div>
+          <p class="section-title">Examples</p>
+          <div class="examples">
+            <button class="chip" type="button" data-time="180">o'clock</button>
+            <button class="chip" type="button" data-time="450">half past</button>
+            <button class="chip" type="button" data-time="135">quarter past</button>
+            <button class="chip" type="button" data-time="585">quarter to</button>
+            <button class="chip" type="button" data-time="665">five past</button>
+            <button class="chip" type="button" data-time="340">twenty to</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode: Show me! -->
+      <div id="showPanel" class="side" style="padding:0" hidden>
+        <div class="bubble">
+          <small>Show me on the clock</small>
+          <div class="big" id="task">It's half past three.</div>
+          <div class="alt" id="taskAlt" hidden></div>
+        </div>
+        <div class="feedback" id="feedback" aria-live="polite">Move the hands. Then check.</div>
+        <div class="btn-row">
+          <button class="btn primary" type="button" id="checkBtn"><span class="emo" aria-hidden="true">✓</span>Check</button>
+          <button class="btn coral" type="button" id="nextBtn"><span class="emo" aria-hidden="true">🎲</span>Next</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" type="button" id="solveBtn"><span class="emo" aria-hidden="true">👀</span>Show the answer</button>
+        </div>
+      </div>
+
+      <div class="phrases">
+        <p class="section-title">Useful phrases</p>
+        <div class="phrase-list">
+          <div class="phrase">It's three <b>o'clock</b>.<span class="ex">3:00</span></div>
+          <div class="phrase past">It's <b>half past</b> three.<span class="ex">3:30</span></div>
+          <div class="phrase past">It's <b>quarter past</b> three.<span class="ex">3:15</span></div>
+          <div class="phrase to">It's <b>quarter to</b> four.<span class="ex">3:45</span></div>
+          <div class="phrase past">It's ten <b>past</b> three.<span class="ex">3:10</span></div>
+          <div class="phrase to">It's ten <b>to</b> four.<span class="ex">3:50</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const C = 240;
+  const $ = id => document.getElementById(id);
+  const svg = $("clock");
+
+  const LEVELS = {
+    1: "o'clock & half past",
+    2: "+ quarter past & quarter to",
+    3: "5-minute steps",
+    4: "every minute"
+  };
+  const HOURS = ["twelve", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven"];
+  const NUMBERS = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+    "twenty-one", "twenty-two", "twenty-three", "twenty-four", "twenty-five", "twenty-six", "twenty-seven", "twenty-eight", "twenty-nine"];
+  const QUESTIONS = ["What's the time?", "What time is it?"];
+
+  const STORE_KEY = "english-clock-settings-v2";
+  const settings = { mode: "say", level: 1, guides: true, numbers: true, handNames: false };
+  try { Object.assign(settings, JSON.parse(localStorage.getItem(STORE_KEY) || "{}")); } catch {}
+  const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch {} };
+
+  let total = 180;             // minutes since 12:00, 0–719
+  let shownHour = 90, shownMinute = 0; // currently drawn angles (cumulative, for smooth turning)
+  let animFrame = null;
+  let dragHand = null;
+  let digitalOpen = false, sentenceOpen = false;
+  let target = 0;
+
+  /* ---------- Language ---------- */
+  function phrase(t) {
+    const h = Math.floor(t / 60) % 12, m = t % 60, next = (h + 1) % 12;
+    const unit = n => n % 5 === 0 ? "" : (n === 1 ? " minute" : " minutes");
+    if (m === 0) return { main: `It's ${HOURS[h]} o'clock.` };
+    if (m === 15) return { main: `It's quarter past ${HOURS[h]}.`, alt: `It's a quarter past ${HOURS[h]}.` };
+    if (m === 30) return { main: `It's half past ${HOURS[h]}.` };
+    if (m === 45) return { main: `It's quarter to ${HOURS[next]}.`, alt: `It's a quarter to ${HOURS[next]}.` };
+    if (m < 30) return { main: `It's ${NUMBERS[m]}${unit(m)} past ${HOURS[h]}.` };
+    const to = 60 - m;
+    return { main: `It's ${NUMBERS[to]}${unit(to)} to ${HOURS[next]}.` };
+  }
+  const digital = t => `${Math.floor(t / 60) % 12 || 12}:${String(t % 60).padStart(2, "0")}`;
+
+  function randomTime(avoid) {
+    const steps = { 1: [0, 30], 2: [0, 15, 30, 45] };
+    let t;
+    do {
+      const h = Math.floor(Math.random() * 12);
+      let m;
+      if (steps[settings.level]) m = steps[settings.level][Math.floor(Math.random() * steps[settings.level].length)];
+      else if (settings.level === 3) m = Math.floor(Math.random() * 12) * 5;
+      else m = Math.floor(Math.random() * 60);
+      t = h * 60 + m;
+    } while (t === avoid);
+    return t;
+  }
+
+  /* ---------- Clock face ---------- */
+  function el(name, attrs, parent, text) {
+    const node = document.createElementNS(NS, name);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    if (text != null) node.textContent = text;
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+  const polar = (deg, r) => [C + Math.sin(deg * Math.PI / 180) * r, C - Math.cos(deg * Math.PI / 180) * r];
+
+  function buildFace() {
+    for (let i = 0; i < 60; i++) {
+      const major = i % 5 === 0;
+      const [x1, y1] = polar(i * 6, major ? 160 : 168);
+      const [x2, y2] = polar(i * 6, 176);
+      el("line", { x1, y1, x2, y2, class: major ? "tick major" : "tick" }, $("ticks"));
+      if (major && i !== 0) {
+        const [x, y] = polar(i * 6, 147);
+        el("text", { x, y, class: "minute-number" }, $("minuteLabels"), i);
+      }
+    }
+    for (let h = 1; h <= 12; h++) {
+      const [x, y] = polar(h * 30, 118);
+      el("text", { x, y, class: "numeral" }, $("hourLabels"), h);
+    }
+
+    const outer = $("guidesOuter");
+    const arc = (from, to, cls, marker) => {
+      const r = 198;
+      const [x1, y1] = polar(from, r), [x2, y2] = polar(to, r);
+      el("path", { d: `M${x1},${y1} A${r},${r} 0 0 1 ${x2},${y2}`, class: `guide-arc ${cls}`, "marker-end": `url(#${marker})` }, outer);
+    };
+    arc(14, 166, "past", "arrowPast");
+    arc(194, 346, "to", "arrowTo");
+
+    const pill = (x, y, lines, cls) => {
+      const g = el("g", { class: `pill ${cls}` }, outer);
+      const rect = el("rect", { rx: 14 }, g);
+      lines.forEach((line, i) => el("text", { x, y: y + (i - (lines.length - 1) / 2) * 16 }, g, line));
+      const width = Math.max(...lines.map(l => l.length)) * 8 + 22;
+      const height = lines.length * 16 + 14;
+      rect.setAttribute("x", x - width / 2);
+      rect.setAttribute("y", y - height / 2);
+      rect.setAttribute("width", width);
+      rect.setAttribute("height", height);
+    };
+    pill(C, 14, ["o'clock"], "neutral");
+    pill(C, 466, ["half past"], "past");
+    pill(478, C, ["quarter", "past"], "past");
+    pill(2, C, ["quarter", "to"], "to");
+  }
+
+  /* ---------- Drawing ---------- */
+  const targetAngles = t => ({ hour: (Math.floor(t / 60) % 12) * 30 + (t % 60) * .5, minute: (t % 60) * 6 });
+  const nearest = (from, to) => from + ((((to - from) % 360) + 540) % 360 - 180);
+
+  function placeHand(id, angle, labelRadius, offset) {
+    const g = $(id);
+    g.setAttribute("transform", `rotate(${angle} ${C} ${C})`);
+    const a = ((angle % 360) + 360) % 360;
+    const label = g.querySelector(".hand-label");
+    const flip = a > 180;
+    label.setAttribute("x", C + (flip ? -offset : offset));
+    label.setAttribute("y", C - labelRadius);
+    label.setAttribute("transform", `rotate(${flip ? 90 : -90} ${C + (flip ? -offset : offset)} ${C - labelRadius})`);
+  }
+
+  function drawHands() {
+    placeHand("hourHand", shownHour, 52, 18);
+    placeHand("minuteHand", shownMinute, 96, 14);
+  }
+
+  function setTime(t, animate) {
+    total = ((t % 720) + 720) % 720;
+    const goal = targetAngles(total);
+    const endHour = nearest(shownHour, goal.hour);
+    const endMinute = nearest(shownMinute, goal.minute);
+    cancelAnimationFrame(animFrame);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!animate || reduce) {
+      shownHour = endHour; shownMinute = endMinute; drawHands(); return;
+    }
+    const startHour = shownHour, startMinute = shownMinute, start = performance.now(), dur = 550;
+    const step = now => {
+      const p = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      shownHour = startHour + (endHour - startHour) * e;
+      shownMinute = startMinute + (endMinute - startMinute) * e;
+      drawHands();
+      if (p < 1) animFrame = requestAnimationFrame(step);
+    };
+    animFrame = requestAnimationFrame(step);
+  }
+
+  /* ---------- Mode: What's the time? ---------- */
+  function renderAnswers() {
+    const p = phrase(total);
+    $("digitalTile").classList.toggle("open", digitalOpen);
+    $("digitalValue").classList.toggle("q", !digitalOpen);
+    $("digitalValue").textContent = digitalOpen ? digital(total) : "?";
+    $("digitalTile").setAttribute("aria-label", digitalOpen ? `Digital time: ${digital(total)}` : "Show the digital time");
+
+    $("sentenceTile").classList.toggle("open", sentenceOpen);
+    $("sentenceValue").classList.toggle("q", !sentenceOpen);
+    $("sentenceValue").textContent = sentenceOpen ? p.main : "?";
+    $("sentenceAlt").hidden = !(sentenceOpen && p.alt);
+    $("sentenceAlt").textContent = p.alt ? `or: ${p.alt}` : "";
+    $("sentenceTile").setAttribute("aria-label", sentenceOpen ? p.main : "Show the answer");
+  }
+
+  function newTimeSet() {
+    digitalOpen = sentenceOpen = false;
+    $("question").textContent = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+    renderAnswers();
+  }
+
+  /* ---------- Mode: Show me! ---------- */
+  function setFeedback(text, kind) {
+    const fb = $("feedback");
+    fb.className = "feedback";
+    void fb.offsetWidth;
+    if (kind) fb.classList.add(kind);
+    fb.textContent = text;
+  }
+
+  function newTask() {
+    target = randomTime(total);
+    const p = phrase(target);
+    $("task").textContent = p.main;
+    $("taskAlt").hidden = !p.alt;
+    $("taskAlt").textContent = p.alt ? `or: ${p.alt}` : "";
+    setFeedback("Move the hands. Then check.");
+  }
+
+  function celebrate() {
+    const fb = $("feedback");
+    const icons = ["⭐", "✨", "🎉", "🌟"];
+    for (let i = 0; i < 14; i++) {
+      const s = document.createElement("span");
+      s.className = "star";
+      s.textContent = icons[i % icons.length];
+      const a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 80;
+      s.style.setProperty("--x", `${Math.cos(a) * d}px`);
+      s.style.setProperty("--y", `${Math.sin(a) * d * .6}px`);
+      fb.appendChild(s);
+      setTimeout(() => s.remove(), 1000);
+    }
+  }
+
+  function check() {
+    if (total === target) {
+      const praise = ["Well done!", "Great job!", "Super!", "Excellent!", "Perfect!"];
+      setFeedback(`${praise[Math.floor(Math.random() * praise.length)]} 🎉`, "good");
+      celebrate();
+    } else if (total % 60 !== target % 60) {
+      setFeedback("Not quite. Look at the long hand – the minute hand.", "bad");
+    } else {
+      setFeedback("Almost! Look at the short hand – the hour hand.", "bad");
+    }
+  }
+
+  /* ---------- Changes from the user ---------- */
+  function userChangedTime() {
+    if (settings.mode === "say") newTimeSet();
+    else if ($("feedback").classList.length > 1) setFeedback("Move the hands. Then check.");
+  }
+
+  function pointerAngle(event) {
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX; pt.y = event.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const dx = p.x - C, dy = p.y - C;
+    return { angle: (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360, dist: Math.hypot(dx, dy) };
+  }
+
+  const angleDiff = (a, b) => Math.abs(((a - b) % 360 + 540) % 360 - 180);
+
+  function applyDrag(event) {
+    const { angle } = pointerAngle(event);
+    const hour = Math.floor(total / 60), minute = total % 60;
+    let next;
+    if (dragHand === "minute") {
+      const snap = settings.level === 4 ? 1 : 5;
+      let m = Math.round(angle / 6 / snap) * snap % 60;
+      let h = hour;
+      if (minute >= 45 && m < 15) h += 1;      // clockwise past 12
+      else if (minute < 15 && m >= 45) h -= 1; // anticlockwise past 12
+      next = h * 60 + m;
+    } else {
+      const h = Math.round((angle - minute * .5) / 30);
+      next = h * 60 + minute;
+    }
+    next = ((next % 720) + 720) % 720;
+    if (next !== total) {
+      setTime(next, false);
+      userChangedTime();
+    }
+  }
+
+  svg.addEventListener("pointerdown", event => {
+    const { angle, dist } = pointerAngle(event);
+    if (dist > 200) return;
+    const a = targetAngles(total);
+    const dh = angleDiff(angle, a.hour), dm = angleDiff(angle, a.minute);
+    if (dh < 25 && dm < 25) dragHand = dist < 105 ? "hour" : "minute";
+    else dragHand = dh < dm ? "hour" : "minute";
+    event.preventDefault();
+    svg.setPointerCapture(event.pointerId);
+    svg.classList.add("dragging");
+    cancelAnimationFrame(animFrame);
+    applyDrag(event);
+  });
+  svg.addEventListener("pointermove", event => { if (dragHand) applyDrag(event); });
+  const endDrag = () => { dragHand = null; svg.classList.remove("dragging"); };
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+
+  svg.addEventListener("keydown", event => {
+    const step = event.shiftKey ? 60 : (settings.level === 4 ? 1 : 5);
+    const delta = { ArrowUp: step, ArrowRight: step, ArrowDown: -step, ArrowLeft: -step }[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    const base = event.shiftKey ? total : Math.round(total / step) * step;
+    setTime(base + delta, true);
+    userChangedTime();
+  });
+
+  /* ---------- Controls ---------- */
+  function toast(message) {
+    const t = $("toast");
+    t.textContent = message;
+    t.classList.add("show");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  function applySettings() {
+    document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === settings.mode));
+    document.querySelectorAll("[data-level]").forEach(b => {
+      const on = Number(b.dataset.level) === settings.level;
+      b.setAttribute("aria-pressed", on);
+      b.textContent = on ? `Level ${b.dataset.level}` : b.dataset.level;
+    });
+    $("levelInfo").textContent = LEVELS[settings.level];
+    document.querySelectorAll("[data-toggle]").forEach(b => b.setAttribute("aria-pressed", Boolean(settings[b.dataset.toggle])));
+    $("guidesInner").classList.toggle("off", !settings.guides);
+    $("guidesOuter").classList.toggle("off", !settings.guides);
+    $("minuteLabels").classList.toggle("off", !settings.numbers);
+    document.querySelectorAll(".hand-label").forEach(l => l.classList.toggle("off", !settings.handNames));
+    $("sayPanel").hidden = settings.mode !== "say";
+    $("showPanel").hidden = settings.mode !== "show";
+  }
+
+  document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
+    if (settings.mode === b.dataset.mode) return;
+    settings.mode = b.dataset.mode;
+    save(); applySettings();
+    if (settings.mode === "show") newTask(); else newTimeSet();
+  }));
+
+  document.querySelectorAll("[data-level]").forEach(b => b.addEventListener("click", () => {
+    settings.level = Number(b.dataset.level);
+    save(); applySettings();
+    if (settings.mode === "show") newTask();
+    else { setTime(randomTime(total), true); newTimeSet(); }
+  }));
+
+  document.querySelectorAll("[data-toggle]").forEach(b => b.addEventListener("click", () => {
+    settings[b.dataset.toggle] = !settings[b.dataset.toggle];
+    save(); applySettings();
+  }));
+
+  $("digitalTile").addEventListener("click", () => { digitalOpen = !digitalOpen; renderAnswers(); });
+  $("sentenceTile").addEventListener("click", () => { sentenceOpen = !sentenceOpen; renderAnswers(); });
+  $("hideBtn").addEventListener("click", () => { digitalOpen = sentenceOpen = false; renderAnswers(); });
+  $("randomBtn").addEventListener("click", () => { setTime(randomTime(total), true); newTimeSet(); });
+
+  $("timeForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const h = Number($("hourInput").value), m = Number($("minuteInput").value);
+    if ($("hourInput").value === "" || $("minuteInput").value === "" ||
+        !Number.isInteger(h) || h < 1 || h > 12 || !Number.isInteger(m) || m < 0 || m > 59) {
+      toast("Please type an hour (1–12) and minutes (0–59).");
+      return;
+    }
+    setTime((h % 12) * 60 + m, true);
+    newTimeSet();
+    $("hourInput").value = $("minuteInput").value = "";
+    $("hourInput").blur(); $("minuteInput").blur();
+  });
+
+  document.querySelectorAll(".chip[data-time]").forEach(b => b.addEventListener("click", () => {
+    setTime(Number(b.dataset.time), true);
+    newTimeSet();
+  }));
+
+  $("checkBtn").addEventListener("click", check);
+  $("nextBtn").addEventListener("click", newTask);
+  $("solveBtn").addEventListener("click", () => {
+    setTime(target, true);
+    setFeedback(`This is ${digital(target)}.`);
+  });
+
+  $("fullscreen").addEventListener("click", async () => {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch {
+      toast("Full screen is not available here. Try your browser menu.");
+    }
+  });
+  document.addEventListener("fullscreenchange", () => {
+    const on = Boolean(document.fullscreenElement);
+    document.body.classList.toggle("fullscreen", on);
+    $("fullscreen").textContent = on ? "⛶ Exit full screen" : "⛶ Full screen";
+  });
+
+  /* ---------- Start ---------- */
+  if (!LEVELS[settings.level]) settings.level = 1;
+  if (!["say", "show"].includes(settings.mode)) settings.mode = "say";
+  buildFace();
+  applySettings();
+  setTime(180, false);
+  if (settings.mode === "show") newTask(); else newTimeSet();
+})();
+</script>
+</body>
+</html>
