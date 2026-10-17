@@ -662,5 +662,11 @@
     "stufe": "5–10",
     "beschreibung": "Einfacher Taschenrechner mit Grundrechenarten, Klammern und Dezimalkomma im Browser.",
     "kategorie": "Tools"
+  },
+  "uhr.html": {
+    "fach": "Englisch",
+    "stufe": "5–6",
+    "beschreibung": "Interaktive Uhr-App, um Uhrzeiten auf Englisch zu lernen (past/to, Halbe, Viertel).",
+    "kategorie": "Englisch"
   }
 }
