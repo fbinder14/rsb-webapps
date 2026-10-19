@@ -668,5 +668,12 @@
     "stufe": "5–6",
     "beschreibung": "Interaktive Uhr-App, um Uhrzeiten auf Englisch zu lernen (past/to, Halbe, Viertel).",
     "kategorie": "Englisch"
+  },
+  "belegstapel.html": {
+    "fach": "BWR",
+    "stufe": "7",
+    "beschreibung": "Belege ordnen und analysieren: Einnahmen und Ausgaben einer Familie erfassen.",
+    "kategorie": "BWR",
+    "lernbereich": "BwR7-IIIa-1"
   }
 }
