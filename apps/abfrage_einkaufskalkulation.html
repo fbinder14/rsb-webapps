@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mündliche Abfrage – Einkaufskalkulation</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] },
+    colors: { navy: { 50:'#eef2f8', 100:'#d9e1ee', 200:'#b3c3dd', 500:'#2f4f86', 600:'#1f3c6e', 700:'#172f57', 800:'#112342', 900:'#0b172c' } }
+  } }
+}
+</script>
+<style>
+  html, body { -webkit-tap-highlight-color: transparent; }
+  body { touch-action: manipulation; }
+  .tab { font-variant-numeric: tabular-nums; }
+  .fade { animation: fade .25s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  input[type=text] { font-size: 1.25rem; }
+</style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen">
+
+<!-- Kopfzeile -->
+<header class="bg-navy-800 text-white">
+  <div class="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <svg viewBox="0 0 48 48" class="w-10 h-10 shrink-0" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="45" height="45" rx="12" fill="none" stroke="currentColor" stroke-width="2.5" opacity=".9"/>
+        <path d="M8 36 L19 18 L25 27 L30 20 L40 36 Z" fill="currentColor" opacity=".9"/>
+        <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".9">
+          <path d="M35 8 v8 M31 12 h8 M32.2 9.2 l5.6 5.6 M37.8 9.2 l-5.6 5.6"/>
+        </g>
+      </svg>
+      <div>
+        <div class="text-lg font-bold leading-tight">SnowPro <span class="font-medium text-navy-200">Max Winter e. K.</span></div>
+        <div class="text-xs text-navy-200">Mündliche Abfrage BwR · Einkaufskalkulation</div>
+      </div>
+    </div>
+    <div id="headInfo" class="text-right text-sm text-navy-100 hidden">
+      <div id="headName" class="font-semibold"></div>
+      <div id="headStep" class="text-navy-200 tab"></div>
+    </div>
+  </div>
+  <div class="h-1.5 bg-navy-900"><div id="progress" class="h-full bg-sky-400 transition-all duration-300" style="width:0%"></div></div>
+</header>
+
+<main id="app" class="max-w-4xl mx-auto px-5 py-8"></main>
+
+<script>
+/* ---------- Hilfsfunktionen ---------- */
+const $ = s => document.querySelector(s);
+const r2 = n => Math.round(n * 100) / 100;
+const eur = n => (isFinite(n) ? n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €' : '–');
+function parseNum(str) {
+  if (str == null) return NaN;
+  let s = String(str).replace(/€|eur|\s/gi, '');
+  if (!s) return NaN;
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  const n = Number(s);
+  return isFinite(n) ? n : NaN;
+}
+const eq = (a, b) => isFinite(a) && isFinite(b) && Math.abs(a - b) < 0.015;
+const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* ---------- Rahmenhandlung ---------- */
+const FALL = {
+  stueck: 40, preis: 85, lep: 3400, rabattPct: 15, skontoPct: 2, fracht: 150, versicherung: 37.80
+};
+const fallBox = (extra = '') => `
+  <div class="rounded-2xl bg-sky-50 border border-sky-200 p-5 mb-6">
+    <div class="text-xs font-semibold uppercase tracking-wider text-sky-700 mb-2">Situation</div>
+    <p class="text-lg leading-relaxed">SnowPro bestellt bei der <b>Bindungswerk Alpin GmbH</b> in Rosenheim
+    <b>${FALL.stueck} Snowboard-Bindungen</b> zu je <b class="tab">${eur(FALL.preis)}</b> netto.
+    Der Lieferer gewährt <b>${FALL.rabattPct} % Liefererrabatt</b> und bei Zahlung innerhalb von 10 Tagen
+    <b>${FALL.skontoPct} % Liefererskonto</b>.${extra}</p>
+  </div>`;
+
+/* ---------- Aufgaben (Theorie und Rechnen im Wechsel) ---------- */
+const SCHEMA = ['Listeneinkaufspreis', 'Liefererrabatt', 'Zieleinkaufspreis', 'Liefererskonto', 'Bareinkaufspreis', 'Bezugskosten', 'Einstandspreis'];
+
+const AUFGABEN = [
+  { id: 'schema', art: 'Theorie', typ: 'order', max: 2,
+    titel: 'Kalkulationsschema',
+    frage: 'Vervollständige das Schema der Einkaufskalkulation, indem du die Positionen in der richtigen Reihenfolge antippst.',
+    hinweis: 'Tippe auf eine bereits gesetzte Position, um sie wieder zu entfernen.',
+    regel: '7 Positionen richtig: 2 Punkte · 5–6 richtig: 1 Punkt · sonst 0 Punkte' },
+
+  { id: 'rabatt', art: 'Rechnen', typ: 'calc', max: 2,
+    titel: 'Liefererrabatt',
+    frage: 'Ermittle den Liefererrabatt in € und den Zieleinkaufspreis für die gesamte Lieferung.',
+    felder: [ { key: 'rabatt', label: 'Liefererrabatt' }, { key: 'zep', label: 'Zieleinkaufspreis' } ],
+    regel: 'je richtiger Betrag 1 Punkt; Zieleinkaufspreis wird auch mit dem eigenen (falschen) Rabatt als richtig gewertet (Folgefehler)',
+    vorspann: () => `<div class="mb-4 text-slate-600">Listeneinkaufspreis: <b class="tab text-slate-800">${FALL.stueck} ∙ ${eur(FALL.preis)} = ${eur(FALL.lep)}</b></div>` },
+
+  { id: 'unterschied', art: 'Theorie', typ: 'multi', max: 2,
+    titel: 'Rabatt oder Skonto?',
+    regel: 'je richtige Auswahl 1 Punkt, je falsche Auswahl 1 Punkt Abzug, mindestens 0 Punkte',
+    frage: 'Unterscheide Liefererrabatt und Liefererskonto, indem du die <b>zwei</b> zutreffenden Aussagen auswählst.',
+    optionen: [
+      { t: 'Der Liefererskonto ist ein Preisnachlass für die Zahlung innerhalb einer vereinbarten Frist.', ok: true },
+      { t: 'Der Liefererskonto wird immer vom Listeneinkaufspreis berechnet.', ok: false },
+      { t: 'Einen Liefererrabatt gewährt der Lieferer z. B. für große Bestellmengen oder treue Kunden.', ok: true },
+      { t: 'Einen Liefererrabatt erhält SnowPro nur, wenn die Rechnung sofort bezahlt wird.', ok: false }
+    ] },
+
+  { id: 'skonto', art: 'Rechnen', typ: 'calc', max: 2,
+    titel: 'Liefererskonto',
+    frage: 'SnowPro zahlt innerhalb der Skontofrist. Ermittle den Liefererskonto in € und den Bareinkaufspreis.',
+    felder: [ { key: 'skonto', label: 'Liefererskonto' }, { key: 'bep', label: 'Bareinkaufspreis' } ],
+    regel: 'je richtiger Betrag 1 Punkt; Rechnung mit dem eigenen Zieleinkaufspreis aus Aufgabe 2 wird als richtig gewertet (Folgefehler)',
+    vorspann: () => `<div class="mb-4 text-slate-600">Dein Zieleinkaufspreis aus Aufgabe 2: <b class="tab text-slate-800">${isFinite(parseNum(ANT.rabatt?.zep)) ? eur(parseNum(ANT.rabatt.zep)) : '–'}</b></div>` },
+
+  { id: 'bezug', art: 'Theorie', typ: 'sort', max: 2,
+    titel: 'Bezugskosten',
+    regel: '6 Zuordnungen richtig: 2 Punkte · 4–5 richtig: 1 Punkt · sonst 0 Punkte',
+    frage: 'Ordne zu: Gehören die folgenden Kosten zu den Bezugskosten der Bindungen?',
+    items: [
+      { t: 'Fracht des Spediteurs', ok: true },
+      { t: 'Umsatzsteuer (Vorsteuer) auf die Rechnung', ok: false },
+      { t: 'Transportversicherung', ok: true },
+      { t: 'Miete für das eigene Lager von SnowPro', ok: false },
+      { t: 'Rollgeld für die Anlieferung', ok: true },
+      { t: 'Liefererskonto', ok: false }
+    ] },
+
+  { id: 'einstand', art: 'Rechnen', typ: 'calc', max: 2,
+    titel: 'Einstandspreis',
+    frage: 'Für den Transport stellt der Spediteur <b class="tab">150,00 €</b> Fracht in Rechnung, die Transportversicherung kostet <b class="tab">37,80 €</b>. Ermittle den Einstandspreis für die gesamte Lieferung und für eine Bindung.',
+    felder: [ { key: 'ep', label: 'Einstandspreis gesamt' }, { key: 'eps', label: 'Einstandspreis je Bindung' } ],
+    regel: 'je richtiger Betrag 1 Punkt; Rechnung mit dem eigenen Bareinkaufspreis aus Aufgabe 4 wird als richtig gewertet (Folgefehler)',
+    vorspann: () => `<div class="mb-4 text-slate-600">Dein Bareinkaufspreis aus Aufgabe 4: <b class="tab text-slate-800">${isFinite(parseNum(ANT.skonto?.bep)) ? eur(parseNum(ANT.skonto.bep)) : '–'}</b></div>` },
+
+  { id: 'begruendung', art: 'Theorie', typ: 'teacher', max: 2,
+    titel: 'Angebotsvergleich',
+    frage: 'Max Winter möchte künftig einfach beim Lieferer mit dem niedrigsten Listeneinkaufspreis bestellen. Begründe, warum das nicht sinnvoll ist.',
+    hinweis: 'Antworte mündlich.',
+    regel: 'mündliche Antwort, je Aspekt des Erwartungshorizonts 1 Punkt (Bewertung durch die Lehrkraft)',
+    erwartung: [
+      'Liefererrabatt, Liefererskonto und Bezugskosten können je Lieferer unterschiedlich hoch sein. (1)',
+      'Erst der Einstandspreis zeigt, was die Ware SnowPro tatsächlich kostet; Angebote vergleicht man daher über den Einstandspreis. (1)'
+    ] }
+];
+const MAX = AUFGABEN.reduce((s, a) => s + a.max, 0);
+
+/* Notenschlüssel Standard (Skill): 87 / 73 / 60 / 46 / 32 % */
+const SCHLUESSEL = [ [1, 0.87], [2, 0.73], [3, 0.60], [4, 0.46], [5, 0.32], [6, 0] ];
+const grenze = p => Math.ceil(p * MAX * 2) / 2;
+const note = pkt => { for (const [n, p] of SCHLUESSEL) if (pkt >= grenze(p)) return n; return 6; };
+
+/* ---------- Zustand ---------- */
+let SCHUELER = { name: '', klasse: '' };
+let ANT = {};
+let OVERRIDE = {};
+let BEMERKUNG = '';
+/* Zeiterfassung je Aufgabe – nur für die PDF-Dokumentation */
+let ZEIT = {}, AUFRUFE = {}, aktivStep = null, stepStart = 0;
+function zeitErfassen() {
+  if (aktivStep != null && AUFGABEN[aktivStep]) {
+    const id = AUFGABEN[aktivStep].id;
+    ZEIT[id] = (ZEIT[id] || 0) + (Date.now() - stepStart);
+  }
+  aktivStep = null;
+}
+const dauer = ms => { const s = Math.round((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} min`; };
+let step = -1;
+let orderPool = [];
+
+/* ---------- Bewertung (mit Folgefehlern) ---------- */
+function bewerte() {
+  const res = {};
+  // 1 Schema
+  { const seq = ANT.schema || []; const richtig = SCHEMA.filter((s, i) => seq[i] === s).length;
+    res.schema = { p: richtig === 7 ? 2 : richtig >= 5 ? 1 : 0, info: `${richtig} von 7 Positionen an der richtigen Stelle` }; }
+  // 2 Rabatt
+  { const a = ANT.rabatt || {}; const rab = parseNum(a.rabatt), zep = parseNum(a.zep);
+    const pR = eq(rab, 510) ? 1 : 0;
+    const pZ = (eq(zep, 2890) || (isFinite(rab) && eq(zep, r2(FALL.lep - rab)))) ? 1 : 0;
+    res.rabatt = { p: pR + pZ, info: `Rabatt ${pR ? '✓' : '✗'} · ZEP ${pZ ? '✓' : '✗'}${pZ && !eq(zep, 2890) ? ' (Folgefehler berücksichtigt)' : ''}`,
+      soll: 'Rabatt 510,00 € · ZEP 2.890,00 €',
+      zeilen: [ ['Liefererrabatt', a.rabatt, '510,00 €', pR], ['Zieleinkaufspreis', a.zep, '2.890,00 €', pZ, pZ && !eq(zep, 2890)] ] }; }
+  // 3 Multiple Choice
+  { const sel = ANT.unterschied || []; const opt = AUFGABEN[2].optionen;
+    const r = sel.filter(i => opt[i].ok).length, f = sel.filter(i => !opt[i].ok).length;
+    res.unterschied = { p: Math.max(0, r - f), info: `${r} richtige, ${f} falsche Auswahl` }; }
+  // 4 Skonto (Basis: eigener ZEP)
+  { const zepS = parseNum(ANT.rabatt?.zep); const a = ANT.skonto || {}; const sk = parseNum(a.skonto), bep = parseNum(a.bep);
+    const pS = (eq(sk, 57.80) || (isFinite(zepS) && eq(sk, r2(zepS * 0.02)))) ? 1 : 0;
+    const pB = (eq(bep, 2832.20) || (isFinite(zepS) && isFinite(sk) && eq(bep, r2(zepS - sk)))) ? 1 : 0;
+    const folge = (pS && !eq(sk, 57.80)) || (pB && !eq(bep, 2832.20));
+    res.skonto = { p: pS + pB, info: `Skonto ${pS ? '✓' : '✗'} · BEP ${pB ? '✓' : '✗'}${folge ? ' (Folgefehler berücksichtigt)' : ''}`,
+      soll: 'Skonto 57,80 € · BEP 2.832,20 €',
+      zeilen: [ ['Liefererskonto', a.skonto, '57,80 €', pS, pS && !eq(sk, 57.80)], ['Bareinkaufspreis', a.bep, '2.832,20 €', pB, pB && !eq(bep, 2832.20)] ] }; }
+  // 5 Bezugskosten
+  { const z = ANT.bezug || {}; const items = AUFGABEN[4].items;
+    const r = items.filter((it, i) => z[i] === it.ok).length;
+    res.bezug = { p: r === 6 ? 2 : r >= 4 ? 1 : 0, info: `${r} von 6 richtig zugeordnet`, soll: 'Ja: Fracht, Transportversicherung, Rollgeld' }; }
+  // 6 Einstandspreis (Basis: eigener BEP)
+  { const bepS = parseNum(ANT.skonto?.bep); const a = ANT.einstand || {}; const ep = parseNum(a.ep), eps = parseNum(a.eps);
+    const pE = (eq(ep, 3020) || (isFinite(bepS) && eq(ep, r2(bepS + 187.80)))) ? 1 : 0;
+    const pS = (eq(eps, 75.50) || (isFinite(ep) && eq(eps, r2(ep / FALL.stueck)))) ? 1 : 0;
+    const folge = (pE && !eq(ep, 3020)) || (pS && !eq(eps, 75.50));
+    res.einstand = { p: pE + pS, info: `EP gesamt ${pE ? '✓' : '✗'} · EP je Stück ${pS ? '✓' : '✗'}${folge ? ' (Folgefehler berücksichtigt)' : ''}`,
+      soll: 'EP 3.020,00 € · je Bindung 75,50 €',
+      zeilen: [ ['Einstandspreis gesamt', a.ep, '3.020,00 €', pE, pE && !eq(ep, 3020)], ['Einstandspreis je Bindung', a.eps, '75,50 €', pS, pS && !eq(eps, 75.50)] ] }; }
+  // 7 Lehrkraft
+  res.begruendung = { p: ANT.begruendung ?? 0, info: 'Bewertung durch Lehrkraft' };
+  // Korrekturen der Lehrkraft
+  for (const k in OVERRIDE) if (res[k]) { res[k].auto = res[k].p; res[k].p = OVERRIDE[k]; }
+  return res;
+}
+
+/* ---------- Rendering ---------- */
+function setProgress() {
+  const pct = step < 0 ? 0 : step >= AUFGABEN.length ? 100 : (step / AUFGABEN.length) * 100;
+  $('#progress').style.width = pct + '%';
+  $('#headInfo').classList.toggle('hidden', step < 0);
+  $('#headName').textContent = SCHUELER.name + (SCHUELER.klasse ? ' · ' + SCHUELER.klasse : '');
+  $('#headStep').textContent = step < AUFGABEN.length ? `Aufgabe ${step + 1} von ${AUFGABEN.length}` : 'Auswertung';
+}
+
+function renderStart() {
+  zeitErfassen();
+  step = -1; setProgress();
+  $('#app').innerHTML = `
+  <div class="fade bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-10">
+    <div class="text-sm font-semibold uppercase tracking-wider text-navy-500 mb-2">Mündliche Abfrage</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-navy-800 mb-3">Einkaufskalkulation</h1>
+    <p class="text-slate-600 text-lg mb-8">Du hilfst Max Winter beim Einkauf von Snowboard-Bindungen. Es erwarten dich ${AUFGABEN.length} kurze Aufgaben – Theorie und Rechnen im Wechsel.</p>
+    <div class="grid sm:grid-cols-3 gap-4 mb-8">
+      <label class="sm:col-span-2 block">
+        <span class="text-sm font-medium text-slate-600">Name</span>
+        <input id="inName" type="text" autocomplete="off" class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-sky-500" value="${esc(SCHUELER.name)}">
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium text-slate-600">Klasse</span>
+        <input id="inKlasse" type="text" autocomplete="off" class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-sky-500" value="${esc(SCHUELER.klasse)}">
+      </label>
+    </div>
+    <ul class="text-slate-600 space-y-2 mb-8">
+      <li class="flex gap-3"><span class="text-sky-600 font-bold">›</span>Beträge kannst du mit oder ohne „€“ eingeben, z. B. <span class="tab font-medium">1.234,56</span>.</li>
+      <li class="flex gap-3"><span class="text-sky-600 font-bold">›</span>Mit „Zurück“ kannst du Antworten noch ändern, bis du die Abfrage abschließt.</li>
+    </ul>
+    <button id="btnStart" class="w-full sm:w-auto rounded-2xl bg-navy-700 hover:bg-navy-800 active:scale-[.98] transition text-white text-lg font-semibold px-10 py-4">Abfrage starten</button>
+  </div>`;
+  $('#btnStart').onclick = () => {
+    SCHUELER.name = $('#inName').value.trim() || 'Schüler';
+    SCHUELER.klasse = $('#inKlasse').value.trim();
+    ANT = {}; OVERRIDE = {}; orderPool = shuffle(SCHEMA); SCHUELER.start = new Date(); SCHUELER.ende = null; BEMERKUNG = ''; ZEIT = {}; AUFRUFE = {}; aktivStep = null;
+    step = 0; renderStep();
+  };
+}
+
+function karte(a, inner) {
+  const badge = a.art === 'Theorie'
+    ? 'bg-violet-100 text-violet-700' : 'bg-emerald-100 text-emerald-700';
+  return `
+  <div class="fade bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-10">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="w-10 h-10 rounded-xl bg-navy-700 text-white grid place-items-center font-bold text-lg">${step + 1}</span>
+      <span class="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full ${badge}">${a.art}</span>
+      <span class="text-slate-400 font-medium">${a.titel}</span>
+    </div>
+    ${['rabatt', 'skonto', 'einstand'].includes(a.id) ? fallBox() : ''}
+    <h2 class="text-xl md:text-2xl font-semibold text-slate-900 leading-snug mb-2">${a.frage}</h2>
+    ${a.hinweis ? `<p class="text-slate-500 mb-6">${a.hinweis}</p>` : '<div class="mb-6"></div>'}
+    ${inner}
+    <div class="flex justify-between gap-4 mt-10 pt-6 border-t border-slate-100">
+      <button id="btnBack" class="rounded-2xl border border-slate-300 text-slate-600 font-semibold px-6 py-4 active:scale-[.98] transition">Zurück</button>
+      <button id="btnNext" class="rounded-2xl bg-navy-700 text-white font-semibold px-8 py-4 active:scale-[.98] transition">${step === AUFGABEN.length - 1 ? 'Abfrage abschließen' : 'Weiter'}</button>
+    </div>
+  </div>`;
+}
+
+function renderStep() {
+  setProgress();
+  if (aktivStep !== step) {
+    zeitErfassen(); aktivStep = step; stepStart = Date.now();
+    const id = AUFGABEN[step].id; AUFRUFE[id] = (AUFRUFE[id] || 0) + 1;
+  }
+  const a = AUFGABEN[step];
+  let inner = '';
+
+  if (a.typ === 'order') {
+    const seq = ANT.schema || (ANT.schema = []);
+    inner = `
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-sm font-semibold text-slate-500 mb-3">Positionen</div>
+          <div class="flex flex-wrap gap-3">
+            ${orderPool.map(p => seq.includes(p)
+              ? `<span class="rounded-xl border-2 border-dashed border-slate-200 text-slate-300 px-4 py-3 font-medium">${p}</span>`
+              : `<button data-pick="${p}" class="rounded-xl bg-sky-50 border-2 border-sky-300 text-sky-900 px-4 py-3 font-semibold active:scale-95 transition">${p}</button>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-slate-500 mb-3">Schema</div>
+          <ol class="space-y-2">
+            ${SCHEMA.map((_, i) => seq[i]
+              ? `<li><button data-remove="${i}" class="w-full text-left rounded-xl bg-navy-50 border-2 border-navy-200 px-4 py-3 font-semibold text-navy-800 flex gap-3"><span class="text-navy-500 tab w-5">${i + 1}.</span>${seq[i]}</button></li>`
+              : `<li class="rounded-xl border-2 border-dashed border-slate-200 px-4 py-3 text-slate-300 flex gap-3"><span class="tab w-5">${i + 1}.</span>…</li>`).join('')}
+          </ol>
+        </div>
+      </div>`;
+  }
+
+  if (a.typ === 'calc') {
+    const v = ANT[a.id] || (ANT[a.id] = {});
+    inner = a.vorspann() + `
+      <div class="grid sm:grid-cols-2 gap-5">
+        ${a.felder.map(f => `
+          <label class="block">
+            <span class="text-sm font-medium text-slate-600">${f.label}</span>
+            <div class="mt-1 relative">
+              <input data-field="${f.key}" type="text" inputmode="decimal" autocomplete="off" value="${esc(v[f.key] || '')}"
+                class="tab w-full rounded-xl border border-slate-300 pl-4 pr-12 py-4 text-right font-semibold focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-sky-500">
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">€</span>
+            </div>
+          </label>`).join('')}
+      </div>`;
+  }
+
+  if (a.typ === 'multi') {
+    const sel = ANT[a.id] || (ANT[a.id] = []);
+    inner = `<div class="space-y-3">${a.optionen.map((o, i) => {
+      const on = sel.includes(i);
+      return `<button data-opt="${i}" class="w-full text-left rounded-2xl border-2 px-5 py-4 flex items-start gap-4 transition ${on ? 'border-navy-500 bg-navy-50' : 'border-slate-200 bg-white'}">
+        <span class="mt-0.5 w-7 h-7 shrink-0 rounded-lg border-2 grid place-items-center ${on ? 'bg-navy-600 border-navy-600 text-white' : 'border-slate-300'}">${on ? '✓' : ''}</span>
+        <span class="text-lg">${o.t}</span></button>`; }).join('')}</div>`;
+  }
+
+  if (a.typ === 'sort') {
+    const z = ANT[a.id] || (ANT[a.id] = {});
+    inner = `<div class="divide-y divide-slate-100 rounded-2xl border border-slate-200 overflow-hidden">${a.items.map((it, i) => `
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 bg-white">
+        <span class="text-lg">${it.t}</span>
+        <div class="flex gap-2 shrink-0">
+          <button data-sort="${i}" data-val="1" class="w-28 rounded-xl border-2 py-3 font-semibold transition ${z[i] === true ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-200 text-slate-600'}">Ja</button>
+          <button data-sort="${i}" data-val="0" class="w-28 rounded-xl border-2 py-3 font-semibold transition ${z[i] === false ? 'bg-rose-600 border-rose-600 text-white' : 'border-slate-200 text-slate-600'}">Nein</button>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+
+  if (a.typ === 'teacher') {
+    const v = ANT[a.id];
+    inner = `
+      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-6 text-slate-500 text-center text-lg mb-6">🎙️ Mündliche Antwort</div>
+      <details class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+        <summary class="cursor-pointer font-semibold text-amber-800">Lehrkraft: Erwartungshorizont und Bewertung</summary>
+        <ul class="mt-4 space-y-2 text-amber-900">${a.erwartung.map(e => `<li class="flex gap-3"><span>•</span><span>${e}</span></li>`).join('')}</ul>
+        <div class="mt-5 flex gap-3">
+          ${[0, 1, 2].map(p => `<button data-rate="${p}" class="flex-1 rounded-xl border-2 py-3 font-bold text-lg transition ${v === p ? 'bg-amber-600 border-amber-600 text-white' : 'border-amber-300 text-amber-800 bg-white'}">${p}</button>`).join('')}
+        </div>
+      </details>`;
+  }
+
+  $('#app').innerHTML = karte(a, inner);
+
+  // Ereignisse
+  document.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { ANT.schema.push(b.dataset.pick); renderStep(); });
+  document.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { ANT.schema.splice(+b.dataset.remove, 1); renderStep(); });
+  document.querySelectorAll('[data-field]').forEach(inp => inp.oninput = () => { ANT[a.id][inp.dataset.field] = inp.value; });
+  document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.opt, s = ANT[a.id]; const k = s.indexOf(i);
+    k >= 0 ? s.splice(k, 1) : s.push(i); renderStep(); });
+  document.querySelectorAll('[data-sort]').forEach(b => b.onclick = () => { ANT[a.id][b.dataset.sort] = b.dataset.val === '1'; renderStep(); });
+  document.querySelectorAll('[data-rate]').forEach(b => b.onclick = () => { ANT[a.id] = +b.dataset.rate; renderStep(); $('details').open = true; });
+
+  $('#btnBack').onclick = () => { step === 0 ? renderStart() : (step--, renderStep()); };
+  $('#btnNext').onclick = () => {
+    if (a.typ === 'teacher' && ANT[a.id] == null) {
+      const d = $('details'); d.open = true; d.classList.add('ring-4', 'ring-amber-300'); return;
+    }
+    step++; step < AUFGABEN.length ? renderStep() : renderErgebnis();
+  };
+}
+
+const OFFEN = new Set();
+const mark = ok => ok
+  ? '<span class="inline-grid place-items-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">✓</span>'
+  : '<span class="inline-grid place-items-center w-7 h-7 rounded-full bg-rose-100 text-rose-700 font-bold">✗</span>';
+const zelle = (v, ok) => `<span class="${ok ? 'text-slate-800' : 'text-rose-700 font-semibold'}">${v}</span>`;
+function tabelle(kopf, zeilen) {
+  return `<div class="overflow-x-auto"><table class="w-full text-left">
+    <thead><tr class="text-xs uppercase tracking-wider text-slate-400">${kopf.map(k => `<th class="py-2 pr-4 font-semibold">${k}</th>`).join('')}<th class="py-2 w-10"></th></tr></thead>
+    <tbody class="divide-y divide-slate-200">${zeilen.map(z => `<tr>${z.cells.map(c => `<td class="py-3 pr-4 align-top">${c}</td>`).join('')}<td class="py-3 align-top">${mark(z.ok)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+/* Gemeinsame Datenbasis für Bildschirm und PDF */
+function detailDaten(a, r) {
+  const leer = '– keine Angabe –';
+  if (a.typ === 'order') {
+    const seq = ANT.schema || [];
+    return { kopf: ['Nr.', 'Antwort', 'Lösung'], zeilen: SCHEMA.map((s, i) => ({ ok: seq[i] === s, cells: [`${i + 1}.`, seq[i] || leer, s] })) };
+  }
+  if (a.typ === 'calc') {
+    return { kopf: ['Position', 'Eingabe', 'Lösung'], zeilen: r.zeilen.map(([lab, ein, soll, ok, folge]) => {
+      const n = parseNum(ein);
+      return { ok: !!ok, cells: [lab, isFinite(n) ? eur(n) : (ein ? ein : leer), soll],
+        hint: folge ? 'Folgefehler – mit dem eigenen Ergebnis richtig weitergerechnet' : '' }; }) };
+  }
+  if (a.typ === 'multi') {
+    const sel = ANT[a.id] || [];
+    return { kopf: ['Aussage', 'Wahl', 'Lösung'], zeilen: a.optionen.map((o, i) => {
+      const gew = sel.includes(i);
+      return { ok: gew === o.ok, cells: [o.t, gew ? 'ausgewählt' : 'nicht ausgewählt', o.ok ? 'trifft zu' : 'trifft nicht zu'] }; }) };
+  }
+  if (a.typ === 'sort') {
+    const z = ANT[a.id] || {};
+    return { kopf: ['Kosten', 'Zuordnung', 'Lösung'], zeilen: a.items.map((it, i) => ({
+      ok: z[i] === it.ok, cells: [it.t, z[i] === true ? 'Ja' : z[i] === false ? 'Nein' : leer, it.ok ? 'Ja' : 'Nein'] })) };
+  }
+  return null;
+}
+function details(a, r) {
+  if (a.typ === 'teacher') {
+    return `<div class="text-sm font-semibold text-slate-500 mb-2">Erwartungshorizont</div>
+      <ul class="space-y-2">${a.erwartung.map(e => `<li class="flex gap-3"><span class="text-navy-500">•</span><span>${e}</span></li>`).join('')}</ul>`;
+  }
+  const d = detailDaten(a, r);
+  return tabelle(d.kopf, d.zeilen.map(z => ({ ok: z.ok, cells: [
+    a.typ === 'order' ? `<span class="tab text-slate-400">${z.cells[0]}</span>` : z.cells[0],
+    zelle(z.cells[1], z.ok),
+    (a.typ === 'multi' && z.cells[2] === 'trifft zu' ? '<b>trifft zu</b>' : z.cells[2]) +
+      (z.hint ? `<div class="text-xs text-amber-600 font-medium mt-1">${z.hint}</div>` : '') ] })));
+}
+
+/* ---------- Dokumentation als PDF ---------- */
+function pdfErstellen(res, sum, n) {
+  if (!window.jspdf || !window.jspdf.jsPDF) { alert('Die PDF-Bibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen und die Seite neu laden (die Eingaben bleiben dabei leider nicht erhalten).'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 16, BW = W - 2 * M;
+  const NAVY = [23, 47, 87], GRAU = [100, 116, 139], HELL = [238, 242, 248], GRUEN = [4, 120, 87], ROT = [190, 18, 60], AMBER = [180, 83, 9];
+  const clean = s => String(s).replace(/<[^>]+>/g, '').replace(/∙/g, '·').replace(/−/g, '-');
+  const datum = SCHUELER.start.toLocaleDateString('de-DE');
+  const zeit = d => d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  let y = 0;
+  const platz = need => { if (y + need > 280) { doc.addPage(); y = 18; } };
+  const text = (t, x, size = 9.5, style = 'normal', color = [30, 41, 59], maxW = BW) => {
+    doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(clean(t), maxW); platz(lines.length * size * 0.42 + 1);
+    doc.text(lines, x, y); y += lines.length * size * 0.42 + 1.2; return lines.length;
+  };
+
+  // Kopf
+  doc.setFillColor(...NAVY); doc.rect(0, 0, W, 26, 'F');
+  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+  doc.text('Mündliche Abfrage BwR – Einkaufskalkulation', M, 12);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.text('Dokumentation der Einzelabfrage', M, 19);
+  doc.text('Modellunternehmen: SnowPro Max Winter e. K., Bad Reichenhall', W - M, 19, { align: 'right' });
+  y = 34;
+
+  // Stammdaten + Ergebnis
+  doc.autoTable({ startY: y, margin: { left: M, right: M + 52 }, theme: 'plain', styles: { fontSize: 9.5, cellPadding: 1.2 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 32, textColor: GRAU } },
+    body: [ ['Schüler', SCHUELER.name], ['Klasse', SCHUELER.klasse || '–'], ['Datum', datum],
+            ['Uhrzeit', `${zeit(SCHUELER.start)} – ${zeit(SCHUELER.ende || new Date())} Uhr`], ['Bearbeitungszeit', dauer(AUFGABEN.reduce((s, a) => s + (ZEIT[a.id] || 0), 0))], ['Thema', 'Einkaufskalkulation (Bezugskalkulation)'] ] });
+  doc.setFillColor(...HELL); doc.roundedRect(W - M - 48, y, 48, 31, 3, 3, 'F');
+  doc.setTextColor(...GRAU); doc.setFontSize(8.5); doc.setFont('helvetica', 'normal');
+  doc.text('Punkte', W - M - 36, y + 7, { align: 'center' }); doc.text('Note', W - M - 12, y + 7, { align: 'center' });
+  doc.setTextColor(...NAVY); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+  doc.text(`${sum}/${MAX}`, W - M - 36, y + 20, { align: 'center' }); doc.text(String(n), W - M - 12, y + 20, { align: 'center' });
+  y = Math.max(doc.lastAutoTable.finalY, y + 31) + 6;
+
+  // Übersicht
+  text('Übersicht', M, 11.5, 'bold', NAVY);
+  doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid',
+    headStyles: { fillColor: NAVY, fontSize: 8.5 }, styles: { fontSize: 8.5, cellPadding: 1.6, lineColor: [203, 213, 225] },
+    columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 2: { cellWidth: 18 }, 3: { cellWidth: 20, halign: 'center' }, 4: { cellWidth: 20, halign: 'center' }, 5: { cellWidth: 52 } },
+    head: [['Nr.', 'Aufgabe', 'Art', 'Punkte', 'Zeit', 'Hinweis']],
+    body: [ ...AUFGABEN.map((a, i) => { const r = res[a.id];
+      const h = []; if (/Folgefehler/.test(r.info)) h.push('Folgefehler berücksichtigt');
+      if (r.auto != null && r.auto !== r.p) h.push(`von Lehrkraft korrigiert (automatisch: ${r.auto})`);
+      if (a.typ === 'teacher') h.push('mündlich, Bewertung durch Lehrkraft');
+      if ((AUFRUFE[a.id] || 0) > 1) h.push(`${AUFRUFE[a.id]}-mal aufgerufen`);
+      return [i + 1, a.titel, a.art, `${r.p} von ${a.max}`, dauer(ZEIT[a.id]), h.join('; ')]; }),
+      [{ content: 'Gesamt', colSpan: 3, styles: { fontStyle: 'bold', halign: 'right' } }, { content: `${sum} von ${MAX}`, styles: { fontStyle: 'bold', halign: 'center' } }, { content: dauer(AUFGABEN.reduce((s, a) => s + (ZEIT[a.id] || 0), 0)), styles: { fontStyle: 'bold', halign: 'center' } }, { content: `Note ${n}`, styles: { fontStyle: 'bold' } }] ] });
+  y = doc.lastAutoTable.finalY + 6;
+
+  // So wurde bewertet
+  text('So wurde bewertet', M, 11.5, 'bold', NAVY);
+  [ 'Die Antworten wurden direkt auf dem iPad eingegeben und automatisch mit der Musterlösung verglichen (Beträge auf den Cent genau).',
+    'Folgefehler: Rechnet der Schüler mit einem eigenen falschen Zwischenergebnis richtig weiter, wird der folgende Schritt als richtig gewertet. Ein Fehler wird also nur einmal abgezogen.',
+    'Aufgabe 7 wurde mündlich beantwortet und von der Lehrkraft anhand des unten abgedruckten Erwartungshorizonts bewertet.',
+    'Korrekturen der Lehrkraft an der automatischen Bewertung sind in der Übersicht und bei der jeweiligen Aufgabe ausgewiesen.',
+    'Die Zeit je Aufgabe wurde automatisch erfasst (Summe aller Aufrufe der Aufgabe). Sie dient nur der Dokumentation und fließt nicht in die Bewertung ein.' ]
+    .forEach(t => { platz(6); doc.setFillColor(...NAVY); doc.circle(M + 1.2, y - 1.2, 0.7, 'F'); text(t, M + 4, 9, 'normal', [51, 65, 85], BW - 4); });
+  y += 3;
+
+  // Situation
+  text('Situation', M, 11.5, 'bold', NAVY);
+  text(`SnowPro bestellt bei der Bindungswerk Alpin GmbH in Rosenheim ${FALL.stueck} Snowboard-Bindungen zu je ${eur(FALL.preis)} netto. Der Lieferer gewährt ${FALL.rabattPct} % Liefererrabatt und bei Zahlung innerhalb von 10 Tagen ${FALL.skontoPct} % Liefererskonto. Für den Transport fallen 150,00 € Fracht und 37,80 € Transportversicherung an.`, M, 9.5);
+  y += 3;
+
+  // Aufgaben im Detail
+  AUFGABEN.forEach((a, i) => {
+    const r = res[a.id];
+    const zeilenZahl = a.typ === 'teacher' ? a.erwartung.length : detailDaten(a, r).zeilen.length;
+    platz(34 + zeilenZahl * 8.5);
+    doc.setFillColor(...HELL); doc.rect(M, y - 4.5, BW, 7, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...NAVY);
+    doc.text(`Aufgabe ${i + 1}: ${a.titel}`, M + 2, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...GRAU);
+    doc.text(`${a.art} · Zeit ${dauer(ZEIT[a.id])} · ${r.p} von ${a.max} Punkten`, W - M - 2, y, { align: 'right' });
+    y += 7;
+    text(a.frage, M, 9.5, 'italic', [51, 65, 85]);
+    if (a.typ === 'teacher') {
+      doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid', headStyles: { fillColor: [148, 163, 184], fontSize: 8.5 },
+        styles: { fontSize: 8.5, cellPadding: 1.6, lineColor: [203, 213, 225] }, head: [['Erwartungshorizont']], body: a.erwartung.map(e => [e]) });
+      y = doc.lastAutoTable.finalY + 4;
+      text(`Bewertung durch die Lehrkraft: ${ANT.begruendung ?? 0} von ${a.max} Punkten`, M, 9, 'bold');
+    } else {
+      const d = detailDaten(a, r);
+      doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid',
+        headStyles: { fillColor: [148, 163, 184], fontSize: 8.5 }, styles: { fontSize: 8.5, cellPadding: 1.6, lineColor: [203, 213, 225] },
+        columnStyles: a.typ === 'order' ? { 0: { cellWidth: 12 }, 3: { cellWidth: 22 } } : { 3: { cellWidth: 22 } },
+        head: [[d.kopf[0], d.kopf[1] + ' des Schülers', d.kopf[2], 'Bewertung']],
+        body: d.zeilen.map(z => [z.cells[0], z.cells[1], z.cells[2] + (z.hint ? '\n' + z.hint : ''), z.ok ? 'richtig' : 'falsch']),
+        didParseCell: c => { if (c.section === 'body') {
+          const z = d.zeilen[c.row.index];
+          if (c.column.index === 3) { c.cell.styles.textColor = z.ok ? GRUEN : ROT; c.cell.styles.fontStyle = 'bold'; }
+          if (c.column.index === 1 && !z.ok) { c.cell.styles.textColor = ROT; c.cell.styles.fontStyle = 'bold'; }
+          if (c.column.index === 2 && z.hint) c.cell.styles.textColor = AMBER; } } });
+      y = doc.lastAutoTable.finalY + 4;
+    }
+    text(`Bewertungsregel: ${a.regel}`, M, 8.5, 'normal', GRAU);
+    if (r.auto != null && r.auto !== r.p) text(`Korrektur durch die Lehrkraft: automatisch ${r.auto} Punkt(e), gewertet ${r.p} Punkt(e).`, M, 8.5, 'bold', AMBER);
+    y += 4;
+  });
+
+  // Notenschlüssel
+  platz(30);
+  text('Notenschlüssel', M, 11.5, 'bold', NAVY);
+  doc.autoTable({ startY: y, margin: { left: M, right: M }, theme: 'grid', styles: { fontSize: 9, halign: 'center', cellPadding: 1.6, lineColor: [203, 213, 225] },
+    head: [['Note', ...SCHLUESSEL.map(([nn]) => String(nn))]], headStyles: { fillColor: NAVY },
+    body: [['Punkte', ...SCHLUESSEL.map(([nn, p], i) => { const von = grenze(p), bis = i === 0 ? MAX : grenze(SCHLUESSEL[i - 1][1]) - 0.5;
+      return `${String(von).replace('.', ',')} – ${String(bis).replace('.', ',')}`; })]],
+    didParseCell: c => { if (c.column.index === n) { c.cell.styles.fillColor = c.section === 'head' ? [56, 189, 248] : [224, 242, 254]; c.cell.styles.fontStyle = 'bold'; } } });
+  y = doc.lastAutoTable.finalY + 6;
+
+  // Bemerkung
+  if (BEMERKUNG.trim()) { platz(20); text('Bemerkung der Lehrkraft', M, 11.5, 'bold', NAVY); text(BEMERKUNG.trim(), M, 9.5); y += 3; }
+
+  // Unterschriften
+  if (y + 16 > 284) { doc.addPage(); y = 18; } y += 10;
+  doc.setDrawColor(148, 163, 184); doc.setLineWidth(0.3);
+  doc.line(M, y, M + 75, y); doc.line(W - M - 75, y, W - M, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...GRAU);
+  doc.text('Datum, Unterschrift der Lehrkraft', M, y + 4); doc.text('Kenntnisnahme der Erziehungsberechtigten', W - M - 75, y + 4);
+
+  // Fußzeile
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) { doc.setPage(i); doc.setFontSize(7.5); doc.setTextColor(...GRAU);
+    doc.text(`Mündliche Abfrage Einkaufskalkulation · ${SCHUELER.name}${SCHUELER.klasse ? ', ' + SCHUELER.klasse : ''} · ${datum}`, M, 290);
+    doc.text(`Seite ${i} von ${pages}`, W - M, 290, { align: 'right' }); }
+
+  const iso = SCHUELER.start.toISOString().slice(0, 10);
+  const fname = `Abfrage_Einkaufskalkulation_${(SCHUELER.klasse ? SCHUELER.klasse + '_' : '') + SCHUELER.name}_${iso}`.replace(/[^\wäöüÄÖÜß.-]+/g, '_') + '.pdf';
+  doc.save(fname);
+}
+
+function renderErgebnis() {
+  step = AUFGABEN.length; setProgress();
+  zeitErfassen();
+  if (!SCHUELER.ende) SCHUELER.ende = new Date();
+  const res = bewerte();
+  const sum = AUFGABEN.reduce((s, a) => s + res[a.id].p, 0);
+  const n = note(sum);
+  const notenFarbe = n <= 2 ? 'from-emerald-500 to-emerald-600' : n <= 4 ? 'from-sky-500 to-navy-600' : 'from-rose-500 to-rose-600';
+  const datum = new Date().toLocaleDateString('de-DE');
+
+  $('#app').innerHTML = `
+  <div class="fade space-y-6">
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="text-sm font-semibold uppercase tracking-wider text-navy-500 mb-1">Ergebnis</div>
+          <h1 class="text-3xl font-extrabold text-navy-800">${esc(SCHUELER.name)}</h1>
+          <div class="text-slate-500">${SCHUELER.klasse ? esc(SCHUELER.klasse) + ' · ' : ''}${datum} · Einkaufskalkulation</div>
+        </div>
+        <div class="flex gap-4">
+          <div class="rounded-2xl bg-slate-100 px-6 py-4 text-center">
+            <div class="text-sm text-slate-500">Punkte</div>
+            <div class="text-4xl font-extrabold text-slate-900 tab">${sum}<span class="text-xl text-slate-400 font-semibold"> / ${MAX}</span></div>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br ${notenFarbe} text-white px-6 py-4 text-center min-w-[110px]">
+            <div class="text-sm opacity-80">Note</div>
+            <div class="text-4xl font-extrabold">${n}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 md:px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-3"><h2 class="font-bold text-lg text-navy-800">Einzelbewertung</h2>
+          <button id="btnAlle" class="text-sm font-semibold text-sky-700 bg-sky-50 rounded-lg px-3 py-1.5">${OFFEN.size === AUFGABEN.length ? 'Alle zuklappen' : 'Alle aufklappen'}</button></div>
+        <span class="text-sm text-slate-400">Antippen zeigt Fehler · Punkte mit − / + korrigierbar</span>
+      </div>
+      <div class="divide-y divide-slate-100">
+        ${AUFGABEN.map((a, i) => { const r = res[a.id]; return `
+        <details data-det="${a.id}" ${OFFEN.has(a.id) ? 'open' : ''} class="group">
+        <summary class="list-none [&::-webkit-details-marker]:hidden cursor-pointer px-6 md:px-8 py-4 flex items-center gap-4 ${r.p < a.max ? 'bg-rose-50/40' : ''}">
+          <svg class="w-5 h-5 text-slate-400 shrink-0 transition-transform group-open:rotate-90" viewBox="0 0 20 20" fill="currentColor"><path d="M7.3 4.3a1 1 0 0 1 1.4 0l5 5a1 1 0 0 1 0 1.4l-5 5a1 1 0 0 1-1.4-1.4L11.6 10 7.3 5.7a1 1 0 0 1 0-1.4z"/></svg>
+          <span class="w-8 h-8 rounded-lg bg-navy-50 text-navy-700 grid place-items-center font-bold shrink-0">${i + 1}</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold">${a.titel} <span class="text-xs font-medium text-slate-400 ml-1">${a.art}</span></div>
+            <div class="text-sm text-slate-500">${r.info}${r.soll ? ` <span class="text-slate-400">· Soll: ${r.soll}</span>` : ''}${r.auto != null && r.auto !== r.p ? ` <span class="text-amber-600 font-medium">· korrigiert (auto: ${r.auto})</span>` : ''}</div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button data-adj="${a.id}" data-d="-1" class="w-10 h-10 rounded-xl border border-slate-300 text-lg font-bold text-slate-600">−</button>
+            <span class="w-14 text-center font-bold tab text-lg">${r.p}/${a.max}</span>
+            <button data-adj="${a.id}" data-d="1" class="w-10 h-10 rounded-xl border border-slate-300 text-lg font-bold text-slate-600">+</button>
+          </div>
+        </summary>
+        <div class="px-6 md:px-8 pb-6 pt-2 ml-0 md:ml-14">
+          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 md:p-5">${details(a, r)}</div>
+        </div>
+        </details>`; }).join('')}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+      <h2 class="font-bold text-lg text-navy-800 mb-4">Notenschlüssel</h2>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+        ${SCHLUESSEL.map(([nn, p], i) => {
+          const von = grenze(p), bis = i === 0 ? MAX : grenze(SCHLUESSEL[i - 1][1]) - 0.5;
+          return `<div class="rounded-xl border ${nn === n ? 'border-navy-600 bg-navy-50' : 'border-slate-200'} p-3 text-center">
+            <div class="text-2xl font-extrabold ${nn === n ? 'text-navy-700' : 'text-slate-700'}">${nn}</div>
+            <div class="text-sm text-slate-500 tab">${String(von).replace('.', ',')}–${String(bis).replace('.', ',')}</div></div>`; }).join('')}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+      <h2 class="font-bold text-lg text-navy-800 mb-1">Dokumentation</h2>
+      <p class="text-slate-500 mb-4">Erstellt eine PDF mit allen Antworten, Lösungen, Bewertungsregeln, Korrekturen und dem Notenschlüssel – z. B. zur Vorlage bei den Eltern.</p>
+      <label class="block mb-4">
+        <span class="text-sm font-medium text-slate-600">Bemerkung der Lehrkraft (optional, erscheint in der PDF)</span>
+        <textarea id="inBem" rows="3" class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-sky-500">${esc(BEMERKUNG)}</textarea>
+      </label>
+      <button id="btnPdf" class="w-full sm:w-auto rounded-2xl bg-sky-600 text-white font-semibold px-8 py-4 flex items-center justify-center gap-3 active:scale-[.98] transition">
+        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 0 1 1 1v8.6l2.3-2.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L9 11.6V3a1 1 0 0 1 1-1zM4 15a1 1 0 0 1 1 1v1h10v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1z"/></svg>
+        Dokumentation als PDF sichern</button>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-between">
+      <button id="btnReview" class="rounded-2xl border border-slate-300 bg-white text-slate-600 font-semibold px-6 py-4">Zurück zu Aufgabe 7</button>
+      <button id="btnNew" class="rounded-2xl bg-navy-700 text-white font-semibold px-8 py-4">Nächste Abfrage starten</button>
+    </div>
+  </div>`;
+
+  document.querySelectorAll('[data-det]').forEach(d => d.addEventListener('toggle', () => { d.open ? OFFEN.add(d.dataset.det) : OFFEN.delete(d.dataset.det); }));
+  $('#btnAlle').onclick = () => { if (OFFEN.size === AUFGABEN.length) OFFEN.clear(); else AUFGABEN.forEach(a => OFFEN.add(a.id)); renderErgebnis(); };
+  document.querySelectorAll('[data-adj]').forEach(b => b.onclick = (e) => { e.preventDefault(); e.stopPropagation();
+    const id = b.dataset.adj, a = AUFGABEN.find(x => x.id === id);
+    const cur = res[id].p + (+b.dataset.d);
+    OVERRIDE[id] = Math.min(a.max, Math.max(0, cur));
+    if (OVERRIDE[id] === (res[id].auto ?? res[id].p) && res[id].auto === OVERRIDE[id]) delete OVERRIDE[id];
+    renderErgebnis();
+  });
+  $('#inBem').oninput = e => { BEMERKUNG = e.target.value; };
+  $('#btnPdf').onclick = () => pdfErstellen(res, sum, n);
+  $('#btnReview').onclick = () => { SCHUELER.ende = null; step = AUFGABEN.length - 1; renderStep(); };
+  $('#btnNew').onclick = () => {
+    if (!confirm('Dokumentation gesichert? Alle Eingaben dieser Abfrage werden zurückgesetzt.')) return;
+    SCHUELER = { name: '', klasse: SCHUELER.klasse }; ANT = {}; OVERRIDE = {}; OFFEN.clear(); renderStart();
+  };
+}
+
+renderStart();
+</script>
+</body>
+</html>
