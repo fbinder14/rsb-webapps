@@ -675,5 +675,12 @@
     "beschreibung": "Belege ordnen und analysieren: Einnahmen und Ausgaben einer Familie erfassen.",
     "kategorie": "BWR",
     "lernbereich": "BwR7-IIIa-1"
+  },
+  "abfrage_einkaufskalkulation.html": {
+    "fach": "BWR",
+    "stufe": "8",
+    "beschreibung": "Übung zur Einkaufskalkulation: Rabatt, Skonto, Bezugskosten und Einstandspreis",
+    "kategorie": "BWR",
+    "lernbereich": "BwR8-IIIa-2"
   }
 }
